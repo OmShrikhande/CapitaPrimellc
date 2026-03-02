@@ -203,4 +203,93 @@ export const adminAPI = {
       }, `PUT-${API_BASE_URL}/api/admin/themes/${themeId}/activate-${Date.now()}`);
     },
   },
+
+  // Asset API functions
+  assets: {
+    // Get all assets (public)
+    getAll: async () => {
+      return cachedRequest(`${API_BASE_URL}/api/assets`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+
+    // Get single asset (public)
+    get: async (id) => {
+      return cachedRequest(`${API_BASE_URL}/api/assets/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+
+    // Create new asset (admin only)
+    create: async (assetData) => {
+      const formData = new FormData();
+
+      // Add text fields
+      Object.keys(assetData).forEach(key => {
+        if (key !== 'image' && assetData[key] !== undefined) {
+          formData.append(key, assetData[key]);
+        }
+      });
+
+      // Add image file if provided
+      if (assetData.image) {
+        formData.append('image', assetData.image);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/assets`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+        },
+        body: formData,
+      });
+
+      return handleResponse(response);
+    },
+
+    // Update asset (admin only)
+    update: async (id, assetData) => {
+      const formData = new FormData();
+
+      // Add text fields
+      Object.keys(assetData).forEach(key => {
+        if (key !== 'image' && assetData[key] !== undefined) {
+          formData.append(key, assetData[key]);
+        }
+      });
+
+      // Add image file if provided
+      if (assetData.image) {
+        formData.append('image', assetData.image);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+        },
+        body: formData,
+      });
+
+      return handleResponse(response);
+    },
+
+    // Delete asset (admin only)
+    delete: async (id) => {
+      const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
+        method: 'DELETE',
+        headers: {
+          ...getAuthHeaders(),
+        },
+      });
+
+      return handleResponse(response);
+    },
+  },
 };

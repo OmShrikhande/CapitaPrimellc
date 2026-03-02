@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 
 // Import routes
 const healthRoutes = require('./routes/health');
@@ -180,6 +181,9 @@ app.use((req, res, next) => {
 // API routes
 app.use('/', healthRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Static files for uploads
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // 404 handler
 app.use((req, res) => {

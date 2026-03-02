@@ -1,25 +1,137 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { adminAPI } from '../../context/api';
 
+// Helper function to convert RGBA to hex
+const rgbaToHex = (rgba) => {
+  if (!rgba || !rgba.startsWith('rgba(')) return '#000000';
+
+  const matches = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  if (!matches) return '#000000';
+
+  const r = parseInt(matches[1]);
+  const g = parseInt(matches[2]);
+  const b = parseInt(matches[3]);
+
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+};
+
 // ColorControl Component
-const ColorControl = ({ label, description, value, onChange, disabled = false }) => (
-  <div className="flex items-center justify-between group">
-    <div className="flex-1">
-      <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1 transition-colors group-hover:text-[var(--theme-primary)]">{label}</p>
-      <p className="text-[9px] text-gray-700 font-bold uppercase">{description}</p>
+const ColorControl = ({ label, description, value, onChange, disabled = false }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value || '');
+
+  // Determine if this is a simple hex color that can be edited
+  const isEditableHex = value && value.startsWith('#') && value.length === 7;
+  const isRgbaColor = value && value.startsWith('rgba(');
+  const isComplexColor = value && (value.includes('linear-gradient') || value.includes('var(') || (!isEditableHex && !isRgbaColor));
+
+  // Get display color for preview
+  const getDisplayColor = () => {
+    if (isEditableHex) return value;
+    if (isRgbaColor) return rgbaToHex(value);
+    return '#000000'; // fallback for complex colors
+  };
+
+  const handleManualEdit = () => {
+    if (disabled) return;
+    setIsEditing(true);
+    setEditValue(value || '');
+  };
+
+  const handleSaveEdit = () => {
+    if (editValue !== value) {
+      onChange(editValue);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditValue(value || '');
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="flex items-center justify-between group">
+      <div className="flex-1">
+        <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1 transition-colors group-hover:text-[var(--theme-primary)]">{label}</p>
+        <p className="text-[9px] text-gray-700 font-bold uppercase">{description}</p>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex flex-col items-end gap-1">
+          {isEditing ? (
+            <div className="flex flex-col gap-1">
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit();
+                  if (e.key === 'Escape') handleCancelEdit();
+                }}
+                onBlur={handleSaveEdit}
+                className="text-xs font-mono bg-black/50 border border-white/20 rounded px-2 py-1 min-w-[120px] text-white/80"
+                placeholder="Enter color value"
+                autoFocus
+              />
+              <div className="flex gap-1">
+                <button
+                  onClick={handleSaveEdit}
+                  className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30 hover:bg-green-500/30"
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/30"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <span
+                className="text-xs font-mono text-white/50 min-w-[80px] truncate cursor-pointer hover:text-white/70"
+                title={value}
+                onClick={handleManualEdit}
+              >
+                {value && value.length > 12 ? `${value.substring(0, 12)}...` : value}
+              </span>
+              {isComplexColor && (
+                <div
+                  className="w-6 h-6 rounded border border-white/10 cursor-pointer"
+                  style={{ background: value }}
+                  title="Complex color preview - click to edit"
+                  onClick={handleManualEdit}
+                />
+              )}
+            </>
+          )}
+        </div>
+        {isEditableHex && !isEditing ? (
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 p-1 cursor-pointer transition-transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+        ) : (
+          <div
+            className={`w-12 h-12 rounded-xl border border-white/10 p-1 flex items-center justify-center ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-white/20'}`}
+            style={{ backgroundColor: getDisplayColor() }}
+            title={isRgbaColor ? "RGBA color - click value to edit" : isComplexColor ? "Complex color - click to edit" : "Color preview"}
+            onClick={handleManualEdit}
+          >
+            <span className="text-white/30 text-xs">
+              {isRgbaColor ? 'RGBA' : isComplexColor ? 'CSS' : '⚪'}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
-    <div className="flex items-center gap-4">
-      <span className="text-xs font-mono text-white/50 min-w-[80px]">{value}</span>
-      <input
-        type="color"
-        value={value && value.startsWith('#') ? value : '#000000'}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 p-1 cursor-pointer transition-transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-      />
-    </div>
-  </div>
-);
+  );
+};
 
 const ThemeView = () => {
   const [theme, setTheme] = useState({

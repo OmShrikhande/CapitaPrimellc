@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { useCMS } from '../context/useCMS';
+import { adminAPI } from '../context/api';
 
 const ALL_PROPERTIES = [
   {
@@ -718,14 +718,53 @@ const PropertyCard = ({ property, index, onClick }) => {
 };
 
 const ListingsPage = () => {
-  const { data } = useCMS();
-  const { properties } = data;
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        setLoading(true);
+        const response = await adminAPI.assets.getAll();
+        if (response.success) {
+          // Transform assets to match the expected property format for the UI
+          const transformedAssets = response.data.map(asset => ({
+            title: asset.name,
+            location: asset.location || 'Dubai, UAE',
+            area: 'N/A', // Assets don't have area, using placeholder
+            price: 'Contact for Price', // Assets don't have price, using placeholder
+            category: asset.type || 'Asset',
+            badge: asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK',
+            gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
+            accent: '#1a4d1a',
+            features: [
+              `Quantity: ${asset.quantity || 0}`,
+              asset.location ? `Location: ${asset.location}` : 'Location: TBD'
+            ].filter(Boolean),
+            description: asset.description,
+            imageUrl: asset.imageUrl
+          }));
+          setAssets(transformedAssets);
+        }
+      } catch (err) {
+        setError('Failed to load assets');
+        console.error('Error loading assets:', err);
+        // Fallback to hardcoded properties if API fails
+        setAssets(ALL_PROPERTIES);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAssets();
+  }, []);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
-    
+
     // Setup observer for animations
     const obs = new IntersectionObserver(
       (entries) => {
@@ -741,7 +780,7 @@ const ListingsPage = () => {
 
     const SELECTORS = '.animate-on-scroll, .animate-on-scroll-left, .animate-on-scroll-right';
     document.querySelectorAll(SELECTORS).forEach((el) => obs.observe(el));
-    
+
     return () => obs.disconnect();
   }, []);
 
@@ -785,11 +824,17 @@ const ListingsPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {properties.map((property, i) => (
-              <PropertyCard key={i} property={property} index={i} onClick={() => openModal(property)} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-gold text-lg">Loading assets...</div>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {assets.map((asset, i) => (
+                <PropertyCard key={i} property={asset} index={i} onClick={() => openModal(asset)} />
+              ))}
+            </div>
+          )}
         </div>
       </main>
 

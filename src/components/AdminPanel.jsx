@@ -4,7 +4,7 @@ import { adminAPI } from '../context/api';
 import SystemClock from './admin/SystemClock';
 import CommandPalette from './admin/CommandPalette';
 import DashboardView from './admin/DashboardView';
-import PropertiesView from './admin/PropertiesView';
+import AssetsView from './admin/AssetsView';
 import ContentView from './admin/ContentView';
 import ServicesView from './admin/ServicesView';
 import TestimonialsView from './admin/TestimonialsView';
@@ -265,7 +265,7 @@ const AdminPanel = () => {
         <nav className="flex-1 px-4 space-y-1">
           <p className="px-6 mb-4 text-[9px] text-gray-600 font-black tracking-widest uppercase opacity-40">Main Menu</p>
           <SidebarItem id="dashboard" label="Nexus Overview" icon="🛰️" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <SidebarItem id="properties" label="Asset Base" icon="🏔️" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="assets" label="Asset Inventory" icon="📦" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="offers" label="Offers Matrix" icon="🏷️" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="content" label="Site Architect" icon="🏗️" activeTab={activeTab} setActiveTab={setActiveTab} />
           
@@ -326,14 +326,7 @@ const AdminPanel = () => {
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           <div className="w-full">
             {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} />}
-            {activeTab === 'properties' && (
-              <PropertiesView
-                properties={data.properties}
-                addProperty={addProperty}
-                updateProperty={updateProperty}
-                deleteProperty={deleteProperty}
-              />
-            )}
+            {activeTab === 'assets' && <AssetsView />}
             {activeTab === 'offers' && (
               <OffersView
                 offers={data.offers}
