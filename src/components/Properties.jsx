@@ -1,0 +1,378 @@
+import { useRef } from 'react';
+import useReveal from '../hooks/useReveal';
+
+const PROPERTIES = [
+  {
+    title: 'Emirates Hills Grand Estate',
+    location: 'Emirates Hills, Dubai',
+    area: '15,000',
+    price: '18,500,000',
+    category: 'Residential',
+    badge: 'EXCLUSIVE',
+    gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
+    accent: '#1a4d1a',
+    features: ['Sea View', 'Corner Plot', 'Freehold'],
+  },
+  {
+    title: 'Palm Jumeirah Frond Plot',
+    location: 'Palm Jumeirah, Dubai',
+    area: '8,500',
+    price: '12,200,000',
+    category: 'Residential',
+    badge: 'PRIME',
+    gradient: 'linear-gradient(135deg, #021929 0%, #032438 40%, #01131e 100%)',
+    accent: '#044266',
+    features: ['Beachfront', 'Private Access', 'Freehold'],
+  },
+  {
+    title: 'Business Bay Canal Front',
+    location: 'Business Bay, Dubai',
+    area: '22,000',
+    price: '9,750,000',
+    category: 'Commercial',
+    badge: 'HOT',
+    gradient: 'linear-gradient(135deg, #0d0a1f 0%, #151030 40%, #090714 100%)',
+    accent: '#2a2060',
+    features: ['Canal View', 'G+50 Permitted', 'Freehold'],
+  },
+  {
+    title: 'MBR City Prime Plot',
+    location: 'Mohammed Bin Rashid City',
+    area: '30,000',
+    price: '7,800,000',
+    category: 'Mixed Use',
+    badge: 'NEW',
+    gradient: 'linear-gradient(135deg, #0a0f1f 0%, #101828 40%, #080d1a 100%)',
+    accent: '#1a2a50',
+    features: ['Master Plan', 'Flexible Zoning', 'Freehold'],
+  },
+  {
+    title: 'Jumeirah Bay Island',
+    location: 'Jumeirah Bay Island, Dubai',
+    area: '12,000',
+    price: '24,000,000',
+    category: 'Residential',
+    badge: 'ULTRA PRIME',
+    gradient: 'linear-gradient(135deg, #011a1a 0%, #022828 40%, #010f0f 100%)',
+    accent: '#044040',
+    features: ['Island Living', '360° Views', 'Ultra-Premium'],
+  },
+  {
+    title: 'Downtown Dubai Plot',
+    location: 'Downtown Dubai, Sheikh Zayed Rd',
+    area: '6,000',
+    price: '32,000,000',
+    category: 'Commercial',
+    badge: 'LANDMARK',
+    gradient: 'linear-gradient(135deg, #1a0a00 0%, #2a1200 40%, #140800 100%)',
+    accent: '#4a2000',
+    features: ['Burj Khalifa View', 'High ROI', 'Freehold'],
+  },
+];
+
+const CATEGORY_COLORS = {
+  Residential: '#4ade80',
+  Commercial: '#60a5fa',
+  'Mixed Use': '#c084fc',
+};
+
+const PropertyCard = ({ property, index }) => {
+  const cardRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 18;
+    const y = -((e.clientY - rect.top) / rect.height - 0.5) * 18;
+    card.style.transform = `perspective(1000px) rotateX(${y}deg) rotateY(${x}deg) translateY(-8px)`;
+    card.style.transition = 'transform 0.1s linear';
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+    card.style.transition = 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      className="property-card animate-on-scroll"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
+    >
+      <div className="property-card-img" style={{ background: property.gradient }}>
+        <div className="prop-blueprint-fine" />
+        <div className="prop-blueprint" />
+        <div className="prop-scan" />
+
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}60 0%, transparent 65%)`,
+            zIndex: 1,
+          }}
+        />
+
+        <div className="corner-bracket-tl" />
+        <div className="corner-bracket-br" />
+
+        <div className="prop-building-icon">
+          {property.category === 'Residential' ? (
+            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+              <rect x="15" y="35" width="40" height="28" />
+              <polyline points="5,35 35,10 65,35" />
+              <rect x="28" y="45" width="14" height="18" />
+              <line x1="15" y1="35" x2="55" y2="35" />
+              <rect x="18" y="40" width="8" height="8" />
+              <rect x="44" y="40" width="8" height="8" />
+            </svg>
+          ) : property.category === 'Commercial' ? (
+            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+              <rect x="18" y="10" width="34" height="53" />
+              <line x1="18" y1="20" x2="52" y2="20" />
+              <line x1="18" y1="30" x2="52" y2="30" />
+              <line x1="18" y1="40" x2="52" y2="40" />
+              <line x1="18" y1="50" x2="52" y2="50" />
+              <rect x="23" y="14" width="6" height="4" />
+              <rect x="33" y="14" width="6" height="4" />
+              <rect x="43" y="14" width="6" height="4" />
+              <rect x="23" y="23" width="6" height="4" />
+              <rect x="33" y="23" width="6" height="4" />
+              <rect x="43" y="23" width="6" height="4" />
+              <rect x="29" y="54" width="12" height="9" />
+            </svg>
+          ) : (
+            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+              <rect x="10" y="30" width="22" height="33" />
+              <rect x="38" y="15" width="22" height="48" />
+              <line x1="32" y1="30" x2="38" y2="30" />
+              <line x1="10" y1="45" x2="32" y2="45" />
+              <line x1="38" y1="30" x2="38" y2="15" />
+              <rect x="43" y="20" width="5" height="5" />
+              <rect x="51" y="20" width="5" height="5" />
+              <rect x="43" y="30" width="5" height="5" />
+              <rect x="51" y="30" width="5" height="5" />
+              <rect x="14" y="35" width="5" height="5" />
+              <rect x="22" y="35" width="5" height="5" />
+            </svg>
+          )}
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            zIndex: 10,
+            background: 'rgba(6,6,6,0.8)',
+            border: '1px solid rgba(201,168,76,0.4)',
+            backdropFilter: 'blur(12px)',
+            padding: '4px 12px',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '9px',
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            color: '#C9A84C',
+          }}
+        >
+          {property.badge}
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            zIndex: 10,
+            background: `${CATEGORY_COLORS[property.category]}18`,
+            border: `1px solid ${CATEGORY_COLORS[property.category]}55`,
+            backdropFilter: 'blur(12px)',
+            padding: '4px 12px',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '9px',
+            fontWeight: 600,
+            letterSpacing: '0.12em',
+            color: CATEGORY_COLORS[property.category],
+          }}
+        >
+          {property.category}
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            left: 16,
+            right: 16,
+            zIndex: 10,
+            display: 'flex',
+            gap: 6,
+            flexWrap: 'wrap',
+          }}
+        >
+          {property.features.map(f => (
+            <span
+              key={f}
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '9px',
+                color: 'rgba(255,255,255,0.55)',
+                background: 'rgba(6,6,6,0.65)',
+                padding: '3px 8px',
+                letterSpacing: '0.08em',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              {f}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-6 flex flex-col gap-4">
+        <div>
+          <h3
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: '22px',
+              fontWeight: 600,
+              color: '#ffffff',
+              lineHeight: 1.2,
+              marginBottom: 4,
+            }}
+          >
+            {property.title}
+          </h3>
+          <p
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.4)',
+              letterSpacing: '0.08em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            {property.location}
+          </p>
+        </div>
+
+        <div className="gold-line-h" />
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
+              Plot Size
+            </p>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
+              {property.area} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
+            </p>
+          </div>
+          <div className="text-right">
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
+              Asking Price
+            </p>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '20px', fontWeight: 600, color: '#C9A84C' }}>
+              <span style={{ fontSize: '11px', fontFamily: "'Inter', sans-serif", fontWeight: 500, color: 'rgba(201,168,76,0.7)', marginRight: 3 }}>AED</span>
+              {property.price}
+            </p>
+          </div>
+        </div>
+
+        <a
+          href="#contact"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: 'rgba(201,168,76,0.06)',
+            border: '1px solid rgba(201,168,76,0.2)',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '10px',
+            fontWeight: 600,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: '#C9A84C',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(201,168,76,0.14)';
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(201,168,76,0.06)';
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)';
+          }}
+        >
+          <span>Enquire Now</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+const Properties = () => {
+  const headingRef = useReveal();
+
+  return (
+    <section id="properties" className="py-32 bg-void relative overflow-hidden">
+      <div
+        className="absolute top-0 right-0 w-1/2 h-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 60% 80% at 80% 30%, rgba(201,168,76,0.04) 0%, transparent 70%)',
+        }}
+      />
+
+      <div className="max-w-[1400px] mx-auto px-16">
+        <div ref={headingRef} className="mb-20">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="gold-line-h w-12" />
+            <span className="section-label">Featured Listings</span>
+          </div>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <h2
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: 'clamp(36px, 4.5vw, 58px)',
+                fontWeight: 600,
+                lineHeight: 1.1,
+                color: '#ffffff',
+                maxWidth: '520px',
+              }}
+            >
+              Exclusive Land Opportunities
+              <span className="text-gold-gradient"> in Dubai</span>
+            </h2>
+            <a href="#contact" className="btn-outline self-start lg:self-end">
+              <span>View All Listings</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {PROPERTIES.map((property, i) => (
+            <PropertyCard key={i} property={property} index={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Properties;
