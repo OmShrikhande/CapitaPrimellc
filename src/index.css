@@ -361,11 +361,21 @@ img {
   background: #0a0a0a;
   border: 1px solid rgba(255, 255, 255, 0.07);
   transition: border-color 0.5s ease, box-shadow 0.5s ease, transform 0.5s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .property-card:hover {
   border-color: rgba(201, 168, 76, 0.3);
   box-shadow: 0 32px 100px rgba(0, 0, 0, 0.75), 0 0 48px rgba(201, 168, 76, 0.07);
+}
+
+.property-card-content {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-grow: 1;
 }
 
 .property-card-img {

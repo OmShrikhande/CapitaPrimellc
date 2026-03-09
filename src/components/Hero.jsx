@@ -204,7 +204,7 @@ const Hero = () => {
       />
 
       <div
-        className="max-w-[1400px] mx-auto w-full relative"
+        className=" mx-auto w-full relative"
         style={{ zIndex: 2, padding: '100px 60px 80px' }}
       >
         <div

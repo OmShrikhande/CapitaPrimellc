@@ -76,7 +76,7 @@ const Contact = () => {
         }}
       />
 
-      <div className="max-w-[1400px] mx-auto px-16 relative">
+      <div className="px-16 relative" style={{zIndex: 2, padding: '100px 60px 80px' }}>
         <div className="grid lg:grid-cols-5 gap-16 items-start">
           <div ref={leftRef} className="lg:col-span-2 flex flex-col gap-8">
             <div>

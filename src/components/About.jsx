@@ -27,11 +27,11 @@ const About = () => {
         }}
       />
 
-      <div className="max-w-[1400px] mx-auto px-16 relative">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
-          <div ref={leftRef} className="flex flex-col gap-8">
+      <div className="px-16 relative" style={{zIndex: 2, padding: '100px 60px 80px' }}>
+        <div className="grid gap-16 items-center" style={{ gridTemplateColumns: '65% 35%' }}>
+          <div ref={leftRef} className="flex flex-col gap-6">
             <div>
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="gold-line-h w-12" />
                 <span className="section-label">Our Legacy</span>
               </div>
@@ -42,11 +42,12 @@ const About = () => {
                   fontWeight: 600,
                   lineHeight: 1.1,
                   color: '#ffffff',
-                  marginBottom: 24,
+                  marginBottom: 16,
                 }}
               >
                 Two Decades of Shaping
-                <span className="text-gold-gradient"> Dubai&apos;s Landscape</span>
+                <br />
+                <span className="text-gold-gradient">Dubai&apos;s Landscape</span>
               </h2>
               <p
                 style={{
@@ -54,8 +55,8 @@ const About = () => {
                   fontSize: '15px',
                   fontWeight: 300,
                   color: 'rgba(255,255,255,0.5)',
-                  lineHeight: 1.9,
-                  marginBottom: 16,
+                  lineHeight: 1.8,
+                  marginBottom: 12,
                 }}
               >
                 Founded in 2006 in the heart of the Burj Khalifa District, Capita Prime LLC was
@@ -68,7 +69,7 @@ const About = () => {
                   fontSize: '15px',
                   fontWeight: 300,
                   color: 'rgba(255,255,255,0.5)',
-                  lineHeight: 1.9,
+                  lineHeight: 1.8,
                 }}
               >
                 Today, with over AED 4.2 billion in completed transactions and a clientele that
@@ -77,11 +78,11 @@ const About = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6 mt-10">
               {VALUES.map(v => (
                 <div
                   key={v.label}
-                  className="p-5"
+                  className="p-6 transition-all duration-300 hover:bg-gold/5"
                   style={{
                     border: '1px solid rgba(201,168,76,0.15)',
                     background: 'rgba(201,168,76,0.03)',
@@ -90,10 +91,10 @@ const About = () => {
                   <p
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: '20px',
+                      fontSize: '22px',
                       fontWeight: 600,
                       color: '#C9A84C',
-                      marginBottom: 4,
+                      marginBottom: 8,
                     }}
                   >
                     {v.label}
@@ -101,9 +102,9 @@ const About = () => {
                   <p
                     style={{
                       fontFamily: "'Inter', sans-serif",
-                      fontSize: '12px',
-                      color: 'rgba(255,255,255,0.4)',
-                      letterSpacing: '0.05em',
+                      fontSize: '13px',
+                      color: 'rgba(255,255,255,0.45)',
+                      lineHeight: 1.6,
                     }}
                   >
                     {v.desc}
@@ -112,20 +113,20 @@ const About = () => {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {CERTIFICATIONS.map(cert => (
                 <span
                   key={cert}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 6,
                     fontFamily: "'Inter', sans-serif",
                     fontSize: '10px',
                     fontWeight: 600,
                     letterSpacing: '0.1em',
                     color: 'rgba(255,255,255,0.5)',
-                    padding: '8px 16px',
+                    padding: '6px 12px',
                     border: '1px solid rgba(255,255,255,0.08)',
                   }}
                 >
@@ -139,7 +140,7 @@ const About = () => {
           <div ref={rightRef} className="relative">
             <div
               className="relative overflow-hidden"
-              style={{ aspectRatio: '4/5', maxHeight: 560 }}
+              style={{ aspectRatio: '4/5', maxHeight: 520 }}
             >
               <div
                 style={{

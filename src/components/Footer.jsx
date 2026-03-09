@@ -11,62 +11,11 @@ const Footer = () => (
       borderTop: '1px solid rgba(201,168,76,0.12)',
     }}
   >
-    <div className="max-w-[1400px] mx-auto px-16 pt-20 pb-10">
-      <div className="grid lg:grid-cols-5 gap-12 mb-16">
+    <div className="px-16 pt-20 pb-10" style={{zIndex: 2, padding: '80px 60px 60px' }}>
+      <div className="grid lg:grid-cols-5 gap-12 mb-12">
         <div className="lg:col-span-2 flex flex-col gap-6">
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 flex items-center justify-center"
-              style={{ border: '1px solid rgba(201,168,76,0.4)' }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: '#C9A84C',
-                }}
-              >
-                C
-              </span>
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '20px',
-                    fontWeight: 600,
-                    letterSpacing: '0.2em',
-                    color: '#ffffff',
-                  }}
-                >
-                  CAPITA
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '20px',
-                    fontWeight: 400,
-                    letterSpacing: '0.2em',
-                    color: '#C9A84C',
-                  }}
-                >
-                  PRIME
-                </span>
-              </div>
-              <p
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '9px',
-                  letterSpacing: '0.2em',
-                  color: 'rgba(255,255,255,0.3)',
-                  marginTop: -2,
-                }}
-              >
-                LLC — EST. DUBAI 2006
-              </p>
-            </div>
+            <img src="/logo.png" alt="Capita Prime Logo" className="h-16 w-auto object-contain" />
           </div>
 
           <p
@@ -75,19 +24,23 @@ const Footer = () => (
               fontSize: '13.5px',
               fontWeight: 300,
               color: 'rgba(255,255,255,0.4)',
-              lineHeight: 1.8,
+              lineHeight: 1.7,
               maxWidth: 320,
             }}
           >
             {"Dubai's most trusted land investment consultancy. RERA Certified. DLD Registered. Serving elite investors across 42 nationalities."}
           </p>
 
-          <div className="flex gap-3">
-            {['Li', 'Ig', 'X'].map(social => (
+          <div className="flex gap-4 mt-4">
+            {[
+              { label: 'LinkedIn', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg> },
+              { label: 'Instagram', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg> },
+              { label: 'Twitter', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg> }
+            ].map(social => (
               <a
-                key={social}
+                key={social.label}
                 href="#"
-                aria-label={social}
+                aria-label={social.label}
                 style={{
                   width: 36,
                   height: 36,
@@ -95,22 +48,22 @@ const Footer = () => (
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: '1px solid rgba(255,255,255,0.1)',
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '10px',
+                  background: 'rgba(255,255,255,0.02)',
                   color: 'rgba(255,255,255,0.4)',
                   transition: 'all 0.3s ease',
-                  letterSpacing: '0.05em',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
                   e.currentTarget.style.color = '#C9A84C';
+                  e.currentTarget.style.background = 'rgba(201,168,76,0.05)';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
                   e.currentTarget.style.color = 'rgba(255,255,255,0.4)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
                 }}
               >
-                {social}
+                {social.icon}
               </a>
             ))}
           </div>
@@ -127,34 +80,36 @@ const Footer = () => (
                   letterSpacing: '0.25em',
                   textTransform: 'uppercase',
                   color: '#C9A84C',
-                  marginBottom: 4,
+                  marginBottom: 2,
                 }}
               >
                 {heading}
               </h4>
-              {links.map(link => (
-                <a
-                  key={link}
-                  href="#"
-                  style={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '12.5px',
-                    color: 'rgba(255,255,255,0.35)',
-                    transition: 'color 0.3s ease',
-                    lineHeight: 1,
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; }}
-                >
-                  {link}
-                </a>
-              ))}
+              <div className="flex flex-col gap-3">
+                {links.map(link => (
+                  <a
+                    key={link}
+                    href="#"
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '12px',
+                      color: 'rgba(255,255,255,0.35)',
+                      transition: 'color 0.3s ease',
+                      lineHeight: 1.2,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; }}
+                  >
+                    {link}
+                  </a>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="gold-line-h mb-8" />
+      <div className="gold-line-h mb-8 opacity-30" />
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <p

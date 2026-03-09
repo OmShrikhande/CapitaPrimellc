@@ -10,13 +10,24 @@ import About from './components/About';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import ListingsPage from './components/ListingsPage';
 
 function App() {
   const [loaded, setLoaded] = useState(false);
+  const [route, setRoute] = useState(window.location.hash === '#listings' ? 'listings' : 'home');
   const observerRef = useRef(null);
 
   useEffect(() => {
-    if (!loaded) return;
+    const handleHashChange = () => {
+      setRoute(window.location.hash === '#listings' ? 'listings' : 'home');
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded || route !== 'home') return;
 
     const setup = () => {
       observerRef.current?.disconnect();
@@ -55,16 +66,22 @@ function App() {
           transition: 'opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
       >
-        <Navbar />
-        <Hero />
-        <Marquee />
-        <Stats />
-        <Properties />
-        <Services />
-        <About />
-        <Testimonials />
-        <Contact />
-        <Footer />
+        {route === 'home' ? (
+          <div className="flex flex-col gap-16 lg:gap-24">
+            <Navbar />
+            <Hero />
+            <Marquee />
+            <Stats />
+            <Properties />
+            <Services />
+            <About />
+            <Testimonials />
+            <Contact />
+            <Footer />
+          </div>
+        ) : (
+          <ListingsPage />
+        )}
       </div>
     </div>
   );

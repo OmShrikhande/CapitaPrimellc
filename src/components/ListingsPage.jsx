@@ -1,7 +1,8 @@
-import { useRef } from 'react';
-import useReveal from '../hooks/useReveal';
+import { useRef, useEffect } from 'react';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
-const PROPERTIES = [
+const ALL_PROPERTIES = [
   {
     title: 'Emirates Hills Grand Estate',
     location: 'Emirates Hills, Dubai',
@@ -68,6 +69,39 @@ const PROPERTIES = [
     accent: '#4a2000',
     features: ['Burj Khalifa View', 'High ROI', 'Freehold'],
   },
+  {
+    title: 'Dubai Hills Villa Plot',
+    location: 'Dubai Hills Estate',
+    area: '12,500',
+    price: '15,000,000',
+    category: 'Residential',
+    badge: 'LUXURY',
+    gradient: 'linear-gradient(135deg, #1f1a0a 0%, #2b240d 40%, #1a1609 100%)',
+    accent: '#4d411a',
+    features: ['Golf Course View', 'Park Facing', 'Freehold'],
+  },
+  {
+    title: 'Al Barari Sanctuary Plot',
+    location: 'Al Barari, Dubai',
+    area: '18,000',
+    price: '13,500,000',
+    category: 'Residential',
+    badge: 'SERENE',
+    gradient: 'linear-gradient(135deg, #0a1f15 0%, #0d2b1e 40%, #091a12 100%)',
+    accent: '#1a4d34',
+    features: ['Greenery View', 'Private Cul-de-sac', 'Freehold'],
+  },
+  {
+    title: 'Dubai Creek Harbour Plot',
+    location: 'Dubai Creek Harbour',
+    area: '25,000',
+    price: '22,000,000',
+    category: 'Commercial',
+    badge: 'WATERFRONT',
+    gradient: 'linear-gradient(135deg, #0a151f 0%, #0d1e2b 40%, #09121a 100%)',
+    accent: '#1a344d',
+    features: ['Waterfront', 'Iconic Tower View', 'Freehold'],
+  }
 ];
 
 const CATEGORY_COLORS = {
@@ -325,54 +359,68 @@ const PropertyCard = ({ property, index }) => {
   );
 };
 
-const Properties = () => {
-  const headingRef = useReveal();
+const ListingsPage = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    
+    // Setup observer for animations
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.07, rootMargin: '0px 0px -20px 0px' }
+    );
+
+    const SELECTORS = '.animate-on-scroll, .animate-on-scroll-left, .animate-on-scroll-right';
+    document.querySelectorAll(SELECTORS).forEach((el) => obs.observe(el));
+    
+    return () => obs.disconnect();
+  }, []);
 
   return (
-    <section id="properties" className="py-32 bg-void relative overflow-hidden">
-      <div
-        className="absolute top-0 right-0 w-1/2 h-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 60% 80% at 80% 30%, rgba(201,168,76,0.04) 0%, transparent 70%)',
-        }}
-      />
-
-      <div className="px-16  relative" style={{zIndex: 2, padding: '100px 60px 80px' }} >
-        <div ref={headingRef} className="mb-20">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="gold-line-h w-12" />
-            <span className="section-label">Featured Listings</span>
-          </div>
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-            <h2
+    <div className="bg-void min-h-screen">
+      <Navbar />
+      
+      <main className="pt-32 pb-20">
+        <div className="px-16 lg:px-24">
+          <div className="mb-20 animate-on-scroll">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="gold-line-h w-12" />
+              <span className="section-label">Inventory</span>
+            </div>
+            <h1
+              className="max-w-4xl"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 'clamp(36px, 4.5vw, 58px)',
+                fontSize: 'clamp(40px, 5vw, 64px)',
                 fontWeight: 600,
                 lineHeight: 1.1,
                 color: '#ffffff'
               }}
             >
-              Exclusive Land Opportunities
-              <span className="text-gold-gradient"> in Dubai</span>
-            </h2>
-            <a href="#listings" className="btn-outline self-start lg:self-end">
-              <span>View All Listings</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </a>
+              Full Portfolio of <span className="text-gold-gradient">Premium Plots</span>
+            </h1>
+            <p className="mt-8 text-white/40 max-w-3xl font-light tracking-wide text-lg leading-relaxed">
+              Explore our comprehensive collection of exclusive land opportunities across Dubai's most prestigious locations.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {ALL_PROPERTIES.map((property, i) => (
+              <PropertyCard key={i} property={property} index={i} />
+            ))}
           </div>
         </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PROPERTIES.map((property, i) => (
-            <PropertyCard key={i} property={property} index={i} />
-          ))}
-        </div>
-      </div>
-    </section>
+      </main>
+      
+      <Footer />
+    </div>
   );
 };
 
-export default Properties;
+export default ListingsPage;

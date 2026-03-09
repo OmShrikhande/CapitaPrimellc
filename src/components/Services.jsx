@@ -78,7 +78,7 @@ const Services = () => {
         }}
       />
 
-      <div className="max-w-[1400px] mx-auto px-16 relative">
+      <div className="px-16 relative" style={{zIndex: 0, padding: '100px 60px 80px' }}>
         <div ref={headingRef} className="text-center mb-20">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="gold-line-h w-12" />
