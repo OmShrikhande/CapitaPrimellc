@@ -76,18 +76,18 @@ const Contact = () => {
         }}
       />
 
-      <div className="px-16 relative" style={{zIndex: 2, padding: '100px 60px 80px' }}>
-        <div className="grid lg:grid-cols-5 gap-16 items-start">
+      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 2, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }}>
+        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-12 lg:gap-16 items-start">
           <div ref={leftRef} className="lg:col-span-2 flex flex-col gap-8">
             <div>
               <div className="flex items-center gap-4 mb-6">
-                <div className="gold-line-h w-12" />
-                <span className="section-label">Get in Touch</span>
+                <div className="gold-line-h w-8 lg:w-12" />
+                <span className="section-label text-[9px] lg:text-[10px]">Get in Touch</span>
               </div>
               <h2
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 'clamp(36px, 4vw, 52px)',
+                  fontSize: 'clamp(32px, 5vw, 52px)',
                   fontWeight: 600,
                   lineHeight: 1.1,
                   color: '#ffffff',
@@ -95,12 +95,13 @@ const Contact = () => {
                 }}
               >
                 Begin Your Dubai Land
+                <br className="sm:hidden" />
                 <span className="text-gold-gradient"> Investment Journey</span>
               </h2>
               <p
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: '14px',
+                  fontSize: 'clamp(14px, 2vw, 15px)',
                   fontWeight: 300,
                   color: 'rgba(255,255,255,0.45)',
                   lineHeight: 1.8,
@@ -110,7 +111,7 @@ const Contact = () => {
               </p>
             </div>
 
-            <div className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
               {CONTACT_INFO.map(info => (
                 <div key={info.label} className="flex items-start gap-4">
                   <div
@@ -126,7 +127,8 @@ const Contact = () => {
                     <p
                       style={{
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '10px',
+                        fontSize: '9px',
+                        lg: '10px',
                         fontWeight: 600,
                         letterSpacing: '0.2em',
                         textTransform: 'uppercase',
@@ -139,7 +141,8 @@ const Contact = () => {
                     <p
                       style={{
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '13px',
+                        fontSize: '12px',
+                        lg: '13px',
                         color: 'rgba(255,255,255,0.55)',
                       }}
                     >
@@ -151,10 +154,10 @@ const Contact = () => {
             </div>
           </div>
 
-          <div ref={rightRef} className="lg:col-span-3">
+          <div ref={rightRef} className="lg:col-span-3 w-full">
             {submitted ? (
               <div
-                className="flex flex-col items-center justify-center text-center gap-6 py-20"
+                className="flex flex-col items-center justify-center text-center gap-6 py-16 lg:py-20"
                 style={{
                   border: '1px solid rgba(201,168,76,0.2)',
                   background: 'rgba(201,168,76,0.03)',
@@ -162,8 +165,10 @@ const Contact = () => {
               >
                 <div
                   style={{
-                    width: 64,
-                    height: 64,
+                    width: 56,
+                    lg: 'width: 64',
+                    height: 56,
+                    lg: 'height: 64',
                     borderRadius: '50%',
                     background: 'rgba(201,168,76,0.1)',
                     border: '1px solid rgba(201,168,76,0.3)',
@@ -172,7 +177,7 @@ const Contact = () => {
                     justifyContent: 'center',
                   }}
                 >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+                  <svg width="24" lg:width="28" height="24" lg:height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
@@ -180,7 +185,7 @@ const Contact = () => {
                   <h3
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: '32px',
+                      fontSize: 'clamp(28px, 4vw, 32px)',
                       fontWeight: 600,
                       color: '#ffffff',
                       marginBottom: 8,
@@ -205,21 +210,21 @@ const Contact = () => {
                 method="POST"
                 data-netlify="true"
                 onSubmit={handleSubmit}
-                className="flex flex-col gap-5"
+                className="flex flex-col gap-5 w-full"
                 style={{
-                  padding: '48px',
+                  padding: 'clamp(24px, 5vw, 48px)',
                   border: '1px solid rgba(255,255,255,0.07)',
                   background: 'rgba(255,255,255,0.02)',
                 }}
               >
                 <input type="hidden" name="form-name" value="contact" />
 
-                <div className="grid md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="flex flex-col gap-2">
                     <label
+                      className="text-[9px] lg:text-[10px]"
                       style={{
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '10px',
                         fontWeight: 600,
                         letterSpacing: '0.2em',
                         textTransform: 'uppercase',
@@ -238,9 +243,9 @@ const Contact = () => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <label
+                      className="text-[9px] lg:text-[10px]"
                       style={{
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '10px',
                         fontWeight: 600,
                         letterSpacing: '0.2em',
                         textTransform: 'uppercase',
@@ -259,12 +264,12 @@ const Contact = () => {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="flex flex-col gap-2">
                     <label
+                      className="text-[9px] lg:text-[10px]"
                       style={{
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '10px',
                         fontWeight: 600,
                         letterSpacing: '0.2em',
                         textTransform: 'uppercase',
@@ -282,9 +287,9 @@ const Contact = () => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <label
+                      className="text-[9px] lg:text-[10px]"
                       style={{
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '10px',
                         fontWeight: 600,
                         letterSpacing: '0.2em',
                         textTransform: 'uppercase',
@@ -306,9 +311,9 @@ const Contact = () => {
 
                 <div className="flex flex-col gap-2">
                   <label
+                    className="text-[9px] lg:text-[10px]"
                     style={{
                       fontFamily: "'Inter', sans-serif",
-                      fontSize: '10px',
                       fontWeight: 600,
                       letterSpacing: '0.2em',
                       textTransform: 'uppercase',
@@ -329,9 +334,9 @@ const Contact = () => {
 
                 <div className="flex flex-col gap-2">
                   <label
+                    className="text-[9px] lg:text-[10px]"
                     style={{
                       fontFamily: "'Inter', sans-serif",
-                      fontSize: '10px',
                       fontWeight: 600,
                       letterSpacing: '0.2em',
                       textTransform: 'uppercase',
@@ -345,7 +350,7 @@ const Contact = () => {
                     rows={4}
                     required
                     placeholder="Tell us about your land investment goals..."
-                    className="form-input"
+                    className="form-input text-sm lg:text-base"
                     style={{ resize: 'none' }}
                   />
                 </div>
@@ -353,7 +358,7 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="btn-primary w-full justify-center mt-2"
+                  className="btn-primary w-full justify-center mt-2 py-3 lg:py-4"
                   style={{ opacity: sending ? 0.7 : 1 }}
                 >
                   <span>{sending ? 'Sending...' : 'Submit Inquiry'}</span>

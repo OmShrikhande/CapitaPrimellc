@@ -64,7 +64,7 @@ const Testimonials = () => {
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6" style={{maxWidth: "95%", margin: '0 auto', position: 'relative', zIndex: 1, marginBottom: "50px"}}>
           {TESTIMONIALS.map((t, i) => (
             <div
               key={i}

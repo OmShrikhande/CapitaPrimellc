@@ -78,29 +78,30 @@ const Services = () => {
         }}
       />
 
-      <div className="px-16 relative" style={{zIndex: 0, padding: '100px 60px 80px' }}>
-        <div ref={headingRef} className="text-center mb-20">
+      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 0, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }}>
+        <div ref={headingRef} className="text-center mb-12 lg:mb-20">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="gold-line-h w-12" />
-            <span className="section-label">Our Services</span>
-            <div className="gold-line-h w-12" />
+            <div className="gold-line-h w-8 lg:w-12" />
+            <span className="section-label text-[9px] lg:text-[10px]">Our Services</span>
+            <div className="gold-line-h w-8 lg:w-12" />
           </div>
           <h2
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 'clamp(36px, 4.5vw, 58px)',
+              fontSize: 'clamp(32px, 5vw, 58px)',
               fontWeight: 600,
               lineHeight: 1.1,
               color: '#ffffff',
             }}
           >
             Full-Spectrum Land
+            <br className="sm:hidden" />
             <span className="text-gold-gradient"> Investment Services</span>
           </h2>
           <p
             style={{
               fontFamily: "'Inter', sans-serif",
-              fontSize: '15px',
+              fontSize: 'clamp(14px, 2vw, 15px)',
               fontWeight: 300,
               color: 'rgba(255,255,255,0.45)',
               maxWidth: 540,
@@ -112,15 +113,19 @@ const Services = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {SERVICES.map((service, i) => (
             <div
               key={i}
-              className="service-card animate-on-scroll"
-              style={{ transitionDelay: `${(i % 3) * 0.1}s` }}
+              className="service-card animate-on-scroll p-6 lg:p-8"
+              style={{ 
+                transitionDelay: `${(i % 3) * 0.1}s`,
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.05)'
+              }}
             >
               <div
-                className="w-14 h-14 flex items-center justify-center mb-6"
+                className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center mb-6"
                 style={{
                   background: 'rgba(201,168,76,0.08)',
                   border: '1px solid rgba(201,168,76,0.2)',
@@ -131,7 +136,7 @@ const Services = () => {
               <h3
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: '24px',
+                  fontSize: 'clamp(20px, 3vw, 24px)',
                   fontWeight: 600,
                   color: '#ffffff',
                   marginBottom: 12,
@@ -142,7 +147,7 @@ const Services = () => {
               <p
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: '13.5px',
+                  fontSize: 'clamp(13px, 1.5vw, 14px)',
                   fontWeight: 300,
                   color: 'rgba(255,255,255,0.45)',
                   lineHeight: 1.8,

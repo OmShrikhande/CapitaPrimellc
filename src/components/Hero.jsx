@@ -204,31 +204,25 @@ const Hero = () => {
       />
 
       <div
-        className=" mx-auto w-full relative"
-        style={{ zIndex: 2, padding: '100px 60px 80px' }}
+        className="mx-auto w-full relative"
+        style={{ zIndex: 2, padding: 'clamp(80px, 15vh, 120px) clamp(20px, 5vw, 60px) 80px' }}
       >
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '40px',
-            alignItems: 'center',
-            minHeight: '80vh',
-          }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-10 items-center min-h-[70vh] lg:min-h-[80vh]"
         >
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6 lg:gap-8 order-2 lg:order-1">
             <div className="flex items-center gap-4">
-              <div className="gold-line-h w-12" />
-              <span className="section-label">Dubai&apos;s Premier Land Consultancy</span>
+              <div className="gold-line-h w-8 lg:w-12" />
+              <span className="section-label text-[9px] lg:text-[10px]">Dubai&apos;s Premier Land Consultancy</span>
             </div>
 
             <div>
               <h1
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 'clamp(48px, 5.5vw, 88px)',
+                  fontSize: 'clamp(40px, 8vw, 88px)',
                   fontWeight: 600,
-                  lineHeight: 1.05,
+                  lineHeight: 1.1,
                   letterSpacing: '-0.01em',
                 }}
               >
@@ -250,7 +244,7 @@ const Hero = () => {
             <p
               style={{
                 fontFamily: "'Inter', sans-serif",
-                fontSize: '15px',
+                fontSize: 'clamp(14px, 2vw, 15px)',
                 fontWeight: 300,
                 lineHeight: 1.85,
                 color: 'rgba(255,255,255,0.52)',
@@ -262,31 +256,26 @@ const Hero = () => {
               tomorrow&apos;s landmarks.
             </p>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <a href="#properties" className="btn-primary">
+            <div className="flex items-center gap-4 flex-wrap mt-2">
+              <a href="#properties" className="btn-primary py-3 px-6 lg:py-4 lg:px-8">
                 <span>Explore Listings</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </a>
-              <a href="#contact" className="btn-outline">
+              <a href="#contact" className="btn-outline py-3 px-6 lg:py-4 lg:px-8">
                 <span>Book Consultation</span>
               </a>
             </div>
 
-            <div className="flex items-center gap-3 flex-wrap pt-2">
+            <div className="flex items-center gap-2 lg:gap-3 flex-wrap pt-2">
               {['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City'].map(loc => (
                 <span
                   key={loc}
+                  className="text-[9px] lg:text-[10px] tracking-widest text-gold/70 px-3 py-1.5 lg:px-4 lg:py-2 border border-gold/20 bg-gold/5"
                   style={{
                     fontFamily: "'Inter', sans-serif",
-                    fontSize: '10px',
                     fontWeight: 500,
-                    letterSpacing: '0.1em',
-                    color: 'rgba(201,168,76,0.7)',
-                    padding: '6px 14px',
-                    border: '1px solid rgba(201,168,76,0.2)',
-                    background: 'rgba(201,168,76,0.05)',
                   }}
                 >
                   {loc}
@@ -296,14 +285,7 @@ const Hero = () => {
           </div>
 
           <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              gap: 0,
-            }}
+            className="flex flex-col items-center justify-center relative order-1 lg:order-2 w-full max-w-[320px] sm:max-w-[450px] lg:max-w-none mx-auto"
           >
             <div
               style={{
@@ -317,7 +299,7 @@ const Hero = () => {
               <CobeGlobe />
 
               <div
-                className="hero-float-badge"
+                className="hero-float-badge hidden sm:block"
                 style={{ top: '5%', right: '-2%', animationDelay: '0s' }}
               >
                 <div className="section-label mb-1">Prime Listing</div>
@@ -344,7 +326,7 @@ const Hero = () => {
               </div>
 
               <div
-                className="hero-float-badge"
+                className="hero-float-badge hidden sm:block"
                 style={{ bottom: '12%', left: '-2%', animationDelay: '2s' }}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -371,7 +353,7 @@ const Hero = () => {
               </div>
 
               <div
-                className="hero-float-badge"
+                className="hero-float-badge hidden sm:block"
                 style={{ bottom: '40%', right: '-4%', animationDelay: '3.5s' }}
               >
                 <div className="section-label mb-1">Transaction Volume</div>
@@ -389,12 +371,7 @@ const Hero = () => {
             </div>
 
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: 16,
-              }}
+              className="flex items-center gap-2 mt-4 lg:mt-6"
             >
               <div
                 style={{
@@ -408,7 +385,7 @@ const Hero = () => {
               <span
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: '10px',
+                  fontSize: 'clamp(9px, 1.5vw, 10px)',
                   letterSpacing: '0.25em',
                   color: 'rgba(255,255,255,0.35)',
                   textTransform: 'uppercase',

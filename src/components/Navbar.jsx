@@ -22,14 +22,14 @@ const Navbar = () => {
     <nav
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-700"
       style={{
-        background: scrolled || isListingsPage ? 'rgba(6,6,6,0.92)' : 'transparent',
-        backdropFilter: scrolled || isListingsPage ? 'blur(24px)' : 'none',
-        borderBottom: scrolled || isListingsPage ? '1px solid rgba(201,168,76,0.12)' : '1px solid transparent',
+        background: scrolled || isListingsPage || menuOpen ? 'rgba(6,6,6,0.92)' : 'transparent',
+        backdropFilter: scrolled || isListingsPage || menuOpen ? 'blur(24px)' : 'none',
+        borderBottom: scrolled || isListingsPage || menuOpen ? '1px solid rgba(201,168,76,0.12)' : '1px solid transparent',
       }}
     >
-      <div className="px-16 flex items-center justify-between h-20">
-        <a href="#hero" className="flex items-center gap-3 group" onClick={() => window.location.hash = ''}>
-          <img src="/logo.png" alt="Capita Prime Logo" className="h-14 w-auto object-contain" />
+      <div className="px-6 sm:px-10 lg:px-16 flex items-center justify-between h-20">
+        <a href="#hero" className="flex items-center gap-3 group" onClick={() => { window.location.hash = ''; setMenuOpen(false); }}>
+          <img src="/logo.png" alt="Capita Prime Logo" className="h-10 sm:h-12 lg:h-14 w-auto object-contain" />
         </a>
 
         <div className="hidden lg:flex items-center gap-10">

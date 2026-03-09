@@ -83,8 +83,8 @@ const Stats = () => (
         background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,168,76,0.04) 0%, transparent 70%)',
       }}
     />
-    <div className="mx-auto px-16 relative">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 divide-x divide-[rgba(255,255,255,0.06)]">
+    <div className="mx-auto px-6 sm:px-10 lg:px-16 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-12 sm:gap-y-16 lg:gap-0 sm:divide-x divide-[rgba(255,255,255,0.06)]">
         {STATS.map((stat, i) => (
           <StatItem key={i} {...stat} index={i} />
         ))}

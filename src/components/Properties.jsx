@@ -337,17 +337,18 @@ const Properties = () => {
         }}
       />
 
-      <div className="px-16  relative" style={{zIndex: 2, padding: '100px 60px 80px' }} >
-        <div ref={headingRef} className="mb-20">
+      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 2, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }} >
+        <div ref={headingRef} className="mb-12 lg:mb-20">
           <div className="flex items-center gap-4 mb-6">
-            <div className="gold-line-h w-12" />
-            <span className="section-label">Featured Listings</span>
+            <div className="gold-line-h w-8 lg:w-12" />
+            <span className="section-label text-[9px] lg:text-[10px]">Featured Listings</span>
           </div>
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6" style={{padding:'20px'}}>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 px-0 sm:px-5">
             <h2
+              className="max-w-[800px]"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 'clamp(36px, 4.5vw, 58px)',
+                fontSize: 'clamp(32px, 5vw, 58px)',
                 fontWeight: 600,
                 lineHeight: 1.1,
                 color: '#ffffff'
@@ -356,7 +357,7 @@ const Properties = () => {
               Exclusive Land Opportunities
               <span className="text-gold-gradient"> in Dubai</span>
             </h2>
-            <a href="#listings" className="btn-outline self-start lg:self-end">
+            <a href="#listings" className="btn-outline self-start lg:self-end py-3 px-6 lg:py-4 lg:px-8">
               <span>View All Listings</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
@@ -365,7 +366,7 @@ const Properties = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {PROPERTIES.map((property, i) => (
             <PropertyCard key={i} property={property} index={i} />
           ))}
