@@ -343,7 +343,7 @@ const Properties = () => {
             <div className="gold-line-h w-12" />
             <span className="section-label">Featured Listings</span>
           </div>
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6" style={{padding:'20px'}}>
             <h2
               style={{
                 fontFamily: "'Cormorant Garamond', serif",

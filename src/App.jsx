@@ -67,7 +67,7 @@ function App() {
         }}
       >
         {route === 'home' ? (
-          <div className="flex flex-col gap-16 lg:gap-24">
+          <div className="flex flex-col gap-10 lg:gap-4">
             <Navbar />
             <Hero />
             <Marquee />

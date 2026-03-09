@@ -78,11 +78,11 @@ const About = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 mt-10">
+            <div className="grid grid-cols-2 gap-6 m-10">
               {VALUES.map(v => (
                 <div
                   key={v.label}
-                  className="p-6 transition-all duration-300 hover:bg-gold/5"
+                  className="p-6 m-4 transition-all duration-300 hover:bg-gold/5"
                   style={{
                     border: '1px solid rgba(201,168,76,0.15)',
                     background: 'rgba(201,168,76,0.03)',
@@ -94,7 +94,7 @@ const About = () => {
                       fontSize: '22px',
                       fontWeight: 600,
                       color: '#C9A84C',
-                      marginBottom: 8,
+                      margin: 8,
                     }}
                   >
                     {v.label}
@@ -105,6 +105,7 @@ const About = () => {
                       fontSize: '13px',
                       color: 'rgba(255,255,255,0.45)',
                       lineHeight: 1.6,
+                      margin: 6,
                     }}
                   >
                     {v.desc}

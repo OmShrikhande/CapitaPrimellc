@@ -383,13 +383,13 @@ const ListingsPage = () => {
   }, []);
 
   return (
-    <div className="bg-void min-h-screen">
+    <div className="bg-void min-h-screen" >
       <Navbar />
       
-      <main className="pt-32 pb-20">
+      <main className="pt-32 pb-20" style={{zIndex: 0, padding: '100px 60px 80px' }}>
         <div className="px-16 lg:px-24">
           <div className="mb-20 animate-on-scroll">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6" >
               <div className="gold-line-h w-12" />
               <span className="section-label">Inventory</span>
             </div>
