@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { useCMS } from '../context/CMSContext';
+import { useCMS } from '../context/useCMS';
 
 const ALL_PROPERTIES = [
   {

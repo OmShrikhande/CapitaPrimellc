@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useCMS } from '../context/CMSContext';
+import { useCMS } from '../context/useCMS';
 
 const STATS = [
   { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },

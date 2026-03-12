@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import createGlobe from 'cobe';
-import { useCMS } from '../context/CMSContext';
+import { useCMS } from '../context/useCMS';
 
 const GLOBE_SIZE = 520;
 
@@ -8,7 +8,6 @@ const CobeGlobe = () => {
   const canvasRef = useRef(null);
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
-  const phiRef = useRef(1.2);
   const globeRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
 

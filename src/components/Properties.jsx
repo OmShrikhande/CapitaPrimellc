@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import useReveal from '../hooks/useReveal';
-import { useCMS } from '../context/CMSContext';
+import { useCMS } from '../context/useCMS';
 
 const PROPERTIES = [
   {
@@ -106,9 +106,19 @@ const PropertyCard = ({ property, index }) => {
       style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
     >
       <div className="property-card-img" style={{ background: property.gradient }}>
-        <div className="prop-blueprint-fine" />
-        <div className="prop-blueprint" />
-        <div className="prop-scan" />
+        {property.gallery && property.gallery.length > 0 ? (
+          <img 
+            src={property.gallery[0]} 
+            alt={property.title} 
+            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60" 
+          />
+        ) : (
+          <>
+            <div className="prop-blueprint-fine" />
+            <div className="prop-blueprint" />
+            <div className="prop-scan" />
+          </>
+        )}
 
         <div
           className="absolute inset-0 pointer-events-none"
@@ -290,7 +300,7 @@ const PropertyCard = ({ property, index }) => {
         </div>
 
         <a
-          href="#contact"
+          href={`#property/${property.id}`}
           className="mt-2"
           style={{
             display: 'flex',
@@ -316,7 +326,7 @@ const PropertyCard = ({ property, index }) => {
             e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)';
           }}
         >
-          <span>Enquire Now</span>
+          <span>View Detailed Specs</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
@@ -329,7 +339,7 @@ const PropertyCard = ({ property, index }) => {
 const Properties = () => {
   const headingRef = useReveal();
   const { data } = useCMS();
-  const { properties } = data;
+  const properties = (data.properties || []).filter(p => p.isVisible);
 
   return (
     <section id="properties" className="py-32 bg-void relative overflow-hidden">
@@ -371,7 +381,7 @@ const Properties = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {properties.map((property, i) => (
-            <PropertyCard key={i} property={property} index={i} />
+            <PropertyCard key={property.id || i} property={property} index={i} />
           ))}
         </div>
       </div>

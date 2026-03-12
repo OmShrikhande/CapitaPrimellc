@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCMS } from '../context/CMSContext';
+import { useCMS } from '../context/useCMS';
 import SystemClock from './admin/SystemClock';
 import CommandPalette from './admin/CommandPalette';
 import DashboardView from './admin/DashboardView';
@@ -7,21 +7,49 @@ import PropertiesView from './admin/PropertiesView';
 import ContentView from './admin/ContentView';
 import ServicesView from './admin/ServicesView';
 import TestimonialsView from './admin/TestimonialsView';
+import OffersView from './admin/OffersView';
+import ThemeView from './admin/ThemeView';
 
 const ADMIN_PASSWORD = 'capita2024';
 
+const SidebarItem = ({ id, label, icon, activeTab, setActiveTab }) => (
+  <button
+    onClick={() => setActiveTab(id)}
+    className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all relative group mb-1 ${
+      activeTab === id 
+        ? 'bg-gold/10 text-gold border border-gold/20' 
+        : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
+    }`}
+  >
+    <span className="text-xl group-hover:scale-110 transition-transform">{icon}</span>
+    <span className="text-[11px] font-bold tracking-widest uppercase">{label}</span>
+    {activeTab === id && (
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gold rounded-r-full shadow-lg shadow-gold/50" />
+    )}
+  </button>
+);
+
 const AdminPanel = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('adminAuthenticated') === 'true';
+  });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isInitializing, setIsInitializing] = useState(false);
   const [initLogs, setInitLogs] = useState([]);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
-  const { data, updateData, addProperty, updateProperty, deleteProperty } = useCMS();
-  
-  const [editingProperty, setEditingProperty] = useState(null);
-  const [isAddingProperty, setIsAddingProperty] = useState(false);
+  const { 
+    data, 
+    updateData, 
+    addProperty, 
+    updateProperty, 
+    deleteProperty,
+    addOffer,
+    updateOffer,
+    deleteOffer,
+    updateTheme 
+  } = useCMS();
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -33,13 +61,6 @@ const AdminPanel = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const authStatus = sessionStorage.getItem('adminAuthenticated');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
   }, []);
 
   const handleLogin = (e) => {
@@ -184,23 +205,6 @@ const AdminPanel = () => {
     );
   }
 
-  const SidebarItem = ({ id, label, icon }) => (
-    <button
-      onClick={() => setActiveTab(id)}
-      className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all relative group mb-1 ${
-        activeTab === id 
-          ? 'bg-gold/10 text-gold border border-gold/20' 
-          : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
-      }`}
-    >
-      <span className="text-xl group-hover:scale-110 transition-transform">{icon}</span>
-      <span className="text-[11px] font-bold tracking-widest uppercase">{label}</span>
-      {activeTab === id && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gold rounded-r-full shadow-lg shadow-gold/50" />
-      )}
-    </button>
-  );
-
   return (
     <div className="min-h-screen nexus-dashboard-root flex overflow-hidden">
       <CommandPalette 
@@ -224,15 +228,17 @@ const AdminPanel = () => {
 
         <nav className="flex-1 px-4 space-y-1">
           <p className="px-6 mb-4 text-[9px] text-gray-600 font-black tracking-widest uppercase opacity-40">Main Menu</p>
-          <SidebarItem id="dashboard" label="Nexus Overview" icon="🛰️" />
-          <SidebarItem id="properties" label="Asset Base" icon="🏔️" />
-          <SidebarItem id="content" label="Site Architect" icon="🏗️" />
+          <SidebarItem id="dashboard" label="Nexus Overview" icon="🛰️" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="properties" label="Asset Base" icon="🏔️" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="offers" label="Offers Matrix" icon="🏷️" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="content" label="Site Architect" icon="🏗️" activeTab={activeTab} setActiveTab={setActiveTab} />
           
           <div className="h-[1px] bg-white/5 my-8 mx-6" />
           
           <p className="px-6 mb-4 text-[9px] text-gray-600 font-black tracking-widest uppercase opacity-40">Relays</p>
-          <SidebarItem id="services" label="Matrix Node" icon="⚙️" />
-          <SidebarItem id="testimonials" label="Echo Streams" icon="📡" />
+          <SidebarItem id="services" label="Matrix Node" icon="⚙️" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="testimonials" label="Echo Streams" icon="📡" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="theme" label="Theme Pulsar" icon="🎨" activeTab={activeTab} setActiveTab={setActiveTab} />
         </nav>
 
         <div className="mt-auto p-6 border-t border-white/5">
@@ -281,8 +287,8 @@ const AdminPanel = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
-          <div className="max-w-7xl mx-auto">
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          <div className="w-full">
             {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} />}
             {activeTab === 'properties' && (
               <PropertiesView
@@ -292,9 +298,18 @@ const AdminPanel = () => {
                 deleteProperty={deleteProperty}
               />
             )}
+            {activeTab === 'offers' && (
+              <OffersView
+                offers={data.offers}
+                addOffer={addOffer}
+                updateOffer={updateOffer}
+                deleteOffer={deleteOffer}
+              />
+            )}
             {activeTab === 'content' && <ContentView data={data} updateData={updateData} />}
             {activeTab === 'services' && <ServicesView services={data.services} updateData={updateData} />}
             {activeTab === 'testimonials' && <TestimonialsView testimonials={data.testimonials} updateData={updateData} />}
+            {activeTab === 'theme' && <ThemeView theme={data.theme} updateTheme={updateTheme} />}
           </div>
         </div>
       </main>

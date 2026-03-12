@@ -1,5 +1,5 @@
 import useReveal from '../hooks/useReveal';
-import { useCMS } from '../context/CMSContext';
+import { useCMS } from '../context/useCMS';
 
 const TESTIMONIALS = [
   {

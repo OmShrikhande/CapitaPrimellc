@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import Offers from './components/Offers';
 import Marquee from './components/Marquee';
 import Stats from './components/Stats';
 import Properties from './components/Properties';
@@ -13,6 +14,9 @@ import Footer from './components/Footer';
 import ListingsPage from './components/ListingsPage';
 import AdminPanel from './components/AdminPanel';
 
+import PropertyDetails from './components/PropertyDetails';
+import ThemeManager from './components/ThemeManager';
+
 import { CMSProvider } from './context/CMSContext';
 
 function App() {
@@ -21,7 +25,13 @@ function App() {
     const hash = window.location.hash;
     if (hash === '#listings') return 'listings';
     if (hash === '#asdftyhnmkfdj') return 'admin';
+    if (hash.startsWith('#property/')) return 'property';
     return 'home';
+  });
+  const [propertyId, setPropertyId] = useState(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#property/')) return hash.split('/')[1];
+    return null;
   });
   const observerRef = useRef(null);
 
@@ -31,6 +41,10 @@ function App() {
       let newRoute = 'home';
       if (hash === '#listings') newRoute = 'listings';
       if (hash === '#asdftyhnmkfdj') newRoute = 'admin';
+      if (hash.startsWith('#property/')) {
+        newRoute = 'property';
+        setPropertyId(hash.split('/')[1]);
+      }
       setRoute(newRoute);
       window.scrollTo(0, 0);
     };
@@ -67,13 +81,15 @@ function App() {
       clearTimeout(timer);
       observerRef.current?.disconnect();
     };
-  }, [loaded]);
+  }, [loaded, route]);
 
   return (
     <CMSProvider>
-      <div style={{ background: '#060606', minHeight: '100vh' }}>
+      <ThemeManager />
+      <div className="bg-void" style={{ minHeight: '100vh' }}>
         <LoadingScreen onDone={() => setLoaded(true)} />
         <div
+          className="w-full min-h-screen"
           style={{
             opacity: loaded ? 1 : 0,
             transition: 'opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -83,6 +99,7 @@ function App() {
             <div className="flex flex-col gap-10 lg:gap-4">
               <Navbar />
               <Hero />
+              <Offers />
               <Marquee />
               <Stats />
               <Properties />
@@ -96,6 +113,8 @@ function App() {
             <ListingsPage />
           ) : route === 'admin' ? (
             <AdminPanel />
+          ) : route === 'property' ? (
+            <PropertyDetails key={propertyId} id={propertyId} />
           ) : null}
         </div>
       </div>
