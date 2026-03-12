@@ -73,7 +73,7 @@ const Services = () => {
   const { services } = data;
 
   return (
-    <section id="services" className="py-32 bg-obsidian relative overflow-hidden">
+    <section id="services" className="py-24 bg-obsidian relative overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -81,7 +81,7 @@ const Services = () => {
         }}
       />
 
-      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 0, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }}>
+      <div className="px-6 sm:px-10 lg:px-16 relative">
         <div ref={headingRef} className="text-center mb-12 lg:mb-20">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="gold-line-h w-8 lg:w-12" />

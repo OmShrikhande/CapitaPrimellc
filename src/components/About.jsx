@@ -22,7 +22,7 @@ const About = () => {
   const { about } = data;
 
   return (
-    <section id="about" className="py-32 bg-void relative overflow-hidden">
+    <section id="about" className="py-46 bg-void relative overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -30,7 +30,7 @@ const About = () => {
         }}
       />
 
-      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 2, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }}>
+      <div className="px-6 sm:px-10 lg:px-16 relative">
         <div className="flex flex-col lg:grid gap-12 lg:gap-16 items-center" style={{ gridTemplateColumns: '65% 35%' }}>
           <div ref={leftRef} className="flex flex-col gap-6 order-2 lg:order-1">
             <div>

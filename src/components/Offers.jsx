@@ -1,5 +1,5 @@
-import React from 'react';
-import { useCMS } from '../context/useCMS';
+import React from 'react';import { useCMS } from '../context/useCMS';
+
 
 const Offers = () => {
   const { data } = useCMS();
@@ -8,8 +8,9 @@ const Offers = () => {
   if (activeOffers.length === 0) return null;
 
   return (
-    <div className="bg-gold/10 border-y border-gold/20 py-4 overflow-hidden relative">
-      <div className="flex animate-marquee whitespace-nowrap items-center">
+    <div className="bg-gold/10 border-y border-gold/20 py-4 overflow-hidden relative w-full">
+      <div className="flex animate-marquee whitespace-nowrap items-center" style={{justifyContent:'space-around'}}>
+        <marquee behavior="scroll" direction="left" scrollamount="3">
         {activeOffers.map((offer, i) => (
           <div key={i} className="flex items-center mx-10">
             <span className="text-gold text-[10px] font-black tracking-[0.4em] uppercase mr-4">Special Offer:</span>
@@ -29,6 +30,7 @@ const Offers = () => {
             <span className="ml-10 text-gold opacity-20">✦</span>
           </div>
         ))}
+        </marquee>
       </div>
     </div>
   );

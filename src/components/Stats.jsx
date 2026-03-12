@@ -81,7 +81,7 @@ const Stats = () => {
   const { stats } = data;
 
   return (
-    <section className="py-24 bg-obsidian relative overflow-hidden">
+    <section className="bg-obsidian relative overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{

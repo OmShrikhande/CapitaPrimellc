@@ -47,7 +47,7 @@ const Testimonials = () => {
       />
 
       <div className="px-16 relative" >
-        <div ref={headingRef} className="text-center mb-20" style={{padding:'50px'}}>
+        <div ref={headingRef} className="text-center mb-20" >
           <div className="flex items-center justify-center gap-4 mb-6" >
             <div className="gold-line-h w-12"  />
             <span className="section-label">Client Voices</span>

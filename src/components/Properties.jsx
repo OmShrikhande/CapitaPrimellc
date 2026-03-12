@@ -350,13 +350,13 @@ const Properties = () => {
         }}
       />
 
-      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 2, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }} >
+      <div className="px-6 sm:px-10 lg:px-16 relative"  >
         <div ref={headingRef} className="mb-12 lg:mb-20">
           <div className="flex items-center gap-4 mb-6">
             <div className="gold-line-h w-8 lg:w-12" />
             <span className="section-label text-[9px] lg:text-[10px]">Featured Listings</span>
           </div>
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 px-0 sm:px-5">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 px-0 sm:px-5" style={{marginBottom:"1.5%"}}>
             <h2
               className="max-w-[800px]"
               style={{

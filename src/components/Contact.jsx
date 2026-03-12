@@ -68,7 +68,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-32 bg-void relative overflow-hidden">
+    <section id="contact" className="py-28 bg-void relative overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
