@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback,useState } from 'react';
 import createGlobe from 'cobe';
 
 const GLOBE_SIZE = 520;
@@ -9,6 +9,7 @@ const CobeGlobe = () => {
   const pointerInteractionMovement = useRef(0);
   const phiRef = useRef(1.2);
   const globeRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const updatePointerInteraction = useCallback((value) => {
     pointerInteracting.current = value;
@@ -26,7 +27,6 @@ const CobeGlobe = () => {
 
   useEffect(() => {
     let width = GLOBE_SIZE;
-
     const onResize = () => {
       if (canvasRef.current) {
         width = canvasRef.current.offsetWidth;
@@ -35,8 +35,10 @@ const CobeGlobe = () => {
     window.addEventListener('resize', onResize);
     onResize();
 
-    let phi = phiRef.current;
-    let theta = 0.28;
+    let phi = 1.2;
+    let theta = 0.42;
+
+    setTimeout(() => setIsLoaded(true), 100);
 
     globeRef.current = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
@@ -45,28 +47,27 @@ const CobeGlobe = () => {
       phi,
       theta,
       dark: 1,
-      diffuse: 1.6,
-      mapSamples: 20000,
-      mapBrightness: 4.5,
-      baseColor: [0.08, 0.06, 0.03],
+      diffuse: 1.8,
+      mapSamples: 25000,
+      mapBrightness: 6,
+      baseColor: [0.06, 0.05, 0.02],
       markerColor: [0.788, 0.659, 0.298],
-      glowColor: [0.5, 0.38, 0.14],
+      glowColor: [0.7, 0.5, 0.15],
       scale: 1,
       offset: [0, 0],
       markers: [
-        { location: [25.2048, 55.2708], size: 0.12 },
-        { location: [51.5074, -0.1278], size: 0.05 },
-        { location: [40.7128, -74.006], size: 0.05 },
-        { location: [22.3964, 114.1095], size: 0.05 },
-        { location: [1.3521, 103.8198], size: 0.04 },
-        { location: [48.8566, 2.3522], size: 0.04 },
-        { location: [35.6762, 139.6503], size: 0.04 },
-        { location: [24.4539, 54.3773], size: 0.07 },
-        { location: [26.0667, 50.5577], size: 0.05 },
+        { location: [25.2048, 55.2708], size: 0.18 }, // Dubai Main
+        { location: [25.1124, 55.1390], size: 0.12 }, // Palm Jumeirah
+        { location: [25.1972, 55.2744], size: 0.1 },  // Downtown
+        { location: [25.0777, 55.1304], size: 0.08 }, // Marina
+        { location: [25.1314, 55.1887], size: 0.07 }, // Jumeirah
+        { location: [24.4539, 54.3773], size: 0.07 }, // Abu Dhabi
+        { location: [51.5074, -0.1278], size: 0.04 },
+        { location: [40.7128, -74.006], size: 0.04 },
       ],
       onRender: (state) => {
         if (!pointerInteracting.current) {
-          phi += 0.004;
+          phi += 0.003;
         }
         state.phi = phi + pointerInteractionMovement.current / 200;
         state.theta = theta;
@@ -83,6 +84,7 @@ const CobeGlobe = () => {
 
   return (
     <div
+      className={`transition-all duration-1000 ease-out ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
       style={{
         width: '100%',
         maxWidth: GLOBE_SIZE,
@@ -96,9 +98,10 @@ const CobeGlobe = () => {
           position: 'absolute',
           inset: 0,
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse 80% 80% at 50% 50%, rgba(201,168,76,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle at 50% 50%, rgba(201,168,76,0.2) 0%, transparent 70%)',
           pointerEvents: 'none',
           zIndex: 1,
+          animation: 'glow 4s ease-in-out infinite',
         }}
       />
       <canvas
@@ -113,6 +116,7 @@ const CobeGlobe = () => {
           height: '100%',
           cursor: 'grab',
           userSelect: 'none',
+          filter: 'drop-shadow(0 0 40px rgba(201, 168, 76, 0.2))',
         }}
       />
     </div>
@@ -198,22 +202,23 @@ const Hero = () => {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 70% 60% at 25% 50%, rgba(201,168,76,0.06) 0%, transparent 65%), radial-gradient(ellipse 50% 70% at 78% 20%, rgba(201,168,76,0.04) 0%, transparent 60%)',
+            'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 65%)',
           zIndex: 1,
         }}
       />
 
       <div
         className="mx-auto w-full relative"
-        style={{ zIndex: 2, padding: 'clamp(80px, 15vh, 120px) clamp(20px, 5vw, 60px) 80px' }}
+        style={{ zIndex: 10, padding: 'clamp(80px, 15vh, 120px) clamp(20px, 5vw, 60px) 80px' }}
       >
         <div
           className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-10 items-center min-h-[70vh] lg:min-h-[80vh]"
         >
-          <div className="flex flex-col gap-6 lg:gap-8 order-2 lg:order-1">
+          <div className="flex flex-col gap-6 lg:gap-8 order-2 lg:order-1 relative" style={{ zIndex: 10 }}>
             <div className="flex items-center gap-4">
               <div className="gold-line-h w-8 lg:w-12" />
               <span className="section-label text-[9px] lg:text-[10px]">Dubai&apos;s Premier Land Consultancy</span>
+              <div className="gold-line-h w-8 lg:w-12" />
             </div>
 
             <div>
@@ -247,8 +252,9 @@ const Hero = () => {
                 fontSize: 'clamp(14px, 2vw, 15px)',
                 fontWeight: 300,
                 lineHeight: 1.85,
-                color: 'rgba(255,255,255,0.52)',
+                color: 'rgba(255,255,255,0.72)',
                 maxWidth: '460px',
+                textShadow: '0 0 10px rgba(0,0,0,0.8)',
               }}
             >
               Exclusive access to Dubai&apos;s most coveted land plots. From Palm Jumeirah
@@ -285,22 +291,15 @@ const Hero = () => {
           </div>
 
           <div
-            className="flex flex-col items-center justify-center relative order-1 lg:order-2 w-full max-w-[320px] sm:max-w-[450px] lg:max-w-none mx-auto"
+            className="flex flex-col items-center justify-center lg:relative lg:order-2 w-full max-w-[320px] sm:max-w-[450px] lg:max-w-none mx-auto lg:pl-12 scale-110 sm:scale-100 absolute lg:static top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:translate-y-0 opacity-40 lg:opacity-100 pointer-events-none lg:pointer-events-auto"
+            style={{ zIndex: 5 }}
           >
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+            <div className="relative w-full flex items-center justify-center">
               <CobeGlobe />
 
               <div
-                className="hero-float-badge hidden sm:block"
-                style={{ top: '5%', right: '-2%', animationDelay: '0s' }}
+                className="hero-float-badge hidden lg:block"
+                style={{ top: '5%', right: '10%', animationDelay: '0s' }}
               >
                 <div className="section-label mb-1">Prime Listing</div>
                 <div
@@ -326,8 +325,8 @@ const Hero = () => {
               </div>
 
               <div
-                className="hero-float-badge hidden sm:block"
-                style={{ bottom: '12%', left: '-2%', animationDelay: '2s' }}
+                className="hero-float-badge hidden lg:block"
+                style={{ bottom: '12%', left: '0%', animationDelay: '2s' }}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <div
@@ -351,27 +350,10 @@ const Hero = () => {
                   DLD Approved Agency
                 </div>
               </div>
-
-              <div
-                className="hero-float-badge hidden sm:block"
-                style={{ bottom: '40%', right: '-4%', animationDelay: '3.5s' }}
-              >
-                <div className="section-label mb-1">Transaction Volume</div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '22px',
-                    fontWeight: 600,
-                    color: '#ffffff',
-                  }}
-                >
-                  AED 4.2<span style={{ color: '#C9A84C' }}>B+</span>
-                </div>
-              </div>
             </div>
 
             <div
-              className="flex items-center gap-2 mt-4 lg:mt-6"
+              className="flex items-center gap-2 mt-4 lg:mt-6 lg:justify-end w-full lg:pr-12 hidden lg:flex"
             >
               <div
                 style={{
@@ -391,7 +373,7 @@ const Hero = () => {
                   textTransform: 'uppercase',
                 }}
               >
-                Drag to rotate · Dubai, UAE
+                Interactive Intelligence · Dubai, UAE
               </span>
             </div>
           </div>
