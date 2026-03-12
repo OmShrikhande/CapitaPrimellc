@@ -11,15 +11,27 @@ import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import ListingsPage from './components/ListingsPage';
+import AdminPanel from './components/AdminPanel';
+
+import { CMSProvider } from './context/CMSContext';
 
 function App() {
   const [loaded, setLoaded] = useState(false);
-  const [route, setRoute] = useState(window.location.hash === '#listings' ? 'listings' : 'home');
+  const [route, setRoute] = useState(() => {
+    const hash = window.location.hash;
+    if (hash === '#listings') return 'listings';
+    if (hash === '#asdftyhnmkfdj') return 'admin';
+    return 'home';
+  });
   const observerRef = useRef(null);
 
   useEffect(() => {
     const handleHashChange = () => {
-      setRoute(window.location.hash === '#listings' ? 'listings' : 'home');
+      const hash = window.location.hash;
+      let newRoute = 'home';
+      if (hash === '#listings') newRoute = 'listings';
+      if (hash === '#asdftyhnmkfdj') newRoute = 'admin';
+      setRoute(newRoute);
       window.scrollTo(0, 0);
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -58,32 +70,36 @@ function App() {
   }, [loaded]);
 
   return (
-    <div style={{ background: '#060606', minHeight: '100vh' }}>
-      <LoadingScreen onDone={() => setLoaded(true)} />
-      <div
-        style={{
-          opacity: loaded ? 1 : 0,
-          transition: 'opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        }}
-      >
-        {route === 'home' ? (
-          <div className="flex flex-col gap-10 lg:gap-4">
-            <Navbar />
-            <Hero />
-            <Marquee />
-            <Stats />
-            <Properties />
-            <Services />
-            <About />
-            <Testimonials />
-            <Contact />
-            <Footer />
-          </div>
-        ) : (
-          <ListingsPage />
-        )}
+    <CMSProvider>
+      <div style={{ background: '#060606', minHeight: '100vh' }}>
+        <LoadingScreen onDone={() => setLoaded(true)} />
+        <div
+          style={{
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          }}
+        >
+          {route === 'home' ? (
+            <div className="flex flex-col gap-10 lg:gap-4">
+              <Navbar />
+              <Hero />
+              <Marquee />
+              <Stats />
+              <Properties />
+              <Services />
+              <About />
+              <Testimonials />
+              <Contact />
+              <Footer />
+            </div>
+          ) : route === 'listings' ? (
+            <ListingsPage />
+          ) : route === 'admin' ? (
+            <AdminPanel />
+          ) : null}
+        </div>
       </div>
-    </div>
+    </CMSProvider>
   );
 }
 

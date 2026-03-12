@@ -43,9 +43,7 @@ const Footer = () => (
                 aria-label={social.label}
                 style={{
                   width: 32,
-                  lg: 'width: 36',
                   height: 32,
-                  lg: 'height: 36',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -78,7 +76,6 @@ const Footer = () => (
                 style={{
                   fontFamily: "'Inter', sans-serif",
                   fontSize: '9px',
-                  lg: '10px',
                   fontWeight: 700,
                   letterSpacing: '0.25em',
                   textTransform: 'uppercase',
@@ -96,7 +93,6 @@ const Footer = () => (
                     style={{
                       fontFamily: "'Inter', sans-serif",
                       fontSize: '11px',
-                      lg: '12px',
                       color: 'rgba(255,255,255,0.35)',
                       transition: 'color 0.3s ease',
                       lineHeight: 1.2,
@@ -120,7 +116,6 @@ const Footer = () => (
           style={{
             fontFamily: "'Inter', sans-serif",
             fontSize: '10px',
-            lg: '11px',
             color: 'rgba(255,255,255,0.25)',
             letterSpacing: '0.05em',
             maxWidth: 500,
@@ -133,8 +128,6 @@ const Footer = () => (
             style={{
               width: 5,
               height: 5,
-              lg: 'width: 6',
-              lg: 'height: 6',
               borderRadius: '50%',
               background: '#22c55e',
               boxShadow: '0 0 8px #22c55e',

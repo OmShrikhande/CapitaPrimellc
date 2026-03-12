@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback,useState } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import createGlobe from 'cobe';
+import { useCMS } from '../context/CMSContext';
 
 const GLOBE_SIZE = 520;
 
@@ -125,6 +126,8 @@ const CobeGlobe = () => {
 
 const Hero = () => {
   const canvasRef = useRef(null);
+  const { data } = useCMS();
+  const { hero } = data;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -217,7 +220,7 @@ const Hero = () => {
           <div className="flex flex-col gap-6 lg:gap-8 order-2 lg:order-1 relative" style={{ zIndex: 10 }}>
             <div className="flex items-center gap-4">
               <div className="gold-line-h w-8 lg:w-12" />
-              <span className="section-label text-[9px] lg:text-[10px]">Dubai&apos;s Premier Land Consultancy</span>
+              <span className="section-label text-[9px] lg:text-[10px]">{hero.label}</span>
               <div className="gold-line-h w-8 lg:w-12" />
             </div>
 
@@ -231,9 +234,9 @@ const Hero = () => {
                   letterSpacing: '-0.01em',
                 }}
               >
-                <span className="block text-white">Where</span>
-                <span className="block text-shimmer">Visionaries</span>
-                <span className="block text-white">Invest in the</span>
+                <span className="block text-white">{hero.titleLine1}</span>
+                <span className="block text-shimmer">{hero.titleLine2}</span>
+                <span className="block text-white">{hero.titleLine3}</span>
                 <span
                   className="block"
                   style={{
@@ -241,7 +244,7 @@ const Hero = () => {
                     WebkitTextStroke: '1px rgba(201,168,76,0.6)',
                   }}
                 >
-                  Golden Horizon
+                  {hero.titleLine4}
                 </span>
               </h1>
             </div>
@@ -257,25 +260,23 @@ const Hero = () => {
                 textShadow: '0 0 10px rgba(0,0,0,0.8)',
               }}
             >
-              Exclusive access to Dubai&apos;s most coveted land plots. From Palm Jumeirah
-              fronds to downtown commercial masterpieces — we connect elite investors with
-              tomorrow&apos;s landmarks.
+              {hero.description}
             </p>
 
             <div className="flex items-center gap-4 flex-wrap mt-2">
               <a href="#properties" className="btn-primary py-3 px-6 lg:py-4 lg:px-8">
-                <span>Explore Listings</span>
+                <span>{hero.ctaPrimary}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </a>
               <a href="#contact" className="btn-outline py-3 px-6 lg:py-4 lg:px-8">
-                <span>Book Consultation</span>
+                <span>{hero.ctaSecondary}</span>
               </a>
             </div>
 
             <div className="flex items-center gap-2 lg:gap-3 flex-wrap pt-2">
-              {['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City'].map(loc => (
+              {hero.locations.map(loc => (
                 <span
                   key={loc}
                   className="text-[9px] lg:text-[10px] tracking-widest text-gold/70 px-3 py-1.5 lg:px-4 lg:py-2 border border-gold/20 bg-gold/5"

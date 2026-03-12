@@ -128,7 +128,6 @@ const Contact = () => {
                       style={{
                         fontFamily: "'Inter', sans-serif",
                         fontSize: '9px',
-                        lg: '10px',
                         fontWeight: 600,
                         letterSpacing: '0.2em',
                         textTransform: 'uppercase',
@@ -142,7 +141,6 @@ const Contact = () => {
                       style={{
                         fontFamily: "'Inter', sans-serif",
                         fontSize: '12px',
-                        lg: '13px',
                         color: 'rgba(255,255,255,0.55)',
                       }}
                     >
@@ -166,9 +164,7 @@ const Contact = () => {
                 <div
                   style={{
                     width: 56,
-                    lg: 'width: 64',
                     height: 56,
-                    lg: 'height: 64',
                     borderRadius: '50%',
                     background: 'rgba(201,168,76,0.1)',
                     border: '1px solid rgba(201,168,76,0.3)',
@@ -177,7 +173,7 @@ const Contact = () => {
                     justifyContent: 'center',
                   }}
                 >
-                  <svg width="24" lg:width="28" height="24" lg:height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>

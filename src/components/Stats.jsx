@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useCMS } from '../context/CMSContext';
 
 const STATS = [
   { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },
@@ -75,22 +76,27 @@ const StatItem = ({ value, suffix, prefix, label, decimal, index }) => {
   );
 };
 
-const Stats = () => (
-  <section className="py-24 bg-obsidian relative overflow-hidden">
-    <div
-      className="absolute inset-0 pointer-events-none"
-      style={{
-        background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,168,76,0.04) 0%, transparent 70%)',
-      }}
-    />
-    <div className="mx-auto px-6 sm:px-10 lg:px-16 relative">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-12 sm:gap-y-16 lg:gap-0 sm:divide-x divide-[rgba(255,255,255,0.06)]">
-        {STATS.map((stat, i) => (
-          <StatItem key={i} {...stat} index={i} />
-        ))}
+const Stats = () => {
+  const { data } = useCMS();
+  const { stats } = data;
+
+  return (
+    <section className="py-24 bg-obsidian relative overflow-hidden">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,168,76,0.04) 0%, transparent 70%)',
+        }}
+      />
+      <div className="mx-auto px-6 sm:px-10 lg:px-16 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-12 sm:gap-y-16 lg:gap-0 sm:divide-x divide-[rgba(255,255,255,0.06)]">
+          {stats.map((stat, i) => (
+            <StatItem key={i} {...stat} index={i} />
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default Stats;

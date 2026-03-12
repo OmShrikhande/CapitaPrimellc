@@ -1,4 +1,5 @@
 import useReveal from '../hooks/useReveal';
+import { useCMS } from '../context/CMSContext';
 
 const SERVICES = [
   {
@@ -68,6 +69,8 @@ const SERVICES = [
 
 const Services = () => {
   const headingRef = useReveal();
+  const { data } = useCMS();
+  const { services } = data;
 
   return (
     <section id="services" className="py-32 bg-obsidian relative overflow-hidden">
@@ -114,7 +117,7 @@ const Services = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" style={{paddingTop:"1%"}}>
-          {SERVICES.map((service, i) => (
+          {services.map((service, i) => (
             <div
               key={i}
               className="service-card animate-on-scroll p-6 lg:p-8"
@@ -131,7 +134,7 @@ const Services = () => {
                   border: '1px solid rgba(201,168,76,0.2)',
                 }}
               >
-                {service.icon}
+                {SERVICES[i].icon}
               </div>
               <h3
                 style={{

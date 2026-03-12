@@ -1,4 +1,5 @@
 import useReveal from '../hooks/useReveal';
+import { useCMS } from '../context/CMSContext';
 
 const VALUES = [
   { label: 'Integrity', desc: 'Transparent dealings, always.' },
@@ -17,6 +18,8 @@ const CERTIFICATIONS = [
 const About = () => {
   const leftRef = useReveal('animate-on-scroll-left');
   const rightRef = useReveal('animate-on-scroll-right');
+  const { data } = useCMS();
+  const { about } = data;
 
   return (
     <section id="about" className="py-32 bg-void relative overflow-hidden">
@@ -33,7 +36,7 @@ const About = () => {
             <div>
               <div className="flex items-center gap-4 mb-4">
                 <div className="gold-line-h w-8 lg:w-12" />
-                <span className="section-label text-[9px] lg:text-[10px]">Our Legacy</span>
+                <span className="section-label text-[9px] lg:text-[10px]">{about.label}</span>
               </div>
               <h2
                 style={{
@@ -45,9 +48,9 @@ const About = () => {
                   marginBottom: 16,
                 }}
               >
-                Two Decades of Shaping
+                {about.titleLine1}
                 <br className="hidden sm:block" />
-                <span className="text-gold-gradient"> Dubai&apos;s Landscape</span>
+                <span className="text-gold-gradient"> {about.titleLine2}</span>
               </h2>
               <p
                 style={{
@@ -59,9 +62,7 @@ const About = () => {
                   marginBottom: 12,
                 }}
               >
-                Founded in 2006 in the heart of the Burj Khalifa District, Capita Prime LLC was
-                born from a singular vision: to redefine how the world&apos;s elite access and invest
-                in Dubai&apos;s most prestigious land assets.
+                {about.description1}
               </p>
               <p
                 style={{
@@ -72,14 +73,12 @@ const About = () => {
                   lineHeight: 1.8,
                 }}
               >
-                Today, with over AED 4.2 billion in completed transactions and a clientele that
-                spans 42 nationalities, we stand as Dubai&apos;s most trusted name in bespoke land
-                investment advisory.
+                {about.description2}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 my-6 lg:my-10">
-              {VALUES.map(v => (
+              {about.values.map(v => (
                 <div
                   key={v.label}
                   className="p-4 lg:p-6 transition-all duration-300 hover:bg-gold/5"
@@ -114,7 +113,7 @@ const About = () => {
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              {CERTIFICATIONS.map(cert => (
+              {about.certifications.map(cert => (
                 <span
                   key={cert}
                   style={{
@@ -123,11 +122,10 @@ const About = () => {
                     gap: 6,
                     fontFamily: "'Inter', sans-serif",
                     fontSize: '9px',
-                    lg: '10px',
                     fontWeight: 600,
                     letterSpacing: '0.1em',
                     color: 'rgba(255,255,255,0.5)',
-                    padding: '6px 10px lg:padding: 6px 12px',
+                    padding: '6px 10px',
                     border: '1px solid rgba(255,255,255,0.08)',
                   }}
                 >
@@ -175,7 +173,7 @@ const About = () => {
                       marginBottom: 8,
                     }}
                   >
-                    2006
+                    {about.estYear}
                   </div>
                   <p className="section-label mb-4 lg:mb-6 text-[9px] lg:text-[10px]">Est. Dubai, UAE</p>
                   <div className="gold-line-h w-16 lg:w-24 mx-auto mb-4 lg:mb-6" />
@@ -191,7 +189,7 @@ const About = () => {
                       margin: '0 auto',
                     }}
                   >
-                    &ldquo;Where the desert meets ambition, we build legacies.&rdquo;
+                    &ldquo;{about.quote}&rdquo;
                   </div>
                 </div>
 
@@ -212,9 +210,7 @@ const About = () => {
                     top: 8,
                     left: 8,
                     width: 20,
-                    lg: 'width: 30',
                     height: 20,
-                    lg: 'height: 30',
                     borderTop: '2px solid rgba(201,168,76,0.4)',
                     borderLeft: '2px solid rgba(201,168,76,0.4)',
                     pointerEvents: 'none',
@@ -226,9 +222,7 @@ const About = () => {
                     bottom: 8,
                     right: 8,
                     width: 20,
-                    lg: 'width: 30',
                     height: 20,
-                    lg: 'height: 30',
                     borderBottom: '2px solid rgba(201,168,76,0.4)',
                     borderRight: '2px solid rgba(201,168,76,0.4)',
                     pointerEvents: 'none',
@@ -241,10 +235,8 @@ const About = () => {
               style={{
                 position: 'absolute',
                 bottom: -15,
-                lg: 'bottom: -20',
                 right: 0,
-                lg: 'left: -20',
-                padding: '16px 24px lg:padding: 20px 28px',
+                padding: '16px 24px',
                 background: 'rgba(6,6,6,0.95)',
                 border: '1px solid rgba(201,168,76,0.25)',
                 backdropFilter: 'blur(20px)',
@@ -261,7 +253,7 @@ const About = () => {
                   lineHeight: 1,
                 }}
               >
-                45+
+                {about.teamSize}
               </p>
               <p
                 style={{

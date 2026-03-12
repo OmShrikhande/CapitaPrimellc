@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import useReveal from '../hooks/useReveal';
+import { useCMS } from '../context/CMSContext';
 
 const PROPERTIES = [
   {
@@ -327,6 +328,8 @@ const PropertyCard = ({ property, index }) => {
 
 const Properties = () => {
   const headingRef = useReveal();
+  const { data } = useCMS();
+  const { properties } = data;
 
   return (
     <section id="properties" className="py-32 bg-void relative overflow-hidden">
@@ -367,7 +370,7 @@ const Properties = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {PROPERTIES.map((property, i) => (
+          {properties.map((property, i) => (
             <PropertyCard key={i} property={property} index={i} />
           ))}
         </div>

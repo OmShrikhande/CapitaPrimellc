@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { useCMS } from '../context/CMSContext';
 
 const ALL_PROPERTIES = [
   {
@@ -360,6 +361,9 @@ const PropertyCard = ({ property, index }) => {
 };
 
 const ListingsPage = () => {
+  const { data } = useCMS();
+  const { properties } = data;
+
   useEffect(() => {
     window.scrollTo(0, 0);
     
@@ -411,7 +415,7 @@ const ListingsPage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {ALL_PROPERTIES.map((property, i) => (
+            {properties.map((property, i) => (
               <PropertyCard key={i} property={property} index={i} />
             ))}
           </div>

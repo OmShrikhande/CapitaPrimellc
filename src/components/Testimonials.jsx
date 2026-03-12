@@ -1,4 +1,5 @@
 import useReveal from '../hooks/useReveal';
+import { useCMS } from '../context/CMSContext';
 
 const TESTIMONIALS = [
   {
@@ -33,6 +34,8 @@ const StarRow = () => (
 
 const Testimonials = () => {
   const headingRef = useReveal();
+  const { data } = useCMS();
+  const { testimonials } = data;
 
   return (
     <section id="testimonials" className="py-32 bg-obsidian relative overflow-hidden">
@@ -65,7 +68,7 @@ const Testimonials = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6" style={{maxWidth: "95%", margin: '0 auto', position: 'relative', zIndex: 1, marginBottom: "50px"}}>
-          {TESTIMONIALS.map((t, i) => (
+          {testimonials.map((t, i) => (
             <div
               key={i}
               className="testimonial-card animate-on-scroll"
