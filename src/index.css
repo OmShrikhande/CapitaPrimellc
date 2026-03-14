@@ -647,6 +647,15 @@ img {
   background: linear-gradient(180deg, #E8D5A3 0%, #C9A84C 100%);
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .globe-perspective {
     display: none;

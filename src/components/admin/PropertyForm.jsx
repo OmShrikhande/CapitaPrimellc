@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCancel }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const scrollContainerRef = useRef(null);
   const [formData, setFormData] = useState({
     title: '', location: '', area: '', price: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '', specs: { zoning: '', permit: '', coverage: '', ownership: '' }
   });
+
+  // Handle scroll detection for border animation
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      const progress = scrollTop / (scrollHeight - clientHeight);
+      setScrollProgress(progress);
+    }
+  };
 
   // Initialize form data when component mounts or when editing
   React.useEffect(() => {
@@ -19,6 +30,14 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
       resetFormData();
     }
   }, [property, isOpen]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [isOpen]);
 
   const resetFormData = () => {
     setFormData({
@@ -82,12 +101,49 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-8">
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-12 pr-16 w-full max-w-3xl h-[90vh] relative shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-12 pr-16 w-full max-w-3xl h-[90vh] relative shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden">
+        {/* Border Scrollbar */}
+        <div className="absolute inset-0 rounded-[3rem] pointer-events-none">
+          <div
+            className="absolute right-0 w-1.5 bg-gradient-to-b from-gold via-gold/50 to-gold/20 rounded-r-[3rem] transition-all duration-300 ease-out"
+            style={{
+              height: '120px',
+              top: `${scrollProgress * 85}%`,
+              boxShadow: `0 0 ${20 + scrollProgress * 30}px rgba(201, 168, 76, ${0.3 + scrollProgress * 0.7})`
+            }}
+          />
+          {/* Animated border particles */}
+          <div
+            className="absolute right-0 w-2 h-2 bg-gold rounded-full transition-all duration-500"
+            style={{
+              top: `${scrollProgress * 100}%`,
+              transform: `translateY(${scrollProgress * 10}px) scale(${1 + scrollProgress})`,
+              opacity: scrollProgress > 0 ? 1 : 0
+            }}
+          />
+          {/* Additional crazy border effects */}
+          <div
+            className="absolute right-0 w-0.5 h-8 bg-gradient-to-b from-transparent via-gold to-transparent transition-all duration-300"
+            style={{
+              top: `${(scrollProgress * 100) - 10}%`,
+              opacity: scrollProgress > 0.1 ? 0.8 : 0,
+              transform: `rotate(${scrollProgress * 360}deg)`
+            }}
+          />
+          <div
+            className="absolute right-0 w-0.5 h-6 bg-gradient-to-b from-gold/50 to-transparent transition-all duration-200"
+            style={{
+              top: `${(scrollProgress * 100) + 15}%`,
+              opacity: scrollProgress > 0.2 ? 0.6 : 0,
+              transform: `rotate(${-scrollProgress * 180}deg)`
+            }}
+          />
+        </div>
         <div className="absolute top-0 right-4 p-12">
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors text-2xl">✕</button>
         </div>
         <h3 className="text-4xl font-serif font-bold mb-10 tracking-tight">{editingIndex !== null ? 'Modify Asset' : 'Register New Asset'}</h3>
-        <div className="h-[calc(90vh-200px)] overflow-y-auto custom-scrollbar">
+        <div ref={scrollContainerRef} className="h-[calc(90vh-200px)] overflow-y-auto scrollbar-hide">
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-10">
           <div className="col-span-2">
             <label className="block text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 opacity-60">Asset Title</label>
