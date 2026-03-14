@@ -71,6 +71,38 @@ export const CMSProvider = ({ children }) => {
     updateData({ offers: updatedOffers });
   };
 
+  const addService = (service) => {
+    const updatedServices = [...data.services, service];
+    updateData({ services: updatedServices });
+  };
+
+  const updateService = (index, service) => {
+    const updatedServices = [...data.services];
+    updatedServices[index] = service;
+    updateData({ services: updatedServices });
+  };
+
+  const deleteService = (index) => {
+    const updatedServices = data.services.filter((_, i) => i !== index);
+    updateData({ services: updatedServices });
+  };
+
+  const addTestimonial = (testimonial) => {
+    const updatedTestimonials = [...data.testimonials, testimonial];
+    updateData({ testimonials: updatedTestimonials });
+  };
+
+  const updateTestimonial = (index, testimonial) => {
+    const updatedTestimonials = [...data.testimonials];
+    updatedTestimonials[index] = testimonial;
+    updateData({ testimonials: updatedTestimonials });
+  };
+
+  const deleteTestimonial = (index) => {
+    const updatedTestimonials = data.testimonials.filter((_, i) => i !== index);
+    updateData({ testimonials: updatedTestimonials });
+  };
+
   const updateTheme = (newTheme) => {
     updateData({ theme: { ...data.theme, ...newTheme } });
   };
@@ -85,6 +117,12 @@ export const CMSProvider = ({ children }) => {
       addOffer,
       updateOffer,
       deleteOffer,
+      addService,
+      updateService,
+      deleteService,
+      addTestimonial,
+      updateTestimonial,
+      deleteTestimonial,
       updateTheme
     }}>
       {children}

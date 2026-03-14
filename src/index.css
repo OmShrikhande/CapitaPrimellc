@@ -623,6 +623,30 @@ img {
   pointer-events: none;
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.6) #0a0a0a;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0a0a0a;
+  border-radius: 3rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C9A84C 0%, #8B6B14 100%);
+  border-radius: 3rem;
+  border: 1px solid #0a0a0a;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #E8D5A3 0%, #C9A84C 100%);
+}
+
 @media (max-width: 768px) {
   .globe-perspective {
     display: none;

@@ -48,6 +48,12 @@ const AdminPanel = () => {
     addOffer,
     updateOffer,
     deleteOffer,
+    addService,
+    updateService,
+    deleteService,
+    addTestimonial,
+    updateTestimonial,
+    deleteTestimonial,
     updateTheme 
   } = useCMS();
 
@@ -307,8 +313,22 @@ const AdminPanel = () => {
               />
             )}
             {activeTab === 'content' && <ContentView data={data} updateData={updateData} />}
-            {activeTab === 'services' && <ServicesView services={data.services} updateData={updateData} />}
-            {activeTab === 'testimonials' && <TestimonialsView testimonials={data.testimonials} updateData={updateData} />}
+            {activeTab === 'services' && (
+              <ServicesView 
+                services={data.services} 
+                addService={addService}
+                updateService={updateService}
+                deleteService={deleteService}
+              />
+            )}
+            {activeTab === 'testimonials' && (
+              <TestimonialsView 
+                testimonials={data.testimonials} 
+                addTestimonial={addTestimonial}
+                updateTestimonial={updateTestimonial}
+                deleteTestimonial={deleteTestimonial}
+              />
+            )}
             {activeTab === 'theme' && <ThemeView theme={data.theme} updateTheme={updateTheme} />}
           </div>
         </div>
