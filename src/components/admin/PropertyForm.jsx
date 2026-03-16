@@ -105,10 +105,10 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
         {/* Border Scrollbar */}
         <div className="absolute inset-0 rounded-[3rem] pointer-events-none">
           <div
-            className="absolute right-0 w-1.5 bg-gradient-to-b from-gold via-gold/50 to-gold/20 rounded-r-[3rem] transition-all duration-300 ease-out"
+            className="absolute right-0 w-2 bg-gradient-to-b from-gold via-gold/50 to-gold/20 rounded-r-[3rem] transition-all duration-300 ease-out"
             style={{
-              height: '120px',
-              top: `${scrollProgress * 85}%`,
+              height: '25%',
+              top: `${scrollProgress * 75}%`,
               boxShadow: `0 0 ${20 + scrollProgress * 30}px rgba(201, 168, 76, ${0.3 + scrollProgress * 0.7})`
             }}
           />
@@ -185,7 +185,7 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
                     value={formData.gallery}
                     onChange={e => setFormData({...formData, gallery: e.target.value})}
                     className="w-full bg-transparent outline-none text-white font-bold placeholder:text-gray-400"
-                    placeholder={isDragging ? "Drop images here..." : "/path/to/image1.jpg, /path/to/image2.jpg or drag images here"}
+                    placeholder={isDragging ? "Drop images here..." : "Add path from your system or drag images here"}
                   />
                   {isDragging && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gold/10 rounded-2xl border-2 border-dashed border-gold">
