@@ -745,7 +745,7 @@ const ListingsPage = () => {
               asset.location ? `Location: ${asset.location}` : 'Location: TBD'
             ].filter(Boolean),
             description: asset.description,
-            imageUrl: asset.imageUrl
+            imageUrls: asset.imageUrls || []
           }));
           setAssets(transformedAssets);
         }

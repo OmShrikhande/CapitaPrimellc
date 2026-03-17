@@ -232,14 +232,16 @@ export const adminAPI = {
 
       // Add text fields
       Object.keys(assetData).forEach(key => {
-        if (key !== 'image' && assetData[key] !== undefined) {
+        if (key !== 'images' && assetData[key] !== undefined) {
           formData.append(key, assetData[key]);
         }
       });
 
-      // Add image file if provided
-      if (assetData.image) {
-        formData.append('image', assetData.image);
+      // Add image files if provided (up to 7)
+      if (assetData.images && Array.isArray(assetData.images)) {
+        assetData.images.slice(0, 7).forEach((image, index) => {
+          formData.append('images', image);
+        });
       }
 
       const response = await fetch(`${API_BASE_URL}/api/assets`, {
@@ -259,14 +261,16 @@ export const adminAPI = {
 
       // Add text fields
       Object.keys(assetData).forEach(key => {
-        if (key !== 'image' && assetData[key] !== undefined) {
+        if (key !== 'images' && assetData[key] !== undefined) {
           formData.append(key, assetData[key]);
         }
       });
 
-      // Add image file if provided
-      if (assetData.image) {
-        formData.append('image', assetData.image);
+      // Add image files if provided (up to 7)
+      if (assetData.images && Array.isArray(assetData.images)) {
+        assetData.images.slice(0, 7).forEach((image, index) => {
+          formData.append('images', image);
+        });
       }
 
       const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {

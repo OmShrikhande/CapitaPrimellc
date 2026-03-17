@@ -60,11 +60,11 @@ const getAsset = async (req, res) => {
 const createAsset = async (req, res) => {
   try {
     const { name, type, quantity, location, description } = req.body;
-    let imageUrl = '';
+    let imageUrls = [];
 
-    if (req.file) {
-      // Store relative path for flexibility
-      imageUrl = `/uploads/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      // Store relative paths for up to 7 images
+      imageUrls = req.files.slice(0, 7).map(file => `/uploads/${file.filename}`);
     }
 
     const newAsset = {
@@ -73,7 +73,7 @@ const createAsset = async (req, res) => {
       quantity: parseInt(quantity) || 0,
       location,
       description,
-      imageUrl,
+      imageUrls, // Changed from imageUrl to imageUrls array
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -103,9 +103,11 @@ const updateAsset = async (req, res) => {
     const assetDoc = await assetRef.get();
 
     if (!assetDoc.exists) {
-      // If a file was uploaded but asset not found, delete the file
-      if (req.file) {
-        fs.unlinkSync(path.join(__dirname, '../../public/uploads', req.file.filename));
+      // If files were uploaded but asset not found, delete the files
+      if (req.files && req.files.length > 0) {
+        req.files.forEach(file => {
+          fs.unlinkSync(path.join(__dirname, '../../public/uploads', file.filename));
+        });
       }
       return res.status(404).json({
         success: false,
@@ -123,16 +125,13 @@ const updateAsset = async (req, res) => {
     if (location) updateData.location = location;
     if (description) updateData.description = description;
 
-    if (req.file) {
-      // Delete old image if it exists
+    if (req.files && req.files.length > 0) {
+      // Handle new images (up to 7 total)
       const oldAsset = assetDoc.data();
-      if (oldAsset.imageUrl && oldAsset.imageUrl.startsWith('/uploads/')) {
-        const oldImagePath = path.join(__dirname, '../../public', oldAsset.imageUrl);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      }
-      updateData.imageUrl = `/uploads/${req.file.filename}`;
+      const existingImages = oldAsset.imageUrls || [];
+      const newImages = req.files.slice(0, 7 - existingImages.length).map(file => `/uploads/${file.filename}`);
+
+      updateData.imageUrls = [...existingImages, ...newImages];
     }
 
     await assetRef.update(updateData);
@@ -167,13 +166,17 @@ const deleteAsset = async (req, res) => {
       });
     }
 
-    // Delete image if it exists
+    // Delete all images if they exist
     const asset = assetDoc.data();
-    if (asset.imageUrl && asset.imageUrl.startsWith('/uploads/')) {
-      const imagePath = path.join(__dirname, '../../public', asset.imageUrl);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
+    if (asset.imageUrls && Array.isArray(asset.imageUrls)) {
+      asset.imageUrls.forEach(imageUrl => {
+        if (imageUrl && imageUrl.startsWith('/uploads/')) {
+          const imagePath = path.join(__dirname, '../../public', imageUrl);
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+          }
+        }
+      });
     }
 
     await assetRef.delete();

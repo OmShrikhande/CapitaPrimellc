@@ -250,6 +250,122 @@ Authorization: Bearer <your-jwt-token>
 }
 ```
 
+### Asset Management Endpoints
+
+#### 10. Get All Assets
+- **Endpoint**: `GET /api/assets`
+- **Description**: Get all assets (public access for listings)
+- **JWT Required**: No
+- **Request Body**: None
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "id": "asset_id_1",
+      "name": "Office Desk",
+      "type": "Furniture",
+      "quantity": 5,
+      "location": "Dubai Office",
+      "description": "Modern office desk",
+      "imageUrls": ["/uploads/image1.jpg", "/uploads/image2.jpg"],
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### 11. Get Single Asset
+- **Endpoint**: `GET /api/assets/:id`
+- **Description**: Get a specific asset by ID
+- **JWT Required**: No
+- **Request Body**: None
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "asset_id_1",
+    "name": "Office Desk",
+    "type": "Furniture",
+    "quantity": 5,
+    "location": "Dubai Office",
+    "description": "Modern office desk",
+    "imageUrls": ["/uploads/image1.jpg", "/uploads/image2.jpg"],
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### 12. Create Asset
+- **Endpoint**: `POST /api/assets`
+- **Description**: Create a new asset with up to 7 images
+- **JWT Required**: Yes (Admin authentication required)
+- **Request Body**: FormData with the following fields:
+  - `name` (string, required): Asset name
+  - `type` (string, required): Asset type (Equipment, Furniture, Vehicle, Property, Other)
+  - `quantity` (number): Asset quantity
+  - `location` (string): Asset location
+  - `description` (string): Asset description
+  - `images` (files, optional): Up to 7 image files (JPEG, PNG, WEBP, GIF, max 5MB each)
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "new_asset_id",
+    "name": "Office Desk",
+    "type": "Furniture",
+    "quantity": 5,
+    "location": "Dubai Office",
+    "description": "Modern office desk",
+    "imageUrls": ["/uploads/image1.jpg", "/uploads/image2.jpg"],
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### 13. Update Asset
+- **Endpoint**: `PUT /api/assets/:id`
+- **Description**: Update an existing asset, can add additional images (up to 7 total)
+- **JWT Required**: Yes (Admin authentication required)
+- **Request Body**: FormData with the same fields as create (only changed fields need to be provided)
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "asset_id_1",
+    "name": "Updated Office Desk",
+    "type": "Furniture",
+    "quantity": 3,
+    "location": "Dubai Office",
+    "description": "Updated modern office desk",
+    "imageUrls": ["/uploads/image1.jpg", "/uploads/image2.jpg", "/uploads/image3.jpg"],
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  }
+}
+```
+
+#### 14. Delete Asset
+- **Endpoint**: `DELETE /api/assets/:id`
+- **Description**: Delete an asset and all its associated images
+- **JWT Required**: Yes (Admin authentication required)
+- **Request Body**: None
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "message": "Asset deleted successfully"
+}
+```
+
 ## Error Response Format
 All error responses follow this format:
 ```json

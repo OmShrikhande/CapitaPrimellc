@@ -9,10 +9,10 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     quantity: '',
     location: '',
     description: '',
-    image: null
+    images: []
   });
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreviews, setImagePreviews] = useState([]);
 
   useEffect(() => {
     if (editingAsset) {
@@ -22,9 +22,9 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         quantity: editingAsset.quantity || '',
         location: editingAsset.location || '',
         description: editingAsset.description || '',
-        image: null
+        images: []
       });
-      setImagePreview(editingAsset.imageUrl || '');
+      setImagePreviews(editingAsset.imageUrls || []);
     } else {
       setFormData({
         name: '',
@@ -32,9 +32,9 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         quantity: '',
         location: '',
         description: '',
-        image: null
+        images: []
       });
-      setImagePreview('');
+      setImagePreviews([]);
     }
   }, [editingAsset, isOpen]);
 
@@ -44,13 +44,38 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, image: file }));
-      const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target.result);
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      // Limit to 7 images total
+      const totalImages = imagePreviews.length + files.length;
+      const allowedFiles = files.slice(0, 7 - imagePreviews.length);
+
+      setFormData(prev => ({
+        ...prev,
+        images: [...(prev.images || []), ...allowedFiles]
+      }));
+
+      // Create previews for new files
+      const newPreviews = allowedFiles.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(newPreviews).then(previews => {
+        setImagePreviews(prev => [...prev, ...previews]);
+      });
     }
+  };
+
+  const removeImage = (index) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -167,20 +192,38 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
 
           <div>
             <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
-              Asset Image
+              Asset Images (Max 7)
             </label>
-            <div className="flex gap-4">
+            <div className="space-y-4">
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageChange}
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gold file:text-black hover:file:bg-gold/80 transition-all"
+                disabled={imagePreviews.length >= 7}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gold file:text-black hover:file:bg-gold/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               />
-              {imagePreview && (
-                <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10">
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10">
+                        <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
+              <p className="text-xs text-gray-500">
+                {imagePreviews.length}/7 images uploaded
+              </p>
             </div>
           </div>
 
@@ -332,8 +375,8 @@ const AssetsView = () => {
 
             <div className="flex gap-6 lg:gap-8 items-center relative flex-1">
               <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0">
-                {asset.imageUrl ? (
-                  <img src={asset.imageUrl} alt={asset.name} className="w-full h-full object-cover" />
+                {asset.imageUrls && asset.imageUrls.length > 0 ? (
+                  <img src={asset.imageUrls[0]} alt={asset.name} className="w-full h-full object-cover" />
                 ) : (
                   asset.type === 'Equipment' ? '🔧' :
                   asset.type === 'Furniture' ? '🪑' :
@@ -354,6 +397,7 @@ const AssetsView = () => {
                   <span className="flex items-center gap-2 group-hover:text-gold transition-colors whitespace-nowrap">🏷️ {asset.type}</span>
                   <span className="flex items-center gap-2 text-white/70 whitespace-nowrap">📦 Qty: {asset.quantity || 0}</span>
                   {asset.location && <span className="flex items-center gap-2 whitespace-nowrap">📍 {asset.location}</span>}
+                  <span className="flex items-center gap-2 whitespace-nowrap">🖼️ {asset.imageUrls ? asset.imageUrls.length : 0} Images</span>
                 </div>
                 {asset.description && (
                   <p className="text-sm text-gray-400 mt-2 line-clamp-2">{asset.description}</p>

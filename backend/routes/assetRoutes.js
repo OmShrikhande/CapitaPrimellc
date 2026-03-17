@@ -16,8 +16,8 @@ router.get('/', getAssets);
 router.get('/:id', getAsset);
 
 // Protected admin routes
-router.post('/', authenticateToken, upload.single('image'), createAsset);
-router.put('/:id', authenticateToken, upload.single('image'), updateAsset);
+router.post('/', authenticateToken, upload.array('images', 7), createAsset);
+router.put('/:id', authenticateToken, upload.array('images', 7), updateAsset);
 router.delete('/:id', authenticateToken, deleteAsset);
 
 module.exports = router;
