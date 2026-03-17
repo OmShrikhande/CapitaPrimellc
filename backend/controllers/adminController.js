@@ -10,25 +10,42 @@ const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        status: 'error',
+        description: 'Email and password are required'
       });
     }
 
-    // Check against environment variables (for demo purposes)
-    // In production, you should store admin credentials securely in database
-    if (email !== process.env.ADMIN_EMAIL) {
-      return res.status(401).json({
+    // Check if Firebase is configured
+    if (!isFirebaseConfigured()) {
+      return res.status(500).json({
         success: false,
-        message: 'Invalid credentials'
+        status: 'error',
+        description: 'Database not available'
       });
     }
 
-    // For demo purposes, we're using plain text password comparison
-    // In production, use bcrypt to hash and compare passwords
-    if (password !== process.env.ADMIN_PASSWORD) {
+    // Query admin credentials from database
+    const adminQuery = await db.collection('admins').where('email', '==', email).limit(1).get();
+
+    if (adminQuery.empty) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        status: 'unauthorized',
+        description: 'Invalid credentials'
+      });
+    }
+
+    const adminDoc = adminQuery.docs[0];
+    const adminData = adminDoc.data();
+
+    // Compare password using bcrypt
+    const isPasswordValid = await bcrypt.compare(password, adminData.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        status: 'unauthorized',
+        description: 'Invalid credentials'
       });
     }
 
@@ -56,7 +73,8 @@ const login = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Login successful',
+      status: 'success',
+      description: 'Login successful',
       data: {
         token: token,
         user: {
@@ -70,7 +88,8 @@ const login = async (req, res) => {
     console.error('Admin login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      status: 'error',
+      description: 'Internal server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
