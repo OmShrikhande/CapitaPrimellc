@@ -7,6 +7,7 @@ const path = require('path');
 // Import routes
 const healthRoutes = require('./routes/health');
 const adminRoutes = require('./routes/admin');
+const assetRoutes = require('./routes/assetRoutes');
 
 // Initialize Firebase (this will validate the configuration)
 const { db, isFirebaseConfigured } = require('./config/firebase');
@@ -181,6 +182,7 @@ app.use((req, res, next) => {
 // API routes
 app.use('/', healthRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/assets', assetRoutes);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));

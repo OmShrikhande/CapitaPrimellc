@@ -59,7 +59,37 @@ const getAsset = async (req, res) => {
 // @access  Admin
 const createAsset = async (req, res) => {
   try {
-    const { name, type, quantity, location, description } = req.body;
+    const {
+      name,
+      type,
+      quantity,
+      location,
+      description,
+      // Property-specific fields
+      price,
+      area,
+      bedrooms,
+      bathrooms,
+      parking,
+      yearBuilt,
+      propertyType,
+      listingType,
+      // Coordinates
+      latitude,
+      longitude,
+      // Additional details
+      amenities,
+      features,
+      neighborhood,
+      developer,
+      completionStatus,
+      paymentPlan,
+      // Contact info
+      agentName,
+      agentPhone,
+      agentEmail
+    } = req.body;
+
     let imageUrls = [];
 
     if (req.files && req.files.length > 0) {
@@ -73,7 +103,32 @@ const createAsset = async (req, res) => {
       quantity: parseInt(quantity) || 0,
       location,
       description,
-      imageUrls, // Changed from imageUrl to imageUrls array
+      imageUrls,
+      // Property details
+      price: price ? parseFloat(price) : null,
+      area: area ? parseFloat(area) : null,
+      bedrooms: bedrooms ? parseInt(bedrooms) : null,
+      bathrooms: bathrooms ? parseInt(bathrooms) : null,
+      parking: parking ? parseInt(parking) : null,
+      yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
+      propertyType,
+      listingType,
+      // Coordinates
+      coordinates: latitude && longitude ? {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      } : null,
+      // Additional details
+      amenities: amenities ? (Array.isArray(amenities) ? amenities : [amenities]) : [],
+      features: features ? (Array.isArray(features) ? features : [features]) : [],
+      neighborhood,
+      developer,
+      completionStatus,
+      paymentPlan,
+      // Contact info
+      agentName,
+      agentPhone,
+      agentEmail,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -98,7 +153,37 @@ const createAsset = async (req, res) => {
 // @access  Admin
 const updateAsset = async (req, res) => {
   try {
-    const { name, type, quantity, location, description } = req.body;
+    const {
+      name,
+      type,
+      quantity,
+      location,
+      description,
+      // Property-specific fields
+      price,
+      area,
+      bedrooms,
+      bathrooms,
+      parking,
+      yearBuilt,
+      propertyType,
+      listingType,
+      // Coordinates
+      latitude,
+      longitude,
+      // Additional details
+      amenities,
+      features,
+      neighborhood,
+      developer,
+      completionStatus,
+      paymentPlan,
+      // Contact info
+      agentName,
+      agentPhone,
+      agentEmail
+    } = req.body;
+
     const assetRef = db.collection('assets').doc(req.params.id);
     const assetDoc = await assetRef.get();
 
@@ -119,11 +204,43 @@ const updateAsset = async (req, res) => {
       updatedAt: new Date()
     };
 
-    if (name) updateData.name = name;
-    if (type) updateData.type = type;
+    // Basic fields
+    if (name !== undefined) updateData.name = name;
+    if (type !== undefined) updateData.type = type;
     if (quantity !== undefined) updateData.quantity = parseInt(quantity) || 0;
-    if (location) updateData.location = location;
-    if (description) updateData.description = description;
+    if (location !== undefined) updateData.location = location;
+    if (description !== undefined) updateData.description = description;
+
+    // Property details
+    if (price !== undefined) updateData.price = price ? parseFloat(price) : null;
+    if (area !== undefined) updateData.area = area ? parseFloat(area) : null;
+    if (bedrooms !== undefined) updateData.bedrooms = bedrooms ? parseInt(bedrooms) : null;
+    if (bathrooms !== undefined) updateData.bathrooms = bathrooms ? parseInt(bathrooms) : null;
+    if (parking !== undefined) updateData.parking = parking ? parseInt(parking) : null;
+    if (yearBuilt !== undefined) updateData.yearBuilt = yearBuilt ? parseInt(yearBuilt) : null;
+    if (propertyType !== undefined) updateData.propertyType = propertyType;
+    if (listingType !== undefined) updateData.listingType = listingType;
+
+    // Coordinates
+    if (latitude !== undefined && longitude !== undefined) {
+      updateData.coordinates = latitude && longitude ? {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      } : null;
+    }
+
+    // Additional details
+    if (amenities !== undefined) updateData.amenities = amenities ? (Array.isArray(amenities) ? amenities : [amenities]) : [];
+    if (features !== undefined) updateData.features = features ? (Array.isArray(features) ? features : [features]) : [];
+    if (neighborhood !== undefined) updateData.neighborhood = neighborhood;
+    if (developer !== undefined) updateData.developer = developer;
+    if (completionStatus !== undefined) updateData.completionStatus = completionStatus;
+    if (paymentPlan !== undefined) updateData.paymentPlan = paymentPlan;
+
+    // Contact info
+    if (agentName !== undefined) updateData.agentName = agentName;
+    if (agentPhone !== undefined) updateData.agentPhone = agentPhone;
+    if (agentEmail !== undefined) updateData.agentEmail = agentEmail;
 
     if (req.files && req.files.length > 0) {
       // Handle new images (up to 7 total)

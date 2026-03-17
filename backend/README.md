@@ -265,12 +265,37 @@ Authorization: Bearer <your-jwt-token>
   "data": [
     {
       "id": "asset_id_1",
-      "name": "Office Desk",
-      "type": "Furniture",
-      "quantity": 5,
-      "location": "Dubai Office",
-      "description": "Modern office desk",
-      "imageUrls": ["/uploads/image1.jpg", "/uploads/image2.jpg"],
+      "name": "Palm Jumeirah Villa",
+      "type": "Property",
+      "quantity": 1,
+      "location": "Palm Jumeirah, Dubai",
+      "description": "Luxurious beachfront villa with stunning sea views",
+      "imageUrls": ["/uploads/image1.jpg", "/uploads/image2.jpg", "/uploads/image3.jpg"],
+      // Property-specific fields
+      "price": 15000000,
+      "area": 8500,
+      "bedrooms": 5,
+      "bathrooms": 6,
+      "parking": 3,
+      "yearBuilt": 2020,
+      "propertyType": "Villa",
+      "listingType": "Sale",
+      // Coordinates
+      "coordinates": {
+        "latitude": 25.123456,
+        "longitude": 55.123456
+      },
+      // Additional details
+      "amenities": ["Swimming Pool", "Gym", "Beach Access", "Concierge"],
+      "features": ["Sea View", "Private Beach", "Smart Home", "Furnished"],
+      "neighborhood": "Palm Jumeirah",
+      "developer": "Nakheel",
+      "completionStatus": "Ready",
+      "paymentPlan": "20% down payment, 80% mortgage",
+      // Contact info
+      "agentName": "Ahmed Al-Rashid",
+      "agentPhone": "+971501234567",
+      "agentEmail": "ahmed@capitaprimellc.com",
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
     }
@@ -306,12 +331,31 @@ Authorization: Bearer <your-jwt-token>
 - **Description**: Create a new asset with up to 7 images
 - **JWT Required**: Yes (Admin authentication required)
 - **Request Body**: FormData with the following fields:
-  - `name` (string, required): Asset name
+  - `name` (string, required): Asset/property name
   - `type` (string, required): Asset type (Equipment, Furniture, Vehicle, Property, Other)
-  - `quantity` (number): Asset quantity
-  - `location` (string): Asset location
-  - `description` (string): Asset description
+  - `quantity` (number): Asset quantity (default: 0)
+  - `location` (string): Asset/property location
+  - `description` (string): Asset/property description
   - `images` (files, optional): Up to 7 image files (JPEG, PNG, WEBP, GIF, max 5MB each)
+  - `price` (number): Property price in AED
+  - `area` (number): Property area in square feet
+  - `bedrooms` (number): Number of bedrooms
+  - `bathrooms` (number): Number of bathrooms
+  - `parking` (number): Number of parking spaces
+  - `yearBuilt` (number): Year the property was built
+  - `propertyType` (string): Type of property (Apartment, Villa, Townhouse, etc.)
+  - `listingType` (string): Sale, Rent, or Lease
+  - `latitude` (number): GPS latitude coordinate
+  - `longitude` (number): GPS longitude coordinate
+  - `amenities` (string): Comma-separated list of amenities
+  - `features` (string): Comma-separated list of features
+  - `neighborhood` (string): Neighborhood name
+  - `developer` (string): Property developer name
+  - `completionStatus` (string): Ready, Off-Plan, or Under Construction
+  - `paymentPlan` (string): Payment plan details
+  - `agentName` (string): Agent contact name
+  - `agentPhone` (string): Agent phone number
+  - `agentEmail` (string): Agent email address
 - **Response (Success)**:
 ```json
 {

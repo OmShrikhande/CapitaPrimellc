@@ -9,7 +9,30 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     quantity: '',
     location: '',
     description: '',
-    images: []
+    images: [],
+    // Property-specific fields
+    price: '',
+    area: '',
+    bedrooms: '',
+    bathrooms: '',
+    parking: '',
+    yearBuilt: '',
+    propertyType: '',
+    listingType: '',
+    // Coordinates
+    latitude: '',
+    longitude: '',
+    // Additional details
+    amenities: [],
+    features: [],
+    neighborhood: '',
+    developer: '',
+    completionStatus: '',
+    paymentPlan: '',
+    // Contact info
+    agentName: '',
+    agentPhone: '',
+    agentEmail: ''
   });
   const [loading, setLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -22,7 +45,30 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         quantity: editingAsset.quantity || '',
         location: editingAsset.location || '',
         description: editingAsset.description || '',
-        images: []
+        images: [],
+        // Property-specific fields
+        price: editingAsset.price || '',
+        area: editingAsset.area || '',
+        bedrooms: editingAsset.bedrooms || '',
+        bathrooms: editingAsset.bathrooms || '',
+        parking: editingAsset.parking || '',
+        yearBuilt: editingAsset.yearBuilt || '',
+        propertyType: editingAsset.propertyType || '',
+        listingType: editingAsset.listingType || '',
+        // Coordinates
+        latitude: editingAsset.coordinates?.latitude || '',
+        longitude: editingAsset.coordinates?.longitude || '',
+        // Additional details
+        amenities: editingAsset.amenities || [],
+        features: editingAsset.features || [],
+        neighborhood: editingAsset.neighborhood || '',
+        developer: editingAsset.developer || '',
+        completionStatus: editingAsset.completionStatus || '',
+        paymentPlan: editingAsset.paymentPlan || '',
+        // Contact info
+        agentName: editingAsset.agentName || '',
+        agentPhone: editingAsset.agentPhone || '',
+        agentEmail: editingAsset.agentEmail || ''
       });
       setImagePreviews(editingAsset.imageUrls || []);
     } else {
@@ -32,7 +78,30 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         quantity: '',
         location: '',
         description: '',
-        images: []
+        images: [],
+        // Property-specific fields
+        price: '',
+        area: '',
+        bedrooms: '',
+        bathrooms: '',
+        parking: '',
+        yearBuilt: '',
+        propertyType: '',
+        listingType: '',
+        // Coordinates
+        latitude: '',
+        longitude: '',
+        // Additional details
+        amenities: [],
+        features: [],
+        neighborhood: '',
+        developer: '',
+        completionStatus: '',
+        paymentPlan: '',
+        // Contact info
+        agentName: '',
+        agentPhone: '',
+        agentEmail: ''
       });
       setImagePreviews([]);
     }
@@ -75,6 +144,27 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleArrayInput = (field, value) => {
+    const items = value.split(',').map(item => item.trim()).filter(item => item);
+    setFormData(prev => ({ ...prev, [field]: items }));
+  };
+
+  const addArrayItem = (field, item) => {
+    if (item.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        [field]: [...(prev[field] || []), item.trim()]
+      }));
+    }
+  };
+
+  const removeArrayItem = (field, index) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
     }));
   };
 
@@ -173,6 +263,339 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
                 placeholder="Enter location"
               />
+            </div>
+
+            {/* Property-specific fields */}
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Price (AED)
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Enter price"
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Area (sq ft)
+              </label>
+              <input
+                type="number"
+                name="area"
+                value={formData.area}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Enter area"
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Bedrooms
+              </label>
+              <input
+                type="number"
+                name="bedrooms"
+                value={formData.bedrooms}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Number of bedrooms"
+                min="0"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Bathrooms
+              </label>
+              <input
+                type="number"
+                name="bathrooms"
+                value={formData.bathrooms}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Number of bathrooms"
+                min="0"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Parking Spaces
+              </label>
+              <input
+                type="number"
+                name="parking"
+                value={formData.parking}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Number of parking spaces"
+                min="0"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Year Built
+              </label>
+              <input
+                type="number"
+                name="yearBuilt"
+                value={formData.yearBuilt}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Year built"
+                min="1800"
+                max={new Date().getFullYear() + 5}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Property Type
+              </label>
+              <select
+                name="propertyType"
+                value={formData.propertyType}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
+              >
+                <option value="">Select property type</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Villa">Villa</option>
+                <option value="Townhouse">Townhouse</option>
+                <option value="Penthouse">Penthouse</option>
+                <option value="Studio">Studio</option>
+                <option value="Office">Office</option>
+                <option value="Retail">Retail</option>
+                <option value="Warehouse">Warehouse</option>
+                <option value="Land">Land</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Listing Type
+              </label>
+              <select
+                name="listingType"
+                value={formData.listingType}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
+              >
+                <option value="">Select listing type</option>
+                <option value="Sale">For Sale</option>
+                <option value="Rent">For Rent</option>
+                <option value="Lease">For Lease</option>
+              </select>
+            </div>
+
+            {/* Coordinates */}
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Latitude
+              </label>
+              <input
+                type="number"
+                name="latitude"
+                value={formData.latitude}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="25.123456"
+                step="0.000001"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Longitude
+              </label>
+              <input
+                type="number"
+                name="longitude"
+                value={formData.longitude}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="55.123456"
+                step="0.000001"
+              />
+            </div>
+          </div>
+
+          {/* Additional Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Neighborhood
+              </label>
+              <input
+                type="text"
+                name="neighborhood"
+                value={formData.neighborhood}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Enter neighborhood"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Developer
+              </label>
+              <input
+                type="text"
+                name="developer"
+                value={formData.developer}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Enter developer name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Completion Status
+              </label>
+              <select
+                name="completionStatus"
+                value={formData.completionStatus}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
+              >
+                <option value="">Select status</option>
+                <option value="Ready">Ready</option>
+                <option value="Off-Plan">Off-Plan</option>
+                <option value="Under Construction">Under Construction</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Payment Plan
+              </label>
+              <input
+                type="text"
+                name="paymentPlan"
+                value={formData.paymentPlan}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="e.g., 20% down payment"
+              />
+            </div>
+          </div>
+
+          {/* Agent Contact Information */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Agent Name
+              </label>
+              <input
+                type="text"
+                name="agentName"
+                value={formData.agentName}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Agent name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Agent Phone
+              </label>
+              <input
+                type="tel"
+                name="agentPhone"
+                value={formData.agentPhone}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="+971 XX XXX XXXX"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Agent Email
+              </label>
+              <input
+                type="email"
+                name="agentEmail"
+                value={formData.agentEmail}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="agent@company.com"
+              />
+            </div>
+          </div>
+
+          {/* Amenities and Features */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Amenities (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={formData.amenities.join(', ')}
+                onChange={(e) => handleArrayInput('amenities', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Swimming pool, gym, parking"
+              />
+              {formData.amenities.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.amenities.map((amenity, index) => (
+                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
+                      {amenity}
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('amenities', index)}
+                        className="text-gold hover:text-red-400"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Features (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={formData.features.join(', ')}
+                onChange={(e) => handleArrayInput('features', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Balcony, sea view, furnished"
+              />
+              {formData.features.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.features.map((feature, index) => (
+                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
+                      {feature}
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('features', index)}
+                        className="text-gold hover:text-red-400"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

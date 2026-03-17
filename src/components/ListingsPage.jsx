@@ -734,18 +734,32 @@ const ListingsPage = () => {
           const transformedAssets = response.data.map(asset => ({
             title: asset.name,
             location: asset.location || 'Dubai, UAE',
-            area: 'N/A', // Assets don't have area, using placeholder
-            price: 'Contact for Price', // Assets don't have price, using placeholder
-            category: asset.type || 'Asset',
-            badge: asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK',
+            area: asset.area || 'N/A',
+            price: asset.price ? `AED ${asset.price.toLocaleString()}` : 'Contact for Price',
+            category: asset.propertyType || asset.type || 'Property',
+            badge: asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK'),
             gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
             accent: '#1a4d1a',
             features: [
-              `Quantity: ${asset.quantity || 0}`,
-              asset.location ? `Location: ${asset.location}` : 'Location: TBD'
+              asset.bedrooms ? `${asset.bedrooms} Bedrooms` : null,
+              asset.bathrooms ? `${asset.bathrooms} Bathrooms` : null,
+              asset.area ? `${asset.area} sq ft` : null,
+              asset.parking ? `${asset.parking} Parking` : null,
+              asset.neighborhood || null,
+              asset.completionStatus || null
             ].filter(Boolean),
             description: asset.description,
-            imageUrls: asset.imageUrls || []
+            imageUrls: asset.imageUrls || [],
+            // Additional data for detailed view
+            coordinates: asset.coordinates,
+            amenities: asset.amenities || [],
+            features: asset.features || [],
+            agentName: asset.agentName,
+            agentPhone: asset.agentPhone,
+            agentEmail: asset.agentEmail,
+            developer: asset.developer,
+            yearBuilt: asset.yearBuilt,
+            paymentPlan: asset.paymentPlan
           }));
           setAssets(transformedAssets);
         }
