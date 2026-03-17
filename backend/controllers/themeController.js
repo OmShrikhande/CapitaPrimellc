@@ -58,14 +58,7 @@ const getTheme = async (req, res) => {
 // Update theme
 const updateTheme = async (req, res) => {
   try {
-    console.log('Raw req.body:', req.body);
-    console.log('Content-Type:', req.headers['content-type']);
-    console.log('Request method:', req.method);
-    console.log('Request URL:', req.url);
-
     const { primary, secondary, accent, mode, name } = req.body;
-
-    console.log('Update theme request:', { primary, secondary, accent, mode, name });
 
     if (!isFirebaseConfigured()) {
       console.error('Firebase not configured');
@@ -118,12 +111,14 @@ const updateTheme = async (req, res) => {
       // If there's an active theme, update it instead of creating a new one
       if (!activeThemesQuery.empty) {
         const activeThemeDoc = activeThemesQuery.docs[0];
-        console.log('Updating existing theme:', activeThemeDoc.id);
+        console.log('Updating existing theme document:', activeThemeDoc.id, 'in collection: themes');
 
         await activeThemeDoc.ref.update({
           ...themeData,
           updatedAt: new Date()
         });
+
+        console.log('Theme updated successfully in Firestore');
 
         res.json({
           success: true,
@@ -135,14 +130,14 @@ const updateTheme = async (req, res) => {
         });
       } else {
         // No active theme, create a new one
-        console.log('Creating new theme document');
+        console.log('Creating new theme document in collection: themes');
 
         const newThemeRef = await db.collection('themes').add({
           ...themeData,
           createdAt: new Date()
         });
 
-        console.log('New theme created with ID:', newThemeRef.id);
+        console.log('New theme created with ID:', newThemeRef.id, 'in collection: themes');
 
         res.json({
           success: true,

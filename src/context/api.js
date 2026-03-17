@@ -44,8 +44,8 @@ const cachedRequest = async (url, options = {}, cacheKey = null) => {
   try {
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
+        ...options.headers, // Auth headers first
+        'Content-Type': 'application/json', // Override any existing content-type
       },
       ...options,
     });
@@ -151,7 +151,6 @@ export const adminAPI = {
 
     // Update current theme
     update: async (themeData) => {
-      console.log('Frontend: Sending theme update:', themeData);
       return cachedRequest(`${API_BASE_URL}/api/admin/theme`, {
         method: 'PUT',
         headers: {

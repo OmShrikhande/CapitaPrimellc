@@ -1,0 +1,62 @@
+# ===========================================
+# CapitaPrimellc Theme API Test Commands
+# ===========================================
+
+# 1. Test GET theme (public - no auth required)
+curl -X GET "https://capitaprimellc.onrender.com/api/admin/theme" \
+  -H "Content-Type: application/json"
+
+# Expected: Returns current theme or default theme
+
+# 2. Login to get JWT token (replace with your admin credentials)
+curl -X POST "https://capitaprimellc.onrender.com/api/admin/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@capitaprimellc.com",
+    "password": "capita2024"
+  }'
+
+# Copy the token from the response: "token": "eyJhbGciOiJIUzI1NiIs..."
+
+# 3. Test PUT theme (protected - requires JWT token)
+# Replace YOUR_JWT_TOKEN with the token from step 2
+curl -X PUT "https://capitaprimellc.onrender.com/api/admin/theme" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "primary": "#FF6B6B",
+    "secondary": "#1a1a1a",
+    "accent": "#ffffff",
+    "mode": "dark",
+    "name": "Red Theme Test"
+  }'
+
+# Expected: Success message and updated theme data
+
+# 4. Verify theme was saved (GET again)
+curl -X GET "https://capitaprimellc.onrender.com/api/admin/theme" \
+  -H "Content-Type: application/json"
+
+# Should return the updated theme with red primary color
+
+# 5. Test GET all themes (protected - requires JWT)
+curl -X GET "https://capitaprimellc.onrender.com/api/admin/themes" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Should return array of all themes
+
+# ===========================================
+# Create Default Theme (run locally)
+# ===========================================
+
+# If no themes exist, create default theme:
+# node scripts/create-default-theme.js
+
+# ===========================================
+# Check Firebase Console
+# ===========================================
+
+# After successful PUT request, check:
+# Firebase Console → Firestore Database → themes collection
+# Should see document with your theme data
