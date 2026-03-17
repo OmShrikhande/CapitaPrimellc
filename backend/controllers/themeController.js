@@ -60,7 +60,10 @@ const updateTheme = async (req, res) => {
   try {
     const { primary, secondary, accent, mode, name } = req.body;
 
+    console.log('Update theme request:', { primary, secondary, accent, mode, name });
+
     if (!isFirebaseConfigured()) {
+      console.error('Firebase not configured');
       return res.status(500).json({
         success: false,
         message: 'Database not available'
@@ -69,6 +72,7 @@ const updateTheme = async (req, res) => {
 
     // Validate required fields
     if (!primary || !secondary || !accent || !mode) {
+      console.error('Missing required fields');
       return res.status(400).json({
         success: false,
         message: 'Primary, secondary, accent colors and mode are required'
@@ -77,6 +81,7 @@ const updateTheme = async (req, res) => {
 
     // Validate mode
     if (!['dark', 'light'].includes(mode)) {
+      console.error('Invalid mode:', mode);
       return res.status(400).json({
         success: false,
         message: 'Mode must be either "dark" or "light"'
@@ -93,36 +98,65 @@ const updateTheme = async (req, res) => {
       updatedAt: new Date()
     };
 
-    // First, set all existing themes to inactive
-    const batch = db.batch();
-    const activeThemes = await db.collection('themes')
-      .where('active', '==', true)
-      .get();
+    console.log('Theme data to save:', themeData);
 
-    activeThemes.docs.forEach(doc => {
-      batch.update(doc.ref, { active: false });
-    });
+    // Try a simpler approach - just update/create a single document
+    try {
+      // Check if there's an existing active theme
+      const activeThemesQuery = await db.collection('themes')
+        .where('active', '==', true)
+        .limit(1)
+        .get();
 
-    // Add the new theme
-    const newThemeRef = db.collection('themes').doc();
-    batch.set(newThemeRef, {
-      ...themeData,
-      createdAt: new Date()
-    });
+      console.log('Active themes found:', activeThemesQuery.size);
 
-    await batch.commit();
+      // If there's an active theme, update it instead of creating a new one
+      if (!activeThemesQuery.empty) {
+        const activeThemeDoc = activeThemesQuery.docs[0];
+        console.log('Updating existing theme:', activeThemeDoc.id);
 
-    res.json({
-      success: true,
-      message: 'Theme updated successfully',
-      data: {
-        id: newThemeRef.id,
-        ...themeData
+        await activeThemeDoc.ref.update({
+          ...themeData,
+          updatedAt: new Date()
+        });
+
+        res.json({
+          success: true,
+          message: 'Theme updated successfully',
+          data: {
+            id: activeThemeDoc.id,
+            ...themeData
+          }
+        });
+      } else {
+        // No active theme, create a new one
+        console.log('Creating new theme document');
+
+        const newThemeRef = await db.collection('themes').add({
+          ...themeData,
+          createdAt: new Date()
+        });
+
+        console.log('New theme created with ID:', newThemeRef.id);
+
+        res.json({
+          success: true,
+          message: 'Theme created successfully',
+          data: {
+            id: newThemeRef.id,
+            ...themeData
+          }
+        });
       }
-    });
+
+    } catch (batchError) {
+      console.error('Batch operation failed:', batchError);
+      throw batchError;
+    }
 
   } catch (error) {
     console.error('Update theme error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
