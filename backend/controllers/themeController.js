@@ -70,11 +70,31 @@ const getTheme = async (req, res) => {
     if (!themeQuery.empty) {
       const themeDoc = themeQuery.docs[0];
       const dbThemeData = themeDoc.data();
-      // Merge database theme with defaults to ensure all fields are present
+
+      // Check if any required colors are missing from the database
+      const completeThemeData = { ...DEFAULT_THEME, ...dbThemeData };
+      const hasMissingColors = Object.keys(DEFAULT_THEME).some(key =>
+        !dbThemeData.hasOwnProperty(key) || dbThemeData[key] === undefined || dbThemeData[key] === null
+      );
+
+      // If colors are missing, update the database with complete theme data
+      if (hasMissingColors) {
+        console.log('⚠️ Missing colors detected, updating database with defaults...');
+        try {
+          await themeDoc.ref.update({
+            ...completeThemeData,
+            updatedAt: new Date()
+          });
+          console.log('✅ Database updated with missing colors');
+        } catch (updateError) {
+          console.error('❌ Failed to update missing colors in database:', updateError);
+          // Continue with merged data even if update fails
+        }
+      }
+
       themeData = {
         id: themeDoc.id,
-        ...DEFAULT_THEME,
-        ...dbThemeData
+        ...completeThemeData
       };
     } else {
       // No active theme, return default
@@ -147,44 +167,47 @@ const updateTheme = async (req, res) => {
       });
     }
 
+    // Start with all default colors and override with provided values
     const themeData = {
-      // Primary Palette
+      ...DEFAULT_THEME,
+
+      // Override with provided values
       primary,
-      primaryLight: primaryLight || DEFAULT_THEME.primaryLight,
-      primaryDark: primaryDark || DEFAULT_THEME.primaryDark,
-      primaryMuted: primaryMuted || DEFAULT_THEME.primaryMuted,
+      primaryLight: primaryLight !== undefined ? primaryLight : DEFAULT_THEME.primaryLight,
+      primaryDark: primaryDark !== undefined ? primaryDark : DEFAULT_THEME.primaryDark,
+      primaryMuted: primaryMuted !== undefined ? primaryMuted : DEFAULT_THEME.primaryMuted,
 
       // Core colors for compatibility
       secondary,
       accent,
 
       // Background Colors
-      bgPrimary: bgPrimary || DEFAULT_THEME.bgPrimary,
-      bgSecondary: bgSecondary || DEFAULT_THEME.bgSecondary,
-      bgTertiary: bgTertiary || DEFAULT_THEME.bgTertiary,
-      bgCard: bgCard || DEFAULT_THEME.bgCard,
-      bgCardHover: bgCardHover || DEFAULT_THEME.bgCardHover,
+      bgPrimary: bgPrimary !== undefined ? bgPrimary : DEFAULT_THEME.bgPrimary,
+      bgSecondary: bgSecondary !== undefined ? bgSecondary : DEFAULT_THEME.bgSecondary,
+      bgTertiary: bgTertiary !== undefined ? bgTertiary : DEFAULT_THEME.bgTertiary,
+      bgCard: bgCard !== undefined ? bgCard : DEFAULT_THEME.bgCard,
+      bgCardHover: bgCardHover !== undefined ? bgCardHover : DEFAULT_THEME.bgCardHover,
 
       // Text Colors
-      textPrimary: textPrimary || DEFAULT_THEME.textPrimary,
-      textSecondary: textSecondary || DEFAULT_THEME.textSecondary,
-      textMuted: textMuted || DEFAULT_THEME.textMuted,
+      textPrimary: textPrimary !== undefined ? textPrimary : DEFAULT_THEME.textPrimary,
+      textSecondary: textSecondary !== undefined ? textSecondary : DEFAULT_THEME.textSecondary,
+      textMuted: textMuted !== undefined ? textMuted : DEFAULT_THEME.textMuted,
 
       // Surface Colors
-      surfaceGlass: surfaceGlass || DEFAULT_THEME.surfaceGlass,
-      surfaceGlassDark: surfaceGlassDark || DEFAULT_THEME.surfaceGlassDark,
-      surfaceBadge: surfaceBadge || DEFAULT_THEME.surfaceBadge,
+      surfaceGlass: surfaceGlass !== undefined ? surfaceGlass : DEFAULT_THEME.surfaceGlass,
+      surfaceGlassDark: surfaceGlassDark !== undefined ? surfaceGlassDark : DEFAULT_THEME.surfaceGlassDark,
+      surfaceBadge: surfaceBadge !== undefined ? surfaceBadge : DEFAULT_THEME.surfaceBadge,
 
       // Border Colors
-      borderPrimary: borderPrimary || DEFAULT_THEME.borderPrimary,
-      borderSecondary: borderSecondary || DEFAULT_THEME.borderSecondary,
-      borderAccent: borderAccent || DEFAULT_THEME.borderAccent,
-      borderGold: borderGold || DEFAULT_THEME.borderGold,
+      borderPrimary: borderPrimary !== undefined ? borderPrimary : DEFAULT_THEME.borderPrimary,
+      borderSecondary: borderSecondary !== undefined ? borderSecondary : DEFAULT_THEME.borderSecondary,
+      borderAccent: borderAccent !== undefined ? borderAccent : DEFAULT_THEME.borderAccent,
+      borderGold: borderGold !== undefined ? borderGold : DEFAULT_THEME.borderGold,
 
       // Interactive Colors
-      hoverPrimary: hoverPrimary || DEFAULT_THEME.hoverPrimary,
-      hoverSecondary: hoverSecondary || DEFAULT_THEME.hoverSecondary,
-      focusRing: focusRing || DEFAULT_THEME.focusRing,
+      hoverPrimary: hoverPrimary !== undefined ? hoverPrimary : DEFAULT_THEME.hoverPrimary,
+      hoverSecondary: hoverSecondary !== undefined ? hoverSecondary : DEFAULT_THEME.hoverSecondary,
+      focusRing: focusRing !== undefined ? focusRing : DEFAULT_THEME.focusRing,
 
       // Theme settings
       mode,
@@ -337,47 +360,50 @@ const createThemePreset = async (req, res) => {
       });
     }
 
+    // Start with all default colors and override with provided values
     const themeData = {
-      // Primary Palette
-      primary: primary || DEFAULT_THEME.primary,
-      primaryLight: primaryLight || DEFAULT_THEME.primaryLight,
-      primaryDark: primaryDark || DEFAULT_THEME.primaryDark,
-      primaryMuted: primaryMuted || DEFAULT_THEME.primaryMuted,
+      ...DEFAULT_THEME,
+
+      // Override with provided values
+      primary: primary !== undefined ? primary : DEFAULT_THEME.primary,
+      primaryLight: primaryLight !== undefined ? primaryLight : DEFAULT_THEME.primaryLight,
+      primaryDark: primaryDark !== undefined ? primaryDark : DEFAULT_THEME.primaryDark,
+      primaryMuted: primaryMuted !== undefined ? primaryMuted : DEFAULT_THEME.primaryMuted,
 
       // Core colors for compatibility
-      secondary: secondary || bgPrimary || DEFAULT_THEME.secondary,
-      accent: accent || textPrimary || DEFAULT_THEME.accent,
+      secondary: secondary !== undefined ? secondary : (bgPrimary !== undefined ? bgPrimary : DEFAULT_THEME.secondary),
+      accent: accent !== undefined ? accent : (textPrimary !== undefined ? textPrimary : DEFAULT_THEME.accent),
 
       // Background Colors
-      bgPrimary: bgPrimary || DEFAULT_THEME.bgPrimary,
-      bgSecondary: bgSecondary || DEFAULT_THEME.bgSecondary,
-      bgTertiary: bgTertiary || DEFAULT_THEME.bgTertiary,
-      bgCard: bgCard || DEFAULT_THEME.bgCard,
-      bgCardHover: bgCardHover || DEFAULT_THEME.bgCardHover,
+      bgPrimary: bgPrimary !== undefined ? bgPrimary : DEFAULT_THEME.bgPrimary,
+      bgSecondary: bgSecondary !== undefined ? bgSecondary : DEFAULT_THEME.bgSecondary,
+      bgTertiary: bgTertiary !== undefined ? bgTertiary : DEFAULT_THEME.bgTertiary,
+      bgCard: bgCard !== undefined ? bgCard : DEFAULT_THEME.bgCard,
+      bgCardHover: bgCardHover !== undefined ? bgCardHover : DEFAULT_THEME.bgCardHover,
 
       // Text Colors
-      textPrimary: textPrimary || DEFAULT_THEME.textPrimary,
-      textSecondary: textSecondary || DEFAULT_THEME.textSecondary,
-      textMuted: textMuted || DEFAULT_THEME.textMuted,
+      textPrimary: textPrimary !== undefined ? textPrimary : DEFAULT_THEME.textPrimary,
+      textSecondary: textSecondary !== undefined ? textSecondary : DEFAULT_THEME.textSecondary,
+      textMuted: textMuted !== undefined ? textMuted : DEFAULT_THEME.textMuted,
 
       // Surface Colors
-      surfaceGlass: surfaceGlass || DEFAULT_THEME.surfaceGlass,
-      surfaceGlassDark: surfaceGlassDark || DEFAULT_THEME.surfaceGlassDark,
-      surfaceBadge: surfaceBadge || DEFAULT_THEME.surfaceBadge,
+      surfaceGlass: surfaceGlass !== undefined ? surfaceGlass : DEFAULT_THEME.surfaceGlass,
+      surfaceGlassDark: surfaceGlassDark !== undefined ? surfaceGlassDark : DEFAULT_THEME.surfaceGlassDark,
+      surfaceBadge: surfaceBadge !== undefined ? surfaceBadge : DEFAULT_THEME.surfaceBadge,
 
       // Border Colors
-      borderPrimary: borderPrimary || DEFAULT_THEME.borderPrimary,
-      borderSecondary: borderSecondary || DEFAULT_THEME.borderSecondary,
-      borderAccent: borderAccent || DEFAULT_THEME.borderAccent,
-      borderGold: borderGold || DEFAULT_THEME.borderGold,
+      borderPrimary: borderPrimary !== undefined ? borderPrimary : DEFAULT_THEME.borderPrimary,
+      borderSecondary: borderSecondary !== undefined ? borderSecondary : DEFAULT_THEME.borderSecondary,
+      borderAccent: borderAccent !== undefined ? borderAccent : DEFAULT_THEME.borderAccent,
+      borderGold: borderGold !== undefined ? borderGold : DEFAULT_THEME.borderGold,
 
       // Interactive Colors
-      hoverPrimary: hoverPrimary || DEFAULT_THEME.hoverPrimary,
-      hoverSecondary: hoverSecondary || DEFAULT_THEME.hoverSecondary,
-      focusRing: focusRing || DEFAULT_THEME.focusRing,
+      hoverPrimary: hoverPrimary !== undefined ? hoverPrimary : DEFAULT_THEME.hoverPrimary,
+      hoverSecondary: hoverSecondary !== undefined ? hoverSecondary : DEFAULT_THEME.hoverSecondary,
+      focusRing: focusRing !== undefined ? focusRing : DEFAULT_THEME.focusRing,
 
       // Theme settings
-      mode: mode || DEFAULT_THEME.mode,
+      mode: mode !== undefined ? mode : DEFAULT_THEME.mode,
       name,
       active: false, // New presets are not active by default
       createdAt: new Date(),
