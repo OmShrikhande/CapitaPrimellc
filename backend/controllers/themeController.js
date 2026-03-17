@@ -58,6 +58,11 @@ const getTheme = async (req, res) => {
 // Update theme
 const updateTheme = async (req, res) => {
   try {
+    console.log('Raw req.body:', req.body);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Request method:', req.method);
+    console.log('Request URL:', req.url);
+
     const { primary, secondary, accent, mode, name } = req.body;
 
     console.log('Update theme request:', { primary, secondary, accent, mode, name });
