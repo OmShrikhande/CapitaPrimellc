@@ -139,12 +139,12 @@ export const adminAPI = {
 
   // Theme API functions
   theme: {
-    // Get current active theme
+    // Get current active theme (public - no auth required)
     get: async () => {
       return cachedRequest(`${API_BASE_URL}/api/admin/theme`, {
         method: 'GET',
         headers: {
-          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
         },
       });
     },

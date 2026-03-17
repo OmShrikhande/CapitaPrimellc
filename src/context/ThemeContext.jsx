@@ -36,23 +36,21 @@ export const ThemeProvider = ({ children }) => {
         }
       }
 
-      // Only try to load from API if user is authenticated
-      if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.theme.get();
-        if (response.success && response.data) {
-          setTheme(response.data);
-          setLastUpdated(new Date());
+      // Theme GET is now public - always try to load from API
+      const response = await adminAPI.theme.get();
+      if (response.success && response.data) {
+        setTheme(response.data);
+        setLastUpdated(new Date());
 
-          // Cache the theme for better UX on reloads
-          localStorage.setItem('capita_theme_cache', JSON.stringify(response.data));
-        }
+        // Cache the theme for better UX on reloads
+        localStorage.setItem('capita_theme_cache', JSON.stringify(response.data));
       }
     } catch (error) {
-      console.warn('Failed to load theme, using defaults:', error.message);
+      console.warn('Failed to load theme from API, using cache/defaults:', error.message);
       setError(error.message);
 
-      // Clear cache if API fails
-      localStorage.removeItem('capita_theme_cache');
+      // Don't clear cache if API fails - keep cached version
+      // Only clear if cache is corrupted
     } finally {
       setLoading(false);
     }

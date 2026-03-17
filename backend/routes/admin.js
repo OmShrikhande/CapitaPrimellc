@@ -12,10 +12,10 @@ router.post('/login', login);
 router.get('/profile', authenticateToken, getProfile);
 
 // Theme management routes
-router.get('/theme', authenticateToken, getTheme);
-router.put('/theme', authenticateToken, updateTheme);
-router.get('/themes', authenticateToken, getAllThemes);
-router.post('/themes', authenticateToken, createThemePreset);
-router.put('/themes/:themeId/activate', authenticateToken, activateTheme);
+router.get('/theme', getTheme); // Public - anyone can get current theme
+router.put('/theme', authenticateToken, updateTheme); // Protected - only admins can update
+router.get('/themes', authenticateToken, getAllThemes); // Protected - only admins can see all themes
+router.post('/themes', authenticateToken, createThemePreset); // Protected - only admins can create presets
+router.put('/themes/:themeId/activate', authenticateToken, activateTheme); // Protected - only admins can activate themes
 
 module.exports = router;

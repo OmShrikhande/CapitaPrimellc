@@ -130,7 +130,7 @@ Authorization: Bearer <your-jwt-token>
 #### 5. Get Current Theme
 - **Endpoint**: `GET /api/admin/theme`
 - **Description**: Get the currently active theme configuration
-- **JWT Required**: Yes
+- **JWT Required**: No (Public endpoint - anyone can view current theme)
 - **Request Body**: None
 - **Response (Success)**:
 ```json
@@ -150,7 +150,7 @@ Authorization: Bearer <your-jwt-token>
 #### 6. Update Current Theme
 - **Endpoint**: `PUT /api/admin/theme`
 - **Description**: Update the active theme configuration
-- **JWT Required**: Yes
+- **JWT Required**: Yes (Admin authentication required)
 - **Request Body**:
 ```json
 {
@@ -178,7 +178,7 @@ Authorization: Bearer <your-jwt-token>
 #### 7. Get All Themes
 - **Endpoint**: `GET /api/admin/themes`
 - **Description**: Get all theme configurations including presets
-- **JWT Required**: Yes
+- **JWT Required**: Yes (Admin authentication required)
 - **Request Body**: None
 - **Response (Success)**:
 ```json
@@ -201,7 +201,7 @@ Authorization: Bearer <your-jwt-token>
 #### 8. Create Theme Preset
 - **Endpoint**: `POST /api/admin/themes`
 - **Description**: Create a new theme preset
-- **JWT Required**: Yes
+- **JWT Required**: Yes (Admin authentication required)
 - **Request Body**:
 ```json
 {
@@ -232,7 +232,7 @@ Authorization: Bearer <your-jwt-token>
 #### 9. Activate Theme
 - **Endpoint**: `PUT /api/admin/themes/:themeId/activate`
 - **Description**: Activate a specific theme configuration
-- **JWT Required**: Yes
+- **JWT Required**: Yes (Admin authentication required)
 - **Request Body**: None
 - **Response (Success)**:
 ```json
