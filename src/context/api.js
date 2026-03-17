@@ -151,6 +151,7 @@ export const adminAPI = {
 
     // Update current theme
     update: async (themeData) => {
+      console.log('Frontend: Sending theme update:', themeData);
       return cachedRequest(`${API_BASE_URL}/api/admin/theme`, {
         method: 'PUT',
         headers: {
