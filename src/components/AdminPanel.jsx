@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCMS } from '../context/useCMS';
+import { adminAPI } from '../context/api';
 import SystemClock from './admin/SystemClock';
 import CommandPalette from './admin/CommandPalette';
 import DashboardView from './admin/DashboardView';
@@ -9,8 +10,6 @@ import ServicesView from './admin/ServicesView';
 import TestimonialsView from './admin/TestimonialsView';
 import OffersView from './admin/OffersView';
 import ThemeView from './admin/ThemeView';
-
-const ADMIN_PASSWORD = 'capita2024';
 
 const SidebarItem = ({ id, label, icon, activeTab, setActiveTab }) => (
   <button
@@ -31,10 +30,12 @@ const SidebarItem = ({ id, label, icon, activeTab, setActiveTab }) => (
 
 const AdminPanel = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('adminAuthenticated') === 'true';
+    return adminAPI.isAuthenticated();
   });
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isInitializing, setIsInitializing] = useState(false);
   const [initLogs, setInitLogs] = useState([]);
@@ -69,40 +70,49 @@ const AdminPanel = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsInitializing(true);
-      const logSequence = [
-        'Establishing encrypted connection...',
-        'Accessing secure database...',
-        'Decrypting property assets...',
-        'Syncing global presence...',
-        'Admin session verified. Welcome, Capita Prime.'
-      ];
-      
-      logSequence.forEach((log, i) => {
-        setTimeout(() => {
-          setInitLogs(prev => [...prev, log]);
-          if (i === logSequence.length - 1) {
-            setTimeout(() => {
-              setIsAuthenticated(true);
-              setIsInitializing(false);
-              sessionStorage.setItem('adminAuthenticated', 'true');
-            }, 800);
-          }
-        }, (i + 1) * 600);
-      });
-      setError('');
-    } else {
-      setError('Invalid password');
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await adminAPI.login(email, password);
+
+      if (response.success) {
+        setIsInitializing(true);
+        const logSequence = [
+          'Establishing encrypted connection...',
+          'Verifying admin credentials...',
+          'Accessing secure database...',
+          'Decrypting property assets...',
+          'Syncing global presence...',
+          'Admin session verified. Welcome, Capita Prime.'
+        ];
+
+        logSequence.forEach((log, i) => {
+          setTimeout(() => {
+            setInitLogs(prev => [...prev, log]);
+            if (i === logSequence.length - 1) {
+              setTimeout(() => {
+                setIsAuthenticated(true);
+                setIsInitializing(false);
+              }, 800);
+            }
+          }, (i + 1) * 600);
+        });
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
       setPassword('');
+      setEmail('');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogout = () => {
+    adminAPI.logout();
     setIsAuthenticated(false);
-    sessionStorage.removeItem('adminAuthenticated');
   };
 
   if (isInitializing) {
@@ -165,19 +175,36 @@ const AdminPanel = () => {
             </div>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-16">
+          <form onSubmit={handleLogin} className="space-y-12">
             <div className="group relative px-4">
-              <div className="flex justify-between items-center mb-8">
+              <div className="flex justify-between items-center mb-6">
+                <label className="text-[12px] text-gray-500 font-black tracking-[0.4em] uppercase group-focus-within:text-gold transition-colors">
+                  Admin Email
+                </label>
+                <span className="text-[10px] text-gray-700 font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg">ID: NEX-742</span>
+              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-transparent text-white border-b-2 border-white/10 focus:border-gold/40 focus:outline-none transition-all py-6 text-center tracking-[0.8em] font-mono text-2xl"
+                placeholder="admin@capitaprimellc.com"
+                required
+              />
+            </div>
+
+            <div className="group relative px-4">
+              <div className="flex justify-between items-center mb-6">
                 <label className="text-[12px] text-gray-500 font-black tracking-[0.4em] uppercase group-focus-within:text-gold transition-colors">
                   Access Key
                 </label>
-                <span className="text-[10px] text-gray-700 font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg">ID: NEX-742</span>
+                <span className="text-[10px] text-gray-700 font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg">SECURE</span>
               </div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent text-white border-b-2 border-white/10 focus:border-gold/40 focus:outline-none transition-all py-8 text-center tracking-[1.2em] font-mono text-4xl"
+                className="w-full bg-transparent text-white border-b-2 border-white/10 focus:border-gold/40 focus:outline-none transition-all py-6 text-center tracking-[1.2em] font-mono text-3xl"
                 placeholder="••••••••"
                 required
               />
@@ -194,10 +221,13 @@ const AdminPanel = () => {
             <div className="px-4 pt-8">
               <button
                 type="submit"
-                className="w-full bg-white text-black hover:bg-gold font-black py-10 px-8 rounded-full transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl flex items-center justify-center gap-6 group"
+                disabled={loading}
+                className="w-full bg-white text-black hover:bg-gold disabled:bg-gray-400 disabled:cursor-not-allowed font-black py-10 px-8 rounded-full transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl flex items-center justify-center gap-6 group"
               >
-                <span className="tracking-[0.6em] uppercase text-[12px] lg:text-sm">Initiate Handshake</span>
-                <span className="group-hover:translate-x-4 transition-transform duration-700 text-2xl">→</span>
+                <span className="tracking-[0.6em] uppercase text-[12px] lg:text-sm">
+                  {loading ? 'Authenticating...' : 'Initiate Handshake'}
+                </span>
+                {!loading && <span className="group-hover:translate-x-4 transition-transform duration-700 text-2xl">→</span>}
               </button>
             </div>
           </form>

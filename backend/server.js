@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
+// const cors = require('cors');
 const helmet = require('helmet');
 
 // Import routes
@@ -16,13 +16,13 @@ const PORT = process.env.PORT || 3000;
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://yourdomain.com'] // Replace with your actual domain
-    : ['http://localhost:3000', 'http://localhost:3001'], // Allow local development
-  credentials: true
-}));
+// CORS configuration - disabled for now
+// app.use(cors({
+//   origin: process.env.NODE_ENV === 'production'
+//     ? ['https://capitaprimellc.onrender.com'] // Replace with your actual domain
+//     : ['http://localhost:3000', 'http://localhost:3001'], // Allow local development
+//   credentials: true
+// }));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
