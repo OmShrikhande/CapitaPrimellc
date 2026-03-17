@@ -125,6 +125,131 @@ Authorization: Bearer <your-jwt-token>
 }
 ```
 
+### Theme Management Endpoints
+
+#### 5. Get Current Theme
+- **Endpoint**: `GET /api/admin/theme`
+- **Description**: Get the currently active theme configuration
+- **JWT Required**: Yes
+- **Request Body**: None
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "data": {
+    "primary": "#C9A84C",
+    "secondary": "#0a0a0a",
+    "accent": "#ffffff",
+    "mode": "dark",
+    "name": "default",
+    "active": true
+  }
+}
+```
+
+#### 6. Update Current Theme
+- **Endpoint**: `PUT /api/admin/theme`
+- **Description**: Update the active theme configuration
+- **JWT Required**: Yes
+- **Request Body**:
+```json
+{
+  "primary": "#C9A84C",
+  "secondary": "#0a0a0a",
+  "accent": "#ffffff",
+  "mode": "dark"
+}
+```
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "message": "Theme updated successfully",
+  "data": {
+    "primary": "#C9A84C",
+    "secondary": "#0a0a0a",
+    "accent": "#ffffff",
+    "mode": "dark",
+    "active": true
+  }
+}
+```
+
+#### 7. Get All Themes
+- **Endpoint**: `GET /api/admin/themes`
+- **Description**: Get all theme configurations including presets
+- **JWT Required**: Yes
+- **Request Body**: None
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "theme_id_1",
+      "primary": "#C9A84C",
+      "secondary": "#0a0a0a",
+      "accent": "#ffffff",
+      "mode": "dark",
+      "name": "default",
+      "active": true
+    }
+  ]
+}
+```
+
+#### 8. Create Theme Preset
+- **Endpoint**: `POST /api/admin/themes`
+- **Description**: Create a new theme preset
+- **JWT Required**: Yes
+- **Request Body**:
+```json
+{
+  "primary": "#FF6B6B",
+  "secondary": "#1a1a1a",
+  "accent": "#ffffff",
+  "mode": "dark",
+  "name": "Red Theme"
+}
+```
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "message": "Theme preset created successfully",
+  "data": {
+    "id": "new_theme_id",
+    "primary": "#FF6B6B",
+    "secondary": "#1a1a1a",
+    "accent": "#ffffff",
+    "mode": "dark",
+    "name": "Red Theme",
+    "active": false
+  }
+}
+```
+
+#### 9. Activate Theme
+- **Endpoint**: `PUT /api/admin/themes/:themeId/activate`
+- **Description**: Activate a specific theme configuration
+- **JWT Required**: Yes
+- **Request Body**: None
+- **Response (Success)**:
+```json
+{
+  "success": true,
+  "message": "Theme activated successfully",
+  "data": {
+    "id": "theme_id",
+    "primary": "#C9A84C",
+    "secondary": "#0a0a0a",
+    "accent": "#ffffff",
+    "mode": "dark",
+    "active": true
+  }
+}
+```
+
 ## Error Response Format
 All error responses follow this format:
 ```json
@@ -167,6 +292,34 @@ This backend is configured for deployment on Render:
 3. Create `.env` file with required environment variables
 4. Start development server: `pnpm run dev`
 5. Server will run on `http://localhost:3000`
+
+## Theme Management System
+
+The application includes a comprehensive theme management system that allows administrators to customize the site's color scheme through the admin panel.
+
+### Features
+- **Dynamic Color Customization**: Primary, secondary, and accent colors
+- **Dark/Light Mode Support**: Toggle between interface modes
+- **Real-time Updates**: Changes apply immediately across the site
+- **Persistent Storage**: Themes saved to Firebase Firestore
+- **Default Theme**: Gold (#C9A84C), Dark (#0a0a0a), White (#ffffff)
+
+### Theme Structure
+```json
+{
+  "primary": "#C9A84C",
+  "secondary": "#0a0a0a",
+  "accent": "#ffffff",
+  "mode": "dark",
+  "name": "default"
+}
+```
+
+### Frontend Integration
+- **ThemeContext**: Global theme state management
+- **CSS Custom Properties**: Dynamic color application
+- **Component Updates**: Real-time theme color application
+- **Admin Panel**: Theme customization interface
 
 ## Technologies Used
 - **Node.js**: Runtime environment

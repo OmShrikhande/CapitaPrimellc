@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 const NAV_LINKS = [
   { label: 'Properties', href: '#properties' },
@@ -11,6 +12,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const isListingsPage = window.location.hash === '#listings';
+  const { theme } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -59,7 +61,7 @@ const Navbar = () => {
             className="block w-6 h-0.5 transition-all duration-300 ease-in-out"
             style={{
               transform: menuOpen ? 'translateY(8px) rotate(45deg)' : 'none',
-              background: '#C9A84C',
+              background: theme.primary,
             }}
           />
           <span
@@ -67,14 +69,14 @@ const Navbar = () => {
             style={{
               opacity: menuOpen ? 0 : 1,
               width: menuOpen ? '0' : '24px',
-              background: '#C9A84C',
+              background: theme.primary,
             }}
           />
           <span
             className="block w-6 h-0.5 transition-all duration-300 ease-in-out"
             style={{
               transform: menuOpen ? 'translateY(-8px) rotate(-45deg)' : 'none',
-              background: '#C9A84C',
+              background: theme.primary,
             }}
           />
         </button>

@@ -359,7 +359,7 @@ const AdminPanel = () => {
                 deleteTestimonial={deleteTestimonial}
               />
             )}
-            {activeTab === 'theme' && <ThemeView theme={data.theme} updateTheme={updateTheme} />}
+            {activeTab === 'theme' && <ThemeView />}
           </div>
         </div>
       </main>

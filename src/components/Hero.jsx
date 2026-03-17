@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import createGlobe from 'cobe';
 import { useCMS } from '../context/useCMS';
+import { useTheme } from '../context/ThemeContext';
 
 const GLOBE_SIZE = 520;
 
@@ -127,6 +128,7 @@ const Hero = () => {
   const canvasRef = useRef(null);
   const { data } = useCMS();
   const { hero } = data;
+  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -161,7 +163,7 @@ const Hero = () => {
         if (p.y > canvas.height) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(201,168,76,${p.alpha})`;
+        ctx.fillStyle = `${theme.primary}${Math.round(p.alpha * 255).toString(16).padStart(2, '0')}`;
         ctx.fill();
         for (let j = i + 1; j < particles.length; j++) {
           const q = particles[j];
@@ -171,7 +173,7 @@ const Hero = () => {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(201,168,76,${(1 - dist / 100) * 0.06})`;
+            ctx.strokeStyle = `${theme.primary}${Math.round(((1 - dist / 100) * 0.06) * 255).toString(16).padStart(2, '0')}`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -204,7 +206,7 @@ const Hero = () => {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 65%)',
+            `radial-gradient(ellipse 70% 60% at 50% 50%, ${theme.primary}20 0%, transparent 65%)`,
           zIndex: 1,
         }}
       />
@@ -278,8 +280,11 @@ const Hero = () => {
               {hero.locations.map(loc => (
                 <span
                   key={loc}
-                  className="text-[9px] lg:text-[10px] tracking-widest text-gold/70 px-3 py-1.5 lg:px-4 lg:py-2 border border-gold/20 bg-gold/5"
+                  className="text-[9px] lg:text-[10px] tracking-widest px-3 py-1.5 lg:px-4 lg:py-2 border bg-opacity-5"
                   style={{
+                    color: `${theme.primary}b3`,
+                    borderColor: `${theme.primary}33`,
+                    backgroundColor: `${theme.primary}0d`,
                     fontFamily: "'Inter', sans-serif",
                     fontWeight: 500,
                   }}
@@ -307,7 +312,7 @@ const Hero = () => {
                     fontFamily: "'Cormorant Garamond', serif",
                     fontSize: '20px',
                     fontWeight: 600,
-                    color: '#C9A84C',
+                    color: theme.primary,
                   }}
                 >
                   AED 24,000,000
@@ -360,8 +365,8 @@ const Hero = () => {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  background: '#C9A84C',
-                  boxShadow: '0 0 8px rgba(201,168,76,0.8)',
+                  background: theme.primary,
+                  boxShadow: `0 0 8px ${theme.primary}cc`,
                 }}
               />
               <span
@@ -395,7 +400,7 @@ const Hero = () => {
           style={{
             width: 1,
             height: 50,
-            background: 'linear-gradient(to bottom, rgba(201,168,76,0.6), transparent)',
+            background: `linear-gradient(to bottom, ${theme.primary}99, transparent)`,
             animation: 'float 2s ease-in-out infinite',
           }}
         />

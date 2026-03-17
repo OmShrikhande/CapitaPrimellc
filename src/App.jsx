@@ -18,6 +18,7 @@ import PropertyDetails from './components/PropertyDetails';
 import ThemeManager from './components/ThemeManager';
 
 import { CMSProvider } from './context/CMSContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   const [loaded, setLoaded] = useState(false);
@@ -84,9 +85,10 @@ function App() {
   }, [loaded, route]);
 
   return (
-    <CMSProvider>
-      <ThemeManager />
-      <div className="bg-void" style={{ minHeight: '100vh' }}>
+    <ThemeProvider>
+      <CMSProvider>
+        <ThemeManager />
+        <div className="bg-void" style={{ minHeight: '100vh' }}>
         <LoadingScreen onDone={() => setLoaded(true)} />
         <div
           className="w-full min-h-screen"
@@ -118,7 +120,8 @@ function App() {
           ) : null}
         </div>
       </div>
-    </CMSProvider>
+      </CMSProvider>
+    </ThemeProvider>
   );
 }
 
