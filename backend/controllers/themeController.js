@@ -1,11 +1,49 @@
 const { db, isFirebaseConfigured } = require('../config/firebase');
 
-// Default theme configuration
+// Default theme configuration with comprehensive color palette
 const DEFAULT_THEME = {
-  primary: '#C9A84C', // Gold color
-  secondary: '#0a0a0a', // Dark background
-  accent: '#ffffff', // White text
+  // Primary Palette - Main brand colors
+  primary: '#C9A84C', // Main brand gold color
+  primaryLight: '#E8D5A3', // Lighter gold for highlights
+  primaryDark: '#8B6B14', // Darker gold for depth
+  primaryMuted: '#6B5520', // Muted gold for subtle accents
+
+  // Core colors for API compatibility
+  secondary: '#0a0a0a', // Main background color
+  accent: '#ffffff', // Primary text color
+
+  // Background Colors
+  bgPrimary: '#060606', // Main page background
+  bgSecondary: '#0C0C0C', // Secondary background (scrollbar track)
+  bgTertiary: '#111111', // Tertiary background (form options)
+  bgCard: '#0a0a0a', // Card backgrounds
+  bgCardHover: 'rgba(16, 14, 10, 0.9)', // Card hover background
+
+  // Text and Accent Colors
+  textPrimary: '#ffffff', // Primary text color
+  textSecondary: 'rgba(255, 255, 255, 0.6)', // Secondary text (nav links)
+  textMuted: 'rgba(255, 255, 255, 0.28)', // Muted text (placeholders)
+
+  // Surface Colors
+  surfaceGlass: 'rgba(255, 255, 255, 0.025)', // Glass effect backgrounds
+  surfaceGlassDark: 'rgba(6, 6, 6, 0.85)', // Dark glass backgrounds
+  surfaceBadge: 'rgba(6, 6, 6, 0.88)', // Floating badge backgrounds
+
+  // Border and Divider Colors
+  borderPrimary: 'rgba(255, 255, 255, 0.07)', // Primary borders
+  borderSecondary: 'rgba(255, 255, 255, 0.06)', // Secondary borders
+  borderAccent: 'rgba(201, 168, 76, 0.15)', // Accent borders
+  borderGold: 'rgba(201, 168, 76, 0.3)', // Gold accent borders
+
+  // Interactive State Colors
+  hoverPrimary: 'rgba(201, 168, 76, 0.09)', // Primary hover backgrounds
+  hoverSecondary: 'rgba(201, 168, 76, 0.18)', // Secondary hover states
+  focusRing: 'rgba(201, 168, 76, 0.05)', // Focus ring color
+
+  // Theme Mode
   mode: 'dark',
+
+  // Metadata
   name: 'default',
   createdAt: new Date(),
   updatedAt: new Date()
@@ -31,9 +69,12 @@ const getTheme = async (req, res) => {
 
     if (!themeQuery.empty) {
       const themeDoc = themeQuery.docs[0];
+      const dbThemeData = themeDoc.data();
+      // Merge database theme with defaults to ensure all fields are present
       themeData = {
         id: themeDoc.id,
-        ...themeDoc.data()
+        ...DEFAULT_THEME,
+        ...dbThemeData
       };
     } else {
       // No active theme, return default
@@ -58,7 +99,22 @@ const getTheme = async (req, res) => {
 // Update theme
 const updateTheme = async (req, res) => {
   try {
-    const { primary, secondary, accent, mode, name } = req.body;
+    const {
+      // Primary Palette
+      primary, primaryLight, primaryDark, primaryMuted,
+      // Background Colors
+      bgPrimary, bgSecondary, bgTertiary, bgCard, bgCardHover,
+      // Text Colors
+      textPrimary, textSecondary, textMuted,
+      // Surface Colors
+      surfaceGlass, surfaceGlassDark, surfaceBadge,
+      // Border Colors
+      borderPrimary, borderSecondary, borderAccent, borderGold,
+      // Interactive Colors
+      hoverPrimary, hoverSecondary, focusRing,
+      // Theme settings
+      mode, name
+    } = req.body;
 
     if (!isFirebaseConfigured()) {
       console.error('Firebase not configured');
@@ -68,14 +124,19 @@ const updateTheme = async (req, res) => {
       });
     }
 
-    // Validate required fields
-    if (!primary || !secondary || !accent || !mode) {
+    // Validate required fields - primary, secondary, accent colors and mode are required
+    if (!primary || !mode) {
       console.error('Missing required fields');
       return res.status(400).json({
         success: false,
-        message: 'Primary, secondary, accent colors and mode are required'
+        message: 'Primary color and mode are required'
       });
     }
+
+    // For theme reset/updates, ensure we have all the core color fields
+    // If secondary or accent are missing, use defaults
+    const secondary = req.body.secondary || req.body.bgPrimary || DEFAULT_THEME.bgPrimary;
+    const accent = req.body.accent || req.body.textPrimary || DEFAULT_THEME.textPrimary;
 
     // Validate mode
     if (!['dark', 'light'].includes(mode)) {
@@ -87,9 +148,45 @@ const updateTheme = async (req, res) => {
     }
 
     const themeData = {
+      // Primary Palette
       primary,
+      primaryLight: primaryLight || DEFAULT_THEME.primaryLight,
+      primaryDark: primaryDark || DEFAULT_THEME.primaryDark,
+      primaryMuted: primaryMuted || DEFAULT_THEME.primaryMuted,
+
+      // Core colors for compatibility
       secondary,
       accent,
+
+      // Background Colors
+      bgPrimary: bgPrimary || DEFAULT_THEME.bgPrimary,
+      bgSecondary: bgSecondary || DEFAULT_THEME.bgSecondary,
+      bgTertiary: bgTertiary || DEFAULT_THEME.bgTertiary,
+      bgCard: bgCard || DEFAULT_THEME.bgCard,
+      bgCardHover: bgCardHover || DEFAULT_THEME.bgCardHover,
+
+      // Text Colors
+      textPrimary: textPrimary || DEFAULT_THEME.textPrimary,
+      textSecondary: textSecondary || DEFAULT_THEME.textSecondary,
+      textMuted: textMuted || DEFAULT_THEME.textMuted,
+
+      // Surface Colors
+      surfaceGlass: surfaceGlass || DEFAULT_THEME.surfaceGlass,
+      surfaceGlassDark: surfaceGlassDark || DEFAULT_THEME.surfaceGlassDark,
+      surfaceBadge: surfaceBadge || DEFAULT_THEME.surfaceBadge,
+
+      // Border Colors
+      borderPrimary: borderPrimary || DEFAULT_THEME.borderPrimary,
+      borderSecondary: borderSecondary || DEFAULT_THEME.borderSecondary,
+      borderAccent: borderAccent || DEFAULT_THEME.borderAccent,
+      borderGold: borderGold || DEFAULT_THEME.borderGold,
+
+      // Interactive Colors
+      hoverPrimary: hoverPrimary || DEFAULT_THEME.hoverPrimary,
+      hoverSecondary: hoverSecondary || DEFAULT_THEME.hoverSecondary,
+      focusRing: focusRing || DEFAULT_THEME.focusRing,
+
+      // Theme settings
       mode,
       name: name || 'custom',
       active: true,
@@ -207,7 +304,24 @@ const getAllThemes = async (req, res) => {
 // Create a new theme preset
 const createThemePreset = async (req, res) => {
   try {
-    const { primary, secondary, accent, mode, name } = req.body;
+    const {
+      // Primary Palette
+      primary, primaryLight, primaryDark, primaryMuted,
+      // Core colors
+      secondary, accent,
+      // Background Colors
+      bgPrimary, bgSecondary, bgTertiary, bgCard, bgCardHover,
+      // Text Colors
+      textPrimary, textSecondary, textMuted,
+      // Surface Colors
+      surfaceGlass, surfaceGlassDark, surfaceBadge,
+      // Border Colors
+      borderPrimary, borderSecondary, borderAccent, borderGold,
+      // Interactive Colors
+      hoverPrimary, hoverSecondary, focusRing,
+      // Theme settings
+      mode, name
+    } = req.body;
 
     if (!isFirebaseConfigured()) {
       return res.status(500).json({
@@ -224,9 +338,45 @@ const createThemePreset = async (req, res) => {
     }
 
     const themeData = {
+      // Primary Palette
       primary: primary || DEFAULT_THEME.primary,
-      secondary: secondary || DEFAULT_THEME.secondary,
-      accent: accent || DEFAULT_THEME.accent,
+      primaryLight: primaryLight || DEFAULT_THEME.primaryLight,
+      primaryDark: primaryDark || DEFAULT_THEME.primaryDark,
+      primaryMuted: primaryMuted || DEFAULT_THEME.primaryMuted,
+
+      // Core colors for compatibility
+      secondary: secondary || bgPrimary || DEFAULT_THEME.secondary,
+      accent: accent || textPrimary || DEFAULT_THEME.accent,
+
+      // Background Colors
+      bgPrimary: bgPrimary || DEFAULT_THEME.bgPrimary,
+      bgSecondary: bgSecondary || DEFAULT_THEME.bgSecondary,
+      bgTertiary: bgTertiary || DEFAULT_THEME.bgTertiary,
+      bgCard: bgCard || DEFAULT_THEME.bgCard,
+      bgCardHover: bgCardHover || DEFAULT_THEME.bgCardHover,
+
+      // Text Colors
+      textPrimary: textPrimary || DEFAULT_THEME.textPrimary,
+      textSecondary: textSecondary || DEFAULT_THEME.textSecondary,
+      textMuted: textMuted || DEFAULT_THEME.textMuted,
+
+      // Surface Colors
+      surfaceGlass: surfaceGlass || DEFAULT_THEME.surfaceGlass,
+      surfaceGlassDark: surfaceGlassDark || DEFAULT_THEME.surfaceGlassDark,
+      surfaceBadge: surfaceBadge || DEFAULT_THEME.surfaceBadge,
+
+      // Border Colors
+      borderPrimary: borderPrimary || DEFAULT_THEME.borderPrimary,
+      borderSecondary: borderSecondary || DEFAULT_THEME.borderSecondary,
+      borderAccent: borderAccent || DEFAULT_THEME.borderAccent,
+      borderGold: borderGold || DEFAULT_THEME.borderGold,
+
+      // Interactive Colors
+      hoverPrimary: hoverPrimary || DEFAULT_THEME.hoverPrimary,
+      hoverSecondary: hoverSecondary || DEFAULT_THEME.hoverSecondary,
+      focusRing: focusRing || DEFAULT_THEME.focusRing,
+
+      // Theme settings
       mode: mode || DEFAULT_THEME.mode,
       name,
       active: false, // New presets are not active by default

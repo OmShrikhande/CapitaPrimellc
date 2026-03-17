@@ -17,6 +17,13 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
     }
   };
 
+  const resetFormData = () => {
+    setFormData({
+      title: '', location: '', area: '', price: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '',
+      specs: { zoning: '', permit: '', coverage: '', ownership: '' }
+    });
+  };
+
   // Initialize form data when component mounts or when editing
   React.useEffect(() => {
     if (property) {
@@ -38,13 +45,6 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
       return () => container.removeEventListener('scroll', handleScroll);
     }
   }, [isOpen]);
-
-  const resetFormData = () => {
-    setFormData({
-      title: '', location: '', area: '', price: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '',
-      specs: { zoning: '', permit: '', coverage: '', ownership: '' }
-    });
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();

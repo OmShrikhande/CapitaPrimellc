@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useCMS } from '../context/useCMS';
@@ -111,7 +111,363 @@ const CATEGORY_COLORS = {
   'Mixed Use': '#c084fc',
 };
 
-const PropertyCard = ({ property, index }) => {
+const PropertyModal = ({ property, isOpen, onClose }) => {
+  if (!isOpen || !property) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background: 'rgba(0,0,0,0.85)',
+        backdropFilter: 'blur(20px)',
+        animation: 'fadeIn 0.3s ease-out',
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-4xl w-full max-h-[90vh] overflow-hidden rounded-lg"
+        style={{
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)',
+          border: '1px solid rgba(201,168,76,0.3)',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.1)',
+          animation: 'slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+          style={{
+            background: 'rgba(201,168,76,0.1)',
+            border: '1px solid rgba(201,168,76,0.3)',
+            color: '#C9A84C',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        <div className="flex flex-col lg:flex-row">
+          {/* Image Section */}
+          <div className="lg:w-1/2 relative">
+            <div
+              className="h-64 lg:h-full relative"
+              style={{ background: property.gradient }}
+            >
+              <div className="prop-blueprint-fine" />
+              <div className="prop-blueprint" />
+              <div className="prop-scan" />
+
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}60 0%, transparent 65%)`,
+                  zIndex: 1,
+                }}
+              />
+
+              <div className="corner-bracket-tl" />
+              <div className="corner-bracket-br" />
+
+              {/* Building Icon */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                {property.category === 'Residential' ? (
+                  <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                    <rect x="15" y="35" width="40" height="28" />
+                    <polyline points="5,35 35,10 65,35" />
+                    <rect x="28" y="45" width="14" height="18" />
+                    <line x1="15" y1="35" x2="55" y2="35" />
+                    <rect x="18" y="40" width="8" height="8" />
+                    <rect x="44" y="40" width="8" height="8" />
+                  </svg>
+                ) : property.category === 'Commercial' ? (
+                  <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                    <rect x="18" y="10" width="34" height="53" />
+                    <line x1="18" y1="20" x2="52" y2="20" />
+                    <line x1="18" y1="30" x2="52" y2="30" />
+                    <line x1="18" y1="40" x2="52" y2="40" />
+                    <line x1="18" y1="50" x2="52" y2="50" />
+                    <rect x="23" y="14" width="6" height="4" />
+                    <rect x="33" y="14" width="6" height="4" />
+                    <rect x="43" y="14" width="6" height="4" />
+                    <rect x="23" y="23" width="6" height="4" />
+                    <rect x="33" y="23" width="6" height="4" />
+                    <rect x="43" y="23" width="6" height="4" />
+                    <rect x="29" y="54" width="12" height="9" />
+                  </svg>
+                ) : (
+                  <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                    <rect x="10" y="30" width="22" height="33" />
+                    <rect x="38" y="15" width="22" height="48" />
+                    <line x1="32" y1="30" x2="38" y2="30" />
+                    <line x1="10" y1="45" x2="32" y2="45" />
+                    <line x1="38" y1="30" x2="38" y2="15" />
+                    <rect x="43" y="20" width="5" height="5" />
+                    <rect x="51" y="20" width="5" height="5" />
+                    <rect x="43" y="30" width="5" height="5" />
+                    <rect x="51" y="30" width="5" height="5" />
+                    <rect x="14" y="35" width="5" height="5" />
+                    <rect x="22" y="35" width="5" height="5" />
+                  </svg>
+                )}
+              </div>
+
+              {/* Badges */}
+              <div className="absolute top-6 left-6 flex gap-3">
+                <div
+                  style={{
+                    background: 'rgba(6,6,6,0.8)',
+                    border: '1px solid rgba(201,168,76,0.4)',
+                    backdropFilter: 'blur(12px)',
+                    padding: '6px 16px',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.22em',
+                    color: '#C9A84C',
+                  }}
+                >
+                  {property.badge}
+                </div>
+                <div
+                  style={{
+                    background: `${CATEGORY_COLORS[property.category]}18`,
+                    border: `1px solid ${CATEGORY_COLORS[property.category]}55`,
+                    backdropFilter: 'blur(12px)',
+                    padding: '6px 16px',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
+                    color: CATEGORY_COLORS[property.category],
+                  }}
+                >
+                  {property.category}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+            <div className="space-y-8">
+              {/* Title */}
+              <div>
+                <h2
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 'clamp(32px, 4vw, 48px)',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    lineHeight: 1.1,
+                    marginBottom: 8,
+                  }}
+                >
+                  {property.title}
+                </h2>
+
+                {/* Location - Prominently displayed */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '16px 20px',
+                    background: 'rgba(201,168,76,0.08)',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    borderRadius: '8px',
+                    marginBottom: 16,
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <div>
+                    <p
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '14px',
+                        color: 'rgba(255,255,255,0.6)',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        marginBottom: 4,
+                      }}
+                    >
+                      Location
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        color: '#ffffff',
+                      }}
+                    >
+                      {property.location}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <p
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '12px',
+                      color: 'rgba(255,255,255,0.4)',
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      marginBottom: 8,
+                    }}
+                  >
+                    Plot Size
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '24px',
+                      fontWeight: 600,
+                      color: '#ffffff',
+                    }}
+                  >
+                    {property.area} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>sq.ft</span>
+                  </p>
+                </div>
+                <div>
+                  <p
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '12px',
+                      color: 'rgba(255,255,255,0.4)',
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      marginBottom: 8,
+                    }}
+                  >
+                    Asking Price
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: '28px',
+                      fontWeight: 600,
+                      color: '#C9A84C',
+                    }}
+                  >
+                    <span style={{ fontSize: '14px', fontFamily: "'Inter', sans-serif", fontWeight: 500, color: 'rgba(201,168,76,0.7)', marginRight: 6 }}>AED</span>
+                    {property.price}
+                  </p>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '12px',
+                    color: 'rgba(255,255,255,0.4)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    marginBottom: 12,
+                  }}
+                >
+                  Key Features
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {property.features.map(feature => (
+                    <span
+                      key={feature}
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '12px',
+                        color: 'rgba(255,255,255,0.7)',
+                        background: 'rgba(201,168,76,0.1)',
+                        border: '1px solid rgba(201,168,76,0.2)',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        letterSpacing: '0.08em',
+                      }}
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="pt-4">
+                <a
+                  href="#contact"
+                  onClick={onClose}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    padding: '16px 32px',
+                    background: 'rgba(201,168,76,0.1)',
+                    border: '1px solid rgba(201,168,76,0.3)',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: '#C9A84C',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    transition: 'all 0.3s ease',
+                    width: '100%',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(201,168,76,0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(201,168,76,0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <span>Enquire Now</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const PropertyCard = ({ property, index, onClick }) => {
   const cardRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -134,9 +490,10 @@ const PropertyCard = ({ property, index }) => {
   return (
     <div
       ref={cardRef}
-      className="property-card animate-on-scroll"
+      className="property-card animate-on-scroll cursor-pointer"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
     >
       <div className="property-card-img" style={{ background: property.gradient }}>
@@ -363,6 +720,8 @@ const PropertyCard = ({ property, index }) => {
 const ListingsPage = () => {
   const { data } = useCMS();
   const { properties } = data;
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -385,6 +744,18 @@ const ListingsPage = () => {
     
     return () => obs.disconnect();
   }, []);
+
+  const openModal = (property) => {
+    setSelectedProperty(property);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedProperty(null);
+    document.body.style.overflow = 'unset';
+  };
 
   return (
     <div className="bg-void min-h-screen" >
@@ -416,12 +787,18 @@ const ListingsPage = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {properties.map((property, i) => (
-              <PropertyCard key={i} property={property} index={i} />
+              <PropertyCard key={i} property={property} index={i} onClick={() => openModal(property)} />
             ))}
           </div>
         </div>
       </main>
-      
+
+      <PropertyModal
+        property={selectedProperty}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
+
       <Footer />
     </div>
   );

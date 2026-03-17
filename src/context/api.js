@@ -151,13 +151,25 @@ export const adminAPI = {
 
     // Update current theme
     update: async (themeData) => {
-      return cachedRequest(`${API_BASE_URL}/api/admin/theme`, {
+      const authHeaders = getAuthHeaders();
+      console.log('Auth headers for theme update:', authHeaders);
+      console.log('Theme data being sent:', themeData);
+
+      if (!authHeaders.Authorization) {
+        throw new Error('No authentication token found. Please login as admin first.');
+      }
+
+      // Use direct fetch instead of cachedRequest for debugging
+      const response = await fetch(`${API_BASE_URL}/api/admin/theme`, {
         method: 'PUT',
         headers: {
-          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+          ...authHeaders,
         },
         body: JSON.stringify(themeData),
-      }, `PUT-${API_BASE_URL}/api/admin/theme-${Date.now()}`); // Unique cache key for updates
+      });
+
+      return handleResponse(response);
     },
 
     // Get all themes
