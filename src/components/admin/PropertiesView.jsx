@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sparkline from './Sparkline';
 import PropertyForm from './PropertyForm';
+import ImagePreview from './ImagePreview';
 
 const PropertiesView = ({ properties = [], addProperty, updateProperty, deleteProperty }) => {
   const [isAdding, setIsAdding] = useState(false);
@@ -69,11 +70,16 @@ const PropertiesView = ({ properties = [], addProperty, updateProperty, deletePr
             <div className="absolute -right-16 -top-16 w-48 h-48 bg-gold/5 blur-[80px] group-hover:bg-gold/10 transition-all rounded-full" />
             
             <div className="flex gap-6 lg:gap-8 items-center relative flex-1">
-              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0">
+              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0 relative">
                 {p.gallery && p.gallery.length > 0 ? (
-                  <img src={p.gallery[0]} alt="" className="w-full h-full object-cover" />
+                  <ImagePreview
+                    imagePath={p.gallery[0]}
+                    alt={p.title}
+                    className="w-full h-full object-cover"
+                    fallbackEmoji={p.category === 'Commercial' ? '🏢' : '🏡'}
+                  />
                 ) : (
-                  p.category === 'Commercial' ? '🏢' : '🏡'
+                  (p.category === 'Commercial' ? '🏢' : '🏡')
                 )}
               </div>
               <div className="flex-1 min-w-0">

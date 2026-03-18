@@ -14,6 +14,24 @@ const getAPIBaseURL = () => {
 
 const API_BASE_URL = getAPIBaseURL();
 
+// Utility function to construct full image URLs
+export const getImageURL = (imagePath) => {
+  if (!imagePath) return null;
+  
+  // If it's already a full URL, return it
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // If it's a relative uploads path, prepend the API base URL
+  if (imagePath.startsWith('/uploads/')) {
+    return `${API_BASE_URL}${imagePath}`;
+  }
+  
+  // For unknown paths, prepend uploads
+  return `${API_BASE_URL}/uploads/${imagePath}`;
+};
+
 // Helper function to get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
