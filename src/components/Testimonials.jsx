@@ -14,7 +14,9 @@ const StarRow = () => (
 const Testimonials = () => {
   const headingRef = useReveal();
   const { data } = useCMS();
-  const { testimonials } = data;
+  const testimonials = data?.testimonials;
+
+  if (!testimonials) return null;
 
   return (
     <section id="testimonials" className="py-32 bg-obsidian relative overflow-hidden">

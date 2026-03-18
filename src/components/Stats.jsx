@@ -71,7 +71,9 @@ const StatItem = ({ value, suffix, prefix, label, decimal, index }) => {
 
 const Stats = () => {
   const { data } = useCMS();
-  const { stats } = data;
+  const stats = data?.stats;
+
+  if (!stats) return null;
 
   return (
     <section className="bg-obsidian relative overflow-hidden">

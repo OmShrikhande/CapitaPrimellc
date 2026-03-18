@@ -52,7 +52,9 @@ const DEFAULT_ICON = (
 const Services = () => {
   const headingRef = useReveal();
   const { data } = useCMS();
-  const { services } = data;
+  const services = data?.services;
+
+  if (!services) return null;
 
   return (
     <section id="services" className="py-24 bg-obsidian relative overflow-hidden">

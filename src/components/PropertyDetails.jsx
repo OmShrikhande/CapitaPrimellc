@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useCMS } from '../context/useCMS';
+import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
 const PropertyDetails = ({ id }) => {
   const { data } = useCMS();
-  const property = data.properties.find(p => p.id === id);
-  const theme = data.theme;
+  const { theme } = useTheme();
+  const property = data?.properties?.items?.find(p => p.id === id);
 
   const [activeImage, setActiveImage] = useState(() => {
     return property?.gallery && property.gallery[0] ? property.gallery[0] : '/flaw.png';

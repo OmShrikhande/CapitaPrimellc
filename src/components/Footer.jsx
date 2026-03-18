@@ -8,7 +8,9 @@ const ICON_MAP = {
 
 const Footer = () => {
   const { data } = useCMS();
-  const { footer } = data;
+  const footer = data?.footer;
+
+  if (!footer) return null;
 
   return (
     <footer

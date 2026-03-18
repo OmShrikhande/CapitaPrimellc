@@ -31,11 +31,14 @@ const ICON_MAP = {
 
 const Contact = () => {
   const { data } = useCMS();
-  const { contact } = data;
+  const contact = data?.contact;
+
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const leftRef = useReveal('animate-on-scroll-left');
   const rightRef = useReveal('animate-on-scroll-right');
+
+  if (!contact) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,7 +103,7 @@ const Contact = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
-              {contact.info.map(info => (
+              {contact.info?.map(info => (
                 <div key={info.label} className="flex items-start gap-4">
                   <div
                     className="flex-shrink-0 w-10 h-10 flex items-center justify-center"

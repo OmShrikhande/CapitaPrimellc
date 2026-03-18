@@ -5,7 +5,9 @@ const About = () => {
   const leftRef = useReveal('animate-on-scroll-left');
   const rightRef = useReveal('animate-on-scroll-right');
   const { data } = useCMS();
-  const { about } = data;
+  const about = data?.about;
+
+  if (!about) return null;
 
   return (
     <section id="about" className="py-46 bg-void relative overflow-hidden">

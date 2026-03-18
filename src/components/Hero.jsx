@@ -127,7 +127,7 @@ const CobeGlobe = () => {
 const Hero = () => {
   const canvasRef = useRef(null);
   const { data } = useCMS();
-  const { hero } = data;
+  const hero = data?.hero;
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -188,7 +188,9 @@ const Hero = () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [theme]);
+
+  if (!hero) return null;
 
   return (
     <section
@@ -277,7 +279,7 @@ const Hero = () => {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-3 flex-wrap pt-2">
-              {hero.locations.map(loc => (
+              {hero.locations?.map(loc => (
                 <span
                   key={loc}
                   className="text-[9px] lg:text-[10px] tracking-widest px-3 py-1.5 lg:px-4 lg:py-2 border bg-opacity-5"
