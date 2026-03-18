@@ -1,115 +1,268 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { INITIAL_DATA } from './initialData';
 import { CMSContext } from './CMSContextCore';
+import { adminAPI } from './api';
 
 export const CMSProvider = ({ children }) => {
   const [data, setData] = useState(() => {
     const saved = localStorage.getItem('capita_cms_data');
-    let parsed = saved ? JSON.parse(saved) : INITIAL_DATA;
-    
-    // Migration: ensure IDs and visibility
-    if (parsed.properties) {
-      parsed.properties = parsed.properties.map((p, i) => ({
-        ...p,
-        id: p.id || `p-${Date.now()}-${i}`,
-        isVisible: p.isVisible !== undefined ? p.isVisible : true,
-        gallery: p.gallery || [],
-        specs: p.specs || { zoning: '', permit: '', coverage: '', ownership: '' }
-      }));
-    }
-    if (parsed.offers) {
-      parsed.offers = parsed.offers.map((o, i) => ({
-        ...o,
-        id: o.id || `o-${Date.now()}-${i}`,
-        isVisible: o.isVisible !== undefined ? o.isVisible : true
-      }));
-    } else {
-      parsed.offers = INITIAL_DATA.offers;
-    }
-    if (!parsed.theme) {
-      parsed.theme = INITIAL_DATA.theme;
-    }
-    
-    return parsed;
+    return saved ? JSON.parse(saved) : INITIAL_DATA;
   });
+  const [loading, setLoading] = useState(true);
 
-  const updateData = (newData) => {
-    const updated = { ...data, ...newData };
-    setData(updated);
-    localStorage.setItem('capita_cms_data', JSON.stringify(updated));
+  // Fetch content from backend on mount
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        setLoading(true);
+        const response = await adminAPI.content.get();
+        if (response.success && response.data) {
+          setData(response.data);
+          localStorage.setItem('capita_cms_data', JSON.stringify(response.data));
+        }
+      } catch (error) {
+        console.error('Failed to fetch content from backend:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
+  const updateData = async (newData) => {
+    try {
+      // Optimistic update
+      const updated = { ...data, ...newData };
+      setData(updated);
+      localStorage.setItem('capita_cms_data', JSON.stringify(updated));
+
+      // Sync with backend if authenticated
+      if (adminAPI.isAuthenticated()) {
+        await adminAPI.content.update(newData);
+      }
+    } catch (error) {
+      console.error('Failed to update content:', error);
+      // Revert if needed or show error
+    }
   };
 
-  const addProperty = (property) => {
-    const updatedProperties = [property, ...data.properties];
-    updateData({ properties: updatedProperties });
+  const addProperty = async (property) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('properties', 'add', property);
+        if (response.success) {
+          setData(prev => ({ ...prev, properties: response.data }));
+          localStorage.setItem('capita_cms_data', JSON.stringify({ ...data, properties: response.data }));
+        }
+      } else {
+        const updatedProperties = [property, ...data.properties];
+        updateData({ properties: updatedProperties });
+      }
+    } catch (error) {
+      console.error('Failed to add property:', error);
+    }
   };
 
-  const updateProperty = (index, property) => {
-    const updatedProperties = [...data.properties];
-    updatedProperties[index] = property;
-    updateData({ properties: updatedProperties });
+  const updateProperty = async (index, property) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('properties', index, property);
+        if (response.success) {
+          setData(prev => ({ ...prev, properties: response.data }));
+          localStorage.setItem('capita_cms_data', JSON.stringify({ ...data, properties: response.data }));
+        }
+      } else {
+        const updatedProperties = [...data.properties];
+        updatedProperties[index] = property;
+        updateData({ properties: updatedProperties });
+      }
+    } catch (error) {
+      console.error('Failed to update property:', error);
+    }
   };
 
-  const deleteProperty = (index) => {
-    const updatedProperties = data.properties.filter((_, i) => i !== index);
-    updateData({ properties: updatedProperties });
+  const deleteProperty = async (index) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.deleteArrayItem('properties', index);
+        if (response.success) {
+          setData(prev => ({ ...prev, properties: response.data }));
+          localStorage.setItem('capita_cms_data', JSON.stringify({ ...data, properties: response.data }));
+        }
+      } else {
+        const updatedProperties = data.properties.filter((_, i) => i !== index);
+        updateData({ properties: updatedProperties });
+      }
+    } catch (error) {
+      console.error('Failed to delete property:', error);
+    }
   };
 
-  const addOffer = (offer) => {
-    const updatedOffers = [offer, ...data.offers];
-    updateData({ offers: updatedOffers });
+  const addOffer = async (offer) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('offers', 'add', offer);
+        if (response.success) {
+          setData(prev => ({ ...prev, offers: response.data }));
+        }
+      } else {
+        const updatedOffers = [offer, ...data.offers];
+        updateData({ offers: updatedOffers });
+      }
+    } catch (error) {
+      console.error('Failed to add offer:', error);
+    }
   };
 
-  const updateOffer = (index, offer) => {
-    const updatedOffers = [...data.offers];
-    updatedOffers[index] = offer;
-    updateData({ offers: updatedOffers });
+  const updateOffer = async (index, offer) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('offers', index, offer);
+        if (response.success) {
+          setData(prev => ({ ...prev, offers: response.data }));
+        }
+      } else {
+        const updatedOffers = [...data.offers];
+        updatedOffers[index] = offer;
+        updateData({ offers: updatedOffers });
+      }
+    } catch (error) {
+      console.error('Failed to update offer:', error);
+    }
   };
 
-  const deleteOffer = (index) => {
-    const updatedOffers = data.offers.filter((_, i) => i !== index);
-    updateData({ offers: updatedOffers });
+  const deleteOffer = async (index) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.deleteArrayItem('offers', index);
+        if (response.success) {
+          setData(prev => ({ ...prev, offers: response.data }));
+        }
+      } else {
+        const updatedOffers = data.offers.filter((_, i) => i !== index);
+        updateData({ offers: updatedOffers });
+      }
+    } catch (error) {
+      console.error('Failed to delete offer:', error);
+    }
   };
 
-  const addService = (service) => {
-    const updatedServices = [...data.services, service];
-    updateData({ services: updatedServices });
+  const addService = async (service) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('services', 'add', service);
+        if (response.success) {
+          setData(prev => ({ ...prev, services: response.data }));
+        }
+      } else {
+        const updatedServices = [...data.services, service];
+        updateData({ services: updatedServices });
+      }
+    } catch (error) {
+      console.error('Failed to add service:', error);
+    }
   };
 
-  const updateService = (index, service) => {
-    const updatedServices = [...data.services];
-    updatedServices[index] = service;
-    updateData({ services: updatedServices });
+  const updateService = async (index, service) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('services', index, service);
+        if (response.success) {
+          setData(prev => ({ ...prev, services: response.data }));
+        }
+      } else {
+        const updatedServices = [...data.services];
+        updatedServices[index] = service;
+        updateData({ services: updatedServices });
+      }
+    } catch (error) {
+      console.error('Failed to update service:', error);
+    }
   };
 
-  const deleteService = (index) => {
-    const updatedServices = data.services.filter((_, i) => i !== index);
-    updateData({ services: updatedServices });
+  const deleteService = async (index) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.deleteArrayItem('services', index);
+        if (response.success) {
+          setData(prev => ({ ...prev, services: response.data }));
+        }
+      } else {
+        const updatedServices = data.services.filter((_, i) => i !== index);
+        updateData({ services: updatedServices });
+      }
+    } catch (error) {
+      console.error('Failed to delete service:', error);
+    }
   };
 
-  const addTestimonial = (testimonial) => {
-    const updatedTestimonials = [...data.testimonials, testimonial];
-    updateData({ testimonials: updatedTestimonials });
+  const addTestimonial = async (testimonial) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('testimonials', 'add', testimonial);
+        if (response.success) {
+          setData(prev => ({ ...prev, testimonials: response.data }));
+        }
+      } else {
+        const updatedTestimonials = [...data.testimonials, testimonial];
+        updateData({ testimonials: updatedTestimonials });
+      }
+    } catch (error) {
+      console.error('Failed to add testimonial:', error);
+    }
   };
 
-  const updateTestimonial = (index, testimonial) => {
-    const updatedTestimonials = [...data.testimonials];
-    updatedTestimonials[index] = testimonial;
-    updateData({ testimonials: updatedTestimonials });
+  const updateTestimonial = async (index, testimonial) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.updateArrayItem('testimonials', index, testimonial);
+        if (response.success) {
+          setData(prev => ({ ...prev, testimonials: response.data }));
+        }
+      } else {
+        const updatedTestimonials = [...data.testimonials];
+        updatedTestimonials[index] = testimonial;
+        updateData({ testimonials: updatedTestimonials });
+      }
+    } catch (error) {
+      console.error('Failed to update testimonial:', error);
+    }
   };
 
-  const deleteTestimonial = (index) => {
-    const updatedTestimonials = data.testimonials.filter((_, i) => i !== index);
-    updateData({ testimonials: updatedTestimonials });
+  const deleteTestimonial = async (index) => {
+    try {
+      if (adminAPI.isAuthenticated()) {
+        const response = await adminAPI.content.deleteArrayItem('testimonials', index);
+        if (response.success) {
+          setData(prev => ({ ...prev, testimonials: response.data }));
+        }
+      } else {
+        const updatedTestimonials = data.testimonials.filter((_, i) => i !== index);
+        updateData({ testimonials: updatedTestimonials });
+      }
+    } catch (error) {
+      console.error('Failed to delete testimonial:', error);
+    }
   };
 
-  const updateTheme = (newTheme) => {
-    updateData({ theme: { ...data.theme, ...newTheme } });
+  const updateTheme = async (newTheme) => {
+    try {
+      const updatedTheme = { ...data.theme, ...newTheme };
+      setData(prev => ({ ...prev, theme: updatedTheme }));
+      
+      if (adminAPI.isAuthenticated()) {
+        await adminAPI.theme.update(newTheme);
+      }
+    } catch (error) {
+      console.error('Failed to update theme:', error);
+    }
   };
 
   return (
     <CMSContext.Provider value={{ 
       data, 
+      loading,
       updateData, 
       addProperty, 
       updateProperty, 

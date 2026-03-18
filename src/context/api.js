@@ -204,6 +204,73 @@ export const adminAPI = {
     },
   },
 
+  // Content API functions
+  content: {
+    // Get all content (public)
+    get: async () => {
+      return cachedRequest(`${API_BASE_URL}/api/content`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+
+    // Update all content
+    update: async (contentData) => {
+      const response = await fetch(`${API_BASE_URL}/api/content`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(contentData),
+      });
+
+      return handleResponse(response);
+    },
+
+    // Update specific section
+    updateSection: async (section, sectionData) => {
+      const response = await fetch(`${API_BASE_URL}/api/content/${section}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(sectionData),
+      });
+
+      return handleResponse(response);
+    },
+
+    // Add/Update array item
+    updateArrayItem: async (type, index, itemData) => {
+      const response = await fetch(`${API_BASE_URL}/api/content/array/${type}/${index}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(itemData),
+      });
+
+      return handleResponse(response);
+    },
+
+    // Delete array item
+    deleteArrayItem: async (type, index) => {
+      const response = await fetch(`${API_BASE_URL}/api/content/array/${type}/${index}`, {
+        method: 'DELETE',
+        headers: {
+          ...getAuthHeaders(),
+        },
+      });
+
+      return handleResponse(response);
+    },
+  },
+
   // Asset API functions
   assets: {
     // Get all assets (public)

@@ -8,9 +8,38 @@ const path = require('path');
 const healthRoutes = require('./routes/health');
 const adminRoutes = require('./routes/admin');
 const assetRoutes = require('./routes/assetRoutes');
+const contentRoutes = require('./routes/content');
 
 // Initialize Firebase (this will validate the configuration)
 const { db, isFirebaseConfigured } = require('./config/firebase');
+const { INITIAL_DATA } = require('./utils/initialData');
+
+// Initialize default content in database
+const initializeDefaultContent = async () => {
+  if (!isFirebaseConfigured()) {
+    console.log('⚠️ Firebase not configured, skipping content initialization');
+    return;
+  }
+
+  try {
+    const contentRef = db.collection('content').doc('main');
+    const doc = await contentRef.get();
+
+    if (!doc.exists) {
+      console.log('📝 Initializing default content in database...');
+      await contentRef.set({
+        ...INITIAL_DATA,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      console.log('✅ Default content initialized');
+    } else {
+      console.log('✅ Content already exists in database');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize default content:', error);
+  }
+};
 
 // Initialize default theme and fix missing colors in database
 const initializeDefaultTheme = async () => {
@@ -183,6 +212,7 @@ app.use((req, res, next) => {
 app.use('/', healthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/content', contentRoutes);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
@@ -229,8 +259,9 @@ app.use((error, req, res, next) => {
 // Start server
 const startServer = async () => {
   try {
-    // Initialize default theme before starting server
+    // Initialize default theme and content before starting server
     await initializeDefaultTheme();
+    await initializeDefaultContent();
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
