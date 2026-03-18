@@ -18,10 +18,12 @@ import PropertyDetails from './components/PropertyDetails';
 import ThemeManager from './components/ThemeManager';
 
 import { CMSProvider } from './context/CMSContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider } from './context/ThemeProvider';
+import { useCMS } from './context/useCMS';
 
-function App() {
+function AppContent() {
   const [loaded, setLoaded] = useState(false);
+  const { loading: cmsLoading } = useCMS();
   const [route, setRoute] = useState(() => {
     const hash = window.location.hash;
     if (hash === '#listings') return 'listings';
@@ -84,42 +86,51 @@ function App() {
     };
   }, [loaded, route]);
 
+  const isFullyLoaded = loaded && !cmsLoading;
+
+  return (
+    <div className="bg-void" style={{ minHeight: '100vh' }}>
+      <LoadingScreen onDone={() => setLoaded(true)} />
+      <div
+        className="w-full min-h-screen"
+        style={{
+          opacity: isFullyLoaded ? 1 : 0,
+          transition: 'opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          pointerEvents: isFullyLoaded ? 'auto' : 'none'
+        }}
+      >
+        {route === 'home' ? (
+          <div className="flex flex-col gap-10 lg:gap-4">
+            <Navbar />
+            <Hero />
+            <Offers />
+            <Marquee />
+            <Stats />
+            <Properties />
+            <Services />
+            <About />
+            <Testimonials />
+            <Contact />
+            <Footer />
+          </div>
+        ) : route === 'listings' ? (
+          <ListingsPage />
+        ) : route === 'admin' ? (
+          <AdminPanel />
+        ) : route === 'property' ? (
+          <PropertyDetails key={propertyId} id={propertyId} />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function App() {
   return (
     <ThemeProvider>
       <CMSProvider>
         <ThemeManager />
-        <div className="bg-void" style={{ minHeight: '100vh' }}>
-        <LoadingScreen onDone={() => setLoaded(true)} />
-        <div
-          className="w-full min-h-screen"
-          style={{
-            opacity: loaded ? 1 : 0,
-            transition: 'opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          }}
-        >
-          {route === 'home' ? (
-            <div className="flex flex-col gap-10 lg:gap-4">
-              <Navbar />
-              <Hero />
-              <Offers />
-              <Marquee />
-              <Stats />
-              <Properties />
-              <Services />
-              <About />
-              <Testimonials />
-              <Contact />
-              <Footer />
-            </div>
-          ) : route === 'listings' ? (
-            <ListingsPage />
-          ) : route === 'admin' ? (
-            <AdminPanel />
-          ) : route === 'property' ? (
-            <PropertyDetails key={propertyId} id={propertyId} />
-          ) : null}
-        </div>
-      </div>
+        <AppContent />
       </CMSProvider>
     </ThemeProvider>
   );
