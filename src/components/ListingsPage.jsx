@@ -741,6 +741,7 @@ const ListingsPage = () => {
             gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
             accent: '#1a4d1a',
             features: [
+              ...(asset.features || []),
               asset.bedrooms ? `${asset.bedrooms} Bedrooms` : null,
               asset.bathrooms ? `${asset.bathrooms} Bathrooms` : null,
               asset.area ? `${asset.area} sq ft` : null,
@@ -753,7 +754,6 @@ const ListingsPage = () => {
             // Additional data for detailed view
             coordinates: asset.coordinates,
             amenities: asset.amenities || [],
-            features: asset.features || [],
             agentName: asset.agentName,
             agentPhone: asset.agentPhone,
             agentEmail: asset.agentEmail,

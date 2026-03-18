@@ -14,7 +14,17 @@ const INITIAL_DATA = {
     description: "Exclusive access to Dubai's most coveted land plots. From Palm Jumeirah fronds to downtown commercial masterpieces — we connect elite investors with tomorrow's landmarks.",
     ctaPrimary: "Explore Listings",
     ctaSecondary: "Book Consultation",
-    locations: ['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City']
+    locations: ['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City'],
+    floatBadge1: {
+      label: "Prime Listing",
+      value: "AED 24,000,000",
+      subLabel: "Jumeirah Bay Island"
+    },
+    floatBadge2: {
+      label: "RERA Certified",
+      subLabel: "DLD Approved Agency"
+    },
+    bottomLabel: "Interactive Intelligence · Dubai, UAE"
   },
   stats: [
     { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },
@@ -22,102 +32,116 @@ const INITIAL_DATA = {
     { value: 650, suffix: '+', prefix: '', label: 'Satisfied Investors', decimal: false },
     { value: 1200, suffix: '+', prefix: '', label: 'Prime Plots Transacted', decimal: false },
   ],
-  properties: [
-    {
-      id: 'p1',
-      title: 'Emirates Hills Grand Estate',
-      location: 'Emirates Hills, Dubai',
-      area: '15,000',
-      price: '18,500,000',
-      category: 'Residential',
-      badge: 'EXCLUSIVE',
-      gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
-      accent: '#1a4d1a',
-      features: ['Sea View', 'Corner Plot', 'Freehold'],
-      isVisible: true,
-      gallery: ['/flaw.png'],
-      specs: {
-        zoning: 'Residential',
-        permit: 'G+2',
-        coverage: '65%',
-        ownership: 'Freehold'
+  properties: {
+    label: "Featured Listings",
+    titleLine1: "Exclusive Land Opportunities",
+    titleLine2: "in Dubai",
+    items: [
+      {
+        id: 'p1',
+        title: 'Emirates Hills Grand Estate',
+        location: 'Emirates Hills, Dubai',
+        area: '15,000',
+        price: '18,500,000',
+        category: 'Residential',
+        badge: 'EXCLUSIVE',
+        gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
+        accent: '#1a4d1a',
+        features: ['Sea View', 'Corner Plot', 'Freehold'],
+        isVisible: true,
+        gallery: ['/flaw.png'],
+        specs: {
+          zoning: 'Residential',
+          permit: 'G+2',
+          coverage: '65%',
+          ownership: 'Freehold'
+        }
+      },
+      {
+        id: 'p2',
+        title: 'Palm Jumeirah Frond Plot',
+        location: 'Palm Jumeirah, Dubai',
+        area: '8,500',
+        price: '12,200,000',
+        category: 'Residential',
+        badge: 'PRIME',
+        gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 40%, #050505 100%)',
+        accent: '#c5a059',
+        features: ['Beachfront', 'Private Access', 'Freehold'],
+        isVisible: true,
+        gallery: ['/flaw.png'],
+        specs: {
+          zoning: 'Residential',
+          permit: 'G+1',
+          coverage: '50%',
+          ownership: 'Freehold'
+        }
+      },
+      {
+        id: 'p3',
+        title: 'Business Bay Canal Front',
+        location: 'Business Bay, Dubai',
+        area: '22,000',
+        price: '9,750,000',
+        category: 'Commercial',
+        badge: 'HOT',
+        gradient: 'linear-gradient(135deg, #0f0a05 0%, #1a1510 40%, #080502 100%)',
+        accent: '#8B6B14',
+        features: ['Canal View', 'G+50 Permitted', 'Freehold'],
+        isVisible: true,
+        gallery: ['/flaw.png'],
+        specs: {
+          zoning: 'Commercial',
+          permit: 'G+50',
+          coverage: '100%',
+          ownership: 'Freehold'
+        }
+      },
+    ]
+  },
+  offers: {
+    label: "Special Offer",
+    items: [
+      {
+        id: 'o1',
+        title: 'Ramadan Special: Zero DLD Fees',
+        description: 'Book any prime plot this month and we cover 100% of your DLD registration fees.',
+        expiry: '2024-04-30',
+        isVisible: false,
+      },
+      {
+        id: 'o2',
+        title: 'Bulk Investment Discount',
+        description: 'Get up to 15% discount on purchasing 3 or more plots in MBR City.',
+        expiry: '2024-12-31',
+        isVisible: true,
       }
-    },
-    {
-      id: 'p2',
-      title: 'Palm Jumeirah Frond Plot',
-      location: 'Palm Jumeirah, Dubai',
-      area: '8,500',
-      price: '12,200,000',
-      category: 'Residential',
-      badge: 'PRIME',
-      gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 40%, #050505 100%)',
-      accent: '#c5a059',
-      features: ['Beachfront', 'Private Access', 'Freehold'],
-      isVisible: true,
-      gallery: ['/flaw.png'],
-      specs: {
-        zoning: 'Residential',
-        permit: 'G+1',
-        coverage: '50%',
-        ownership: 'Freehold'
-      }
-    },
-    {
-      id: 'p3',
-      title: 'Business Bay Canal Front',
-      location: 'Business Bay, Dubai',
-      area: '22,000',
-      price: '9,750,000',
-      category: 'Commercial',
-      badge: 'HOT',
-      gradient: 'linear-gradient(135deg, #0f0a05 0%, #1a1510 40%, #080502 100%)',
-      accent: '#8B6B14',
-      features: ['Canal View', 'G+50 Permitted', 'Freehold'],
-      isVisible: true,
-      gallery: ['/flaw.png'],
-      specs: {
-        zoning: 'Commercial',
-        permit: 'G+50',
-        coverage: '100%',
-        ownership: 'Freehold'
-      }
-    },
-  ],
-  offers: [
-    {
-      id: 'o1',
-      title: 'Ramadan Special: Zero DLD Fees',
-      description: 'Book any prime plot this month and we cover 100% of your DLD registration fees.',
-      expiry: '2024-04-30',
-      isVisible: false,
-    },
-    {
-      id: 'o2',
-      title: 'Bulk Investment Discount',
-      description: 'Get up to 15% discount on purchasing 3 or more plots in MBR City.',
-      expiry: '2024-12-31',
-      isVisible: true,
-    }
-  ],
-  services: [
-    {
-      title: 'Land Acquisition',
-      desc: 'Strategic sourcing and securing of prime Dubai land plots aligned with your investment vision and return objectives.',
-    },
-    {
-      title: 'Investment Strategy',
-      desc: 'Data-driven portfolio optimization tailored to maximize ROI across Dubai\'s rapidly evolving real estate landscape.',
-    },
-    {
-      title: 'Legal & Compliance',
-      desc: 'End-to-end RERA registration, DLD documentation, and regulatory compliance handled by our expert legal team.',
-    },
-    {
-      title: 'Market Intelligence',
-      desc: 'Proprietary analytics and real-time market data to identify emerging opportunities before they reach the public market.',
-    },
-  ],
+    ]
+  },
+  services: {
+    label: "Our Services",
+    titleLine1: "Full-Spectrum Land",
+    titleLine2: "Investment Services",
+    description: "From initial consultation to final title deed — we orchestrate every aspect of your Dubai land investment journey.",
+    items: [
+      {
+        title: 'Land Acquisition',
+        desc: 'Strategic sourcing and securing of prime Dubai land plots aligned with your investment vision and return objectives.',
+      },
+      {
+        title: 'Investment Strategy',
+        desc: 'Data-driven portfolio optimization tailored to maximize ROI across Dubai\'s rapidly evolving real estate landscape.',
+      },
+      {
+        title: 'Legal & Compliance',
+        desc: 'End-to-end RERA registration, DLD documentation, and regulatory compliance handled by our expert legal team.',
+      },
+      {
+        title: 'Market Intelligence',
+        desc: 'Proprietary analytics and real-time market data to identify emerging opportunities before they reach the public market.',
+      },
+    ]
+  },
   about: {
     label: "Our Legacy",
     titleLine1: "Two Decades of Shaping",
@@ -138,28 +162,67 @@ const INITIAL_DATA = {
     ],
     quote: "Where the desert meets ambition, we build legacies.",
     estYear: "2006",
+    estLocation: "Est. Dubai, UAE",
     teamSize: "45+"
   },
-  testimonials: [
-    {
-      quote: "Capita Prime LLC transformed my understanding of Dubai's land market. Their off-market access and due diligence process is unmatched. The Palm Jumeirah plot they secured for me has appreciated 180% in three years.",
-      name: 'Khalid Al Mansoori',
-      title: 'Private Equity Investor, Abu Dhabi',
-      initials: 'KM',
+  contact: {
+    label: "Get in Touch",
+    titleLine1: "Begin Your Dubai Land",
+    titleLine2: "Investment Journey",
+    description: "Our advisory team is available for confidential consultations. Whether you are buying, selling, or evaluating — we provide unparalleled insight.",
+    info: [
+      { label: 'Office', value: 'Burj Khalifa District, Downtown Dubai, UAE', icon: 'location' },
+      { label: 'Phone', value: '+971 4 XXX XXXX', icon: 'phone' },
+      { label: 'Email', value: 'invest@capitaprimellc.com', icon: 'mail' },
+      { label: 'Hours', value: 'Sun – Thu: 9:00 AM – 6:00 PM GST', icon: 'clock' },
+    ]
+  },
+  footer: {
+    description: "Dubai's most trusted land investment consultancy. RERA Certified. DLD Registered. Serving elite investors across 42 nationalities.",
+    links: {
+      Services: ['Land Acquisition', 'Investment Strategy', 'Legal & Compliance', 'Market Intelligence', 'Property Valuation'],
+      Locations: ['Palm Jumeirah', 'Emirates Hills', 'Downtown Dubai', 'Business Bay', 'Creek Harbour', 'MBR City'],
+      Company: ['About Us', 'Our Team', 'Press', 'Careers', 'Privacy Policy'],
     },
-    {
-      quote: "As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation — every single time.",
-      name: 'James Whitfield',
-      title: 'Fund Manager, Whitfield Capital, London',
-      initials: 'JW',
-    },
-    {
-      quote: "Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.",
-      name: 'Priya Krishnamurthy',
-      title: 'Director of Investments, Meridian SWF, Singapore',
-      initials: 'PK',
-    },
-  ]
+    socials: [
+      { label: 'LinkedIn', icon: 'linkedin', href: '#' },
+      { label: 'Instagram', icon: 'instagram', href: '#' },
+      { label: 'Twitter', icon: 'twitter', href: '#' }
+    ]
+  },
+  navbar: {
+    links: [
+      { label: 'Properties', href: '#properties' },
+      { label: 'Services', href: '#services' },
+      { label: 'About', href: '#about' },
+      { label: 'Testimonials', href: '#testimonials' },
+    ]
+  },
+  testimonials: {
+    label: "Client Voices",
+    titleLine1: "Words from Our",
+    titleLine2: "Distinguished Clients",
+    items: [
+      {
+        quote: "Capita Prime LLC transformed my understanding of Dubai's land market. Their off-market access and due diligence process is unmatched. The Palm Jumeirah plot they secured for me has appreciated 180% in three years.",
+        name: 'Khalid Al Mansoori',
+        title: 'Private Equity Investor, Abu Dhabi',
+        initials: 'KM',
+      },
+      {
+        quote: "As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation — every single time.",
+        name: 'James Whitfield',
+        title: 'Fund Manager, Whitfield Capital, London',
+        initials: 'JW',
+      },
+      {
+        quote: "Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.",
+        name: 'Priya Krishnamurthy',
+        title: 'Director of Investments, Meridian SWF, Singapore',
+        initials: 'PK',
+      },
+    ]
+  }
 };
 
 module.exports = { INITIAL_DATA };

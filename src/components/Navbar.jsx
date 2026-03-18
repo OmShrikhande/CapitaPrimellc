@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-const NAV_LINKS = [
-  { label: 'Properties', href: '#properties' },
-  { label: 'Services', href: '#services' },
-  { label: 'About', href: '#about' },
-  { label: 'Testimonials', href: '#testimonials' },
-];
+import { useCMS } from '../context/useCMS';
 
 const Navbar = () => {
+  const { data } = useCMS();
+  const { navbar } = data;
+  const NAV_LINKS = navbar?.links || [];
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const isListingsPage = window.location.hash === '#listings';

@@ -18,7 +18,7 @@ import PropertyDetails from './components/PropertyDetails';
 import ThemeManager from './components/ThemeManager';
 
 import { CMSProvider } from './context/CMSContext';
-import { ThemeProvider } from './context/ThemeProvider';
+import { ThemeProvider } from './context/ThemeContext';
 import { useCMS } from './context/useCMS';
 
 function AppContent() {

@@ -1,49 +1,37 @@
 import { useState } from 'react';
 import useReveal from '../hooks/useReveal';
 
-const CONTACT_INFO = [
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-    label: 'Office',
-    value: 'Burj Khalifa District, Downtown Dubai, UAE',
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l1.98-1.98a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-      </svg>
-    ),
-    label: 'Phone',
-    value: '+971 4 XXX XXXX',
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
-    label: 'Email',
-    value: 'invest@capitaprimellc.com',
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    label: 'Hours',
-    value: 'Sun – Thu: 9:00 AM – 6:00 PM GST',
-  },
-];
+import { useCMS } from '../context/useCMS';
+
+const ICON_MAP = {
+  location: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  ),
+  phone: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l1.98-1.98a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  ),
+  mail: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  ),
+  clock: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+};
 
 const Contact = () => {
+  const { data } = useCMS();
+  const { contact } = data;
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const leftRef = useReveal('animate-on-scroll-left');
@@ -82,7 +70,7 @@ const Contact = () => {
             <div>
               <div className="flex items-center gap-4 mb-6">
                 <div className="gold-line-h w-8 lg:w-12" />
-                <span className="section-label text-[9px] lg:text-[10px]">Get in Touch</span>
+                <span className="section-label text-[9px] lg:text-[10px]">{contact.label}</span>
               </div>
               <h2
                 style={{
@@ -94,9 +82,9 @@ const Contact = () => {
                   marginBottom: 20,
                 }}
               >
-                Begin Your Dubai Land
+                {contact.titleLine1}
                 <br className="sm:hidden" />
-                <span className="text-gold-gradient"> Investment Journey</span>
+                <span className="text-gold-gradient"> {contact.titleLine2}</span>
               </h2>
               <p
                 style={{
@@ -107,12 +95,12 @@ const Contact = () => {
                   lineHeight: 1.8,
                 }}
               >
-                Our advisory team is available for confidential consultations. Whether you are buying, selling, or evaluating — we provide unparalleled insight.
+                {contact.description}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
-              {CONTACT_INFO.map(info => (
+              {contact.info.map(info => (
                 <div key={info.label} className="flex items-start gap-4">
                   <div
                     className="flex-shrink-0 w-10 h-10 flex items-center justify-center"
@@ -121,7 +109,7 @@ const Contact = () => {
                       border: '1px solid rgba(201,168,76,0.2)',
                     }}
                   >
-                    {info.icon}
+                    {ICON_MAP[info.icon] || ICON_MAP.location}
                   </div>
                   <div>
                     <p

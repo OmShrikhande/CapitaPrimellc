@@ -50,14 +50,13 @@ export const CMSProvider = ({ children }) => {
   const addProperty = async (property) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('properties', 'add', property);
+        const response = await adminAPI.content.updateArrayItem('properties.items', 'add', property);
         if (response.success) {
-          setData(prev => ({ ...prev, properties: response.data }));
-          localStorage.setItem('capita_cms_data', JSON.stringify({ ...data, properties: response.data }));
+          setData(prev => ({ ...prev, properties: { ...prev.properties, items: response.data } }));
         }
       } else {
-        const updatedProperties = [property, ...data.properties];
-        updateData({ properties: updatedProperties });
+        const updatedItems = [property, ...(data.properties.items || [])];
+        updateData({ properties: { ...data.properties, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to add property:', error);
@@ -67,15 +66,14 @@ export const CMSProvider = ({ children }) => {
   const updateProperty = async (index, property) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('properties', index, property);
+        const response = await adminAPI.content.updateArrayItem('properties.items', index, property);
         if (response.success) {
-          setData(prev => ({ ...prev, properties: response.data }));
-          localStorage.setItem('capita_cms_data', JSON.stringify({ ...data, properties: response.data }));
+          setData(prev => ({ ...prev, properties: { ...prev.properties, items: response.data } }));
         }
       } else {
-        const updatedProperties = [...data.properties];
-        updatedProperties[index] = property;
-        updateData({ properties: updatedProperties });
+        const updatedItems = [...(data.properties.items || [])];
+        updatedItems[index] = property;
+        updateData({ properties: { ...data.properties, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to update property:', error);
@@ -85,14 +83,13 @@ export const CMSProvider = ({ children }) => {
   const deleteProperty = async (index) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.deleteArrayItem('properties', index);
+        const response = await adminAPI.content.deleteArrayItem('properties.items', index);
         if (response.success) {
-          setData(prev => ({ ...prev, properties: response.data }));
-          localStorage.setItem('capita_cms_data', JSON.stringify({ ...data, properties: response.data }));
+          setData(prev => ({ ...prev, properties: { ...prev.properties, items: response.data } }));
         }
       } else {
-        const updatedProperties = data.properties.filter((_, i) => i !== index);
-        updateData({ properties: updatedProperties });
+        const updatedItems = (data.properties.items || []).filter((_, i) => i !== index);
+        updateData({ properties: { ...data.properties, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to delete property:', error);
@@ -102,13 +99,13 @@ export const CMSProvider = ({ children }) => {
   const addOffer = async (offer) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('offers', 'add', offer);
+        const response = await adminAPI.content.updateArrayItem('offers.items', 'add', offer);
         if (response.success) {
-          setData(prev => ({ ...prev, offers: response.data }));
+          setData(prev => ({ ...prev, offers: { ...prev.offers, items: response.data } }));
         }
       } else {
-        const updatedOffers = [offer, ...data.offers];
-        updateData({ offers: updatedOffers });
+        const updatedItems = [offer, ...(data.offers.items || [])];
+        updateData({ offers: { ...data.offers, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to add offer:', error);
@@ -118,14 +115,14 @@ export const CMSProvider = ({ children }) => {
   const updateOffer = async (index, offer) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('offers', index, offer);
+        const response = await adminAPI.content.updateArrayItem('offers.items', index, offer);
         if (response.success) {
-          setData(prev => ({ ...prev, offers: response.data }));
+          setData(prev => ({ ...prev, offers: { ...prev.offers, items: response.data } }));
         }
       } else {
-        const updatedOffers = [...data.offers];
-        updatedOffers[index] = offer;
-        updateData({ offers: updatedOffers });
+        const updatedItems = [...(data.offers.items || [])];
+        updatedItems[index] = offer;
+        updateData({ offers: { ...data.offers, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to update offer:', error);
@@ -135,13 +132,13 @@ export const CMSProvider = ({ children }) => {
   const deleteOffer = async (index) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.deleteArrayItem('offers', index);
+        const response = await adminAPI.content.deleteArrayItem('offers.items', index);
         if (response.success) {
-          setData(prev => ({ ...prev, offers: response.data }));
+          setData(prev => ({ ...prev, offers: { ...prev.offers, items: response.data } }));
         }
       } else {
-        const updatedOffers = data.offers.filter((_, i) => i !== index);
-        updateData({ offers: updatedOffers });
+        const updatedItems = (data.offers.items || []).filter((_, i) => i !== index);
+        updateData({ offers: { ...data.offers, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to delete offer:', error);
@@ -151,13 +148,13 @@ export const CMSProvider = ({ children }) => {
   const addService = async (service) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('services', 'add', service);
+        const response = await adminAPI.content.updateArrayItem('services.items', 'add', service);
         if (response.success) {
-          setData(prev => ({ ...prev, services: response.data }));
+          setData(prev => ({ ...prev, services: { ...prev.services, items: response.data } }));
         }
       } else {
-        const updatedServices = [...data.services, service];
-        updateData({ services: updatedServices });
+        const updatedItems = [...(data.services.items || []), service];
+        updateData({ services: { ...data.services, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to add service:', error);
@@ -167,14 +164,14 @@ export const CMSProvider = ({ children }) => {
   const updateService = async (index, service) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('services', index, service);
+        const response = await adminAPI.content.updateArrayItem('services.items', index, service);
         if (response.success) {
-          setData(prev => ({ ...prev, services: response.data }));
+          setData(prev => ({ ...prev, services: { ...prev.services, items: response.data } }));
         }
       } else {
-        const updatedServices = [...data.services];
-        updatedServices[index] = service;
-        updateData({ services: updatedServices });
+        const updatedItems = [...(data.services.items || [])];
+        updatedItems[index] = service;
+        updateData({ services: { ...data.services, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to update service:', error);
@@ -184,13 +181,13 @@ export const CMSProvider = ({ children }) => {
   const deleteService = async (index) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.deleteArrayItem('services', index);
+        const response = await adminAPI.content.deleteArrayItem('services.items', index);
         if (response.success) {
-          setData(prev => ({ ...prev, services: response.data }));
+          setData(prev => ({ ...prev, services: { ...prev.services, items: response.data } }));
         }
       } else {
-        const updatedServices = data.services.filter((_, i) => i !== index);
-        updateData({ services: updatedServices });
+        const updatedItems = (data.services.items || []).filter((_, i) => i !== index);
+        updateData({ services: { ...data.services, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to delete service:', error);
@@ -200,13 +197,13 @@ export const CMSProvider = ({ children }) => {
   const addTestimonial = async (testimonial) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('testimonials', 'add', testimonial);
+        const response = await adminAPI.content.updateArrayItem('testimonials.items', 'add', testimonial);
         if (response.success) {
-          setData(prev => ({ ...prev, testimonials: response.data }));
+          setData(prev => ({ ...prev, testimonials: { ...prev.testimonials, items: response.data } }));
         }
       } else {
-        const updatedTestimonials = [...data.testimonials, testimonial];
-        updateData({ testimonials: updatedTestimonials });
+        const updatedItems = [...(data.testimonials.items || []), testimonial];
+        updateData({ testimonials: { ...data.testimonials, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to add testimonial:', error);
@@ -216,14 +213,14 @@ export const CMSProvider = ({ children }) => {
   const updateTestimonial = async (index, testimonial) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.updateArrayItem('testimonials', index, testimonial);
+        const response = await adminAPI.content.updateArrayItem('testimonials.items', index, testimonial);
         if (response.success) {
-          setData(prev => ({ ...prev, testimonials: response.data }));
+          setData(prev => ({ ...prev, testimonials: { ...prev.testimonials, items: response.data } }));
         }
       } else {
-        const updatedTestimonials = [...data.testimonials];
-        updatedTestimonials[index] = testimonial;
-        updateData({ testimonials: updatedTestimonials });
+        const updatedItems = [...(data.testimonials.items || [])];
+        updatedItems[index] = testimonial;
+        updateData({ testimonials: { ...data.testimonials, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to update testimonial:', error);
@@ -233,13 +230,13 @@ export const CMSProvider = ({ children }) => {
   const deleteTestimonial = async (index) => {
     try {
       if (adminAPI.isAuthenticated()) {
-        const response = await adminAPI.content.deleteArrayItem('testimonials', index);
+        const response = await adminAPI.content.deleteArrayItem('testimonials.items', index);
         if (response.success) {
-          setData(prev => ({ ...prev, testimonials: response.data }));
+          setData(prev => ({ ...prev, testimonials: { ...prev.testimonials, items: response.data } }));
         }
       } else {
-        const updatedTestimonials = data.testimonials.filter((_, i) => i !== index);
-        updateData({ testimonials: updatedTestimonials });
+        const updatedItems = (data.testimonials.items || []).filter((_, i) => i !== index);
+        updateData({ testimonials: { ...data.testimonials, items: updatedItems } });
       }
     } catch (error) {
       console.error('Failed to delete testimonial:', error);

@@ -1,27 +1,6 @@
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
 
-const TESTIMONIALS = [
-  {
-    quote: "Capita Prime LLC transformed my understanding of Dubai's land market. Their off-market access and due diligence process is unmatched. The Palm Jumeirah plot they secured for me has appreciated 180% in three years.",
-    name: 'Khalid Al Mansoori',
-    title: 'Private Equity Investor, Abu Dhabi',
-    initials: 'KM',
-  },
-  {
-    quote: "As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation — every single time.",
-    name: 'James Whitfield',
-    title: 'Fund Manager, Whitfield Capital, London',
-    initials: 'JW',
-  },
-  {
-    quote: "Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.",
-    name: 'Priya Krishnamurthy',
-    title: 'Director of Investments, Meridian SWF, Singapore',
-    initials: 'PK',
-  },
-];
-
 const StarRow = () => (
   <div className="flex gap-1">
     {Array.from({ length: 5 }).map((_, i) => (
@@ -50,7 +29,7 @@ const Testimonials = () => {
         <div ref={headingRef} className="text-center mb-20" >
           <div className="flex items-center justify-center gap-4 mb-6" >
             <div className="gold-line-h w-12"  />
-            <span className="section-label">Client Voices</span>
+            <span className="section-label">{testimonials.label}</span>
             <div className="gold-line-h w-12" />
           </div>
           <h2
@@ -62,13 +41,13 @@ const Testimonials = () => {
               color: '#ffffff',
             }}
           >
-            Words from Our
-            <span className="text-gold-gradient"> Distinguished Clients</span>
+            {testimonials.titleLine1}
+            <span className="text-gold-gradient"> {testimonials.titleLine2}</span>
           </h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6" style={{maxWidth: "95%", margin: '0 auto', position: 'relative', zIndex: 1, marginBottom: "50px"}}>
-          {testimonials.map((t, i) => (
+          {(testimonials.items || []).map((t, i) => (
             <div
               key={i}
               className="testimonial-card animate-on-scroll"

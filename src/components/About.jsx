@@ -1,20 +1,6 @@
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
 
-const VALUES = [
-  { label: 'Integrity', desc: 'Transparent dealings, always.' },
-  { label: 'Precision', desc: 'Every detail matters.' },
-  { label: 'Discretion', desc: 'Your privacy is sacred.' },
-  { label: 'Excellence', desc: 'Nothing less, always more.' },
-];
-
-const CERTIFICATIONS = [
-  'RERA Certified Agency',
-  'DLD Registered',
-  'ISO 9001 Compliant',
-  'Member — Dubai Chamber',
-];
-
 const About = () => {
   const leftRef = useReveal('animate-on-scroll-left');
   const rightRef = useReveal('animate-on-scroll-right');
@@ -175,7 +161,7 @@ const About = () => {
                   >
                     {about.estYear}
                   </div>
-                  <p className="section-label mb-4 lg:mb-6 text-[9px] lg:text-[10px]">Est. Dubai, UAE</p>
+                  <p className="section-label mb-4 lg:mb-6 text-[9px] lg:text-[10px]">{about.estLocation || 'Est. Dubai, UAE'}</p>
                   <div className="gold-line-h w-16 lg:w-24 mx-auto mb-4 lg:mb-6" />
                   <div
                     style={{

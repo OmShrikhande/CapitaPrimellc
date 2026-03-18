@@ -306,7 +306,7 @@ const Hero = () => {
                 className="hero-float-badge hidden lg:block"
                 style={{ top: '5%', right: '10%', animationDelay: '0s' }}
               >
-                <div className="section-label mb-1">Prime Listing</div>
+                <div className="section-label mb-1">{hero.floatBadge1?.label}</div>
                 <div
                   style={{
                     fontFamily: "'Cormorant Garamond', serif",
@@ -315,7 +315,7 @@ const Hero = () => {
                     color: theme.primary,
                   }}
                 >
-                  AED 24,000,000
+                  {hero.floatBadge1?.value}
                 </div>
                 <div
                   style={{
@@ -325,7 +325,7 @@ const Hero = () => {
                     marginTop: '2px',
                   }}
                 >
-                  Jumeirah Bay Island
+                  {hero.floatBadge1?.subLabel}
                 </div>
               </div>
 
@@ -343,7 +343,7 @@ const Hero = () => {
                       boxShadow: '0 0 8px #22c55e',
                     }}
                   />
-                  <span className="section-label">RERA Certified</span>
+                  <span className="section-label">{hero.floatBadge2?.label}</span>
                 </div>
                 <div
                   style={{
@@ -352,7 +352,7 @@ const Hero = () => {
                     color: 'rgba(255,255,255,0.6)',
                   }}
                 >
-                  DLD Approved Agency
+                  {hero.floatBadge2?.subLabel}
                 </div>
               </div>
             </div>
@@ -378,7 +378,7 @@ const Hero = () => {
                   textTransform: 'uppercase',
                 }}
               >
-                Interactive Intelligence · Dubai, UAE
+                {hero.bottomLabel}
               </span>
             </div>
           </div>
