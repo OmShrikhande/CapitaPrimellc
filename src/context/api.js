@@ -261,6 +261,19 @@ export const adminAPI = {
 
       return handleResponse(response);
     },
+
+    // Reset all content to default state
+    reset: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/content/reset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+      });
+
+      return handleResponse(response);
+    },
   },
 
   // Asset API functions

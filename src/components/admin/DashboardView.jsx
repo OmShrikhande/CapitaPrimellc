@@ -1,14 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Globe from './Globe';
 import StatCard from './StatCard';
 import FeedItem from './FeedItem';
 
-const DashboardView = ({ data, setActiveTab }) => {
+const DashboardView = ({ data, setActiveTab, resetData }) => {
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
   const getLength = (val) => {
     if (!val) return 0;
     if (Array.isArray(val)) return val.length;
     if (val.items && Array.isArray(val.items)) return val.items.length;
     return 0;
+  };
+
+  const handleResetConfirm = async () => {
+    try {
+      setIsResetting(true);
+      const result = await resetData();
+      if (result.success) {
+        setShowResetConfirm(false);
+        console.log('All data has been reset to default state');
+      }
+    } catch (error) {
+      console.error('Reset failed:', error);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -84,6 +102,52 @@ const DashboardView = ({ data, setActiveTab }) => {
           </div>
         </div>
       </div>
+    </div>
+
+    {/* Reset Confirmation Modal */}
+    {showResetConfirm && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+        <div className="bg-black border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 animate-in scale-in duration-300 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-2xl font-serif font-bold text-white mb-4">Reset All Data?</h3>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              This action will reset all changes and restore the system to its default state. This cannot be undone.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <button
+              onClick={handleResetConfirm}
+              disabled={isResetting}
+              className="w-full bg-red-500/10 hover:bg-red-500/20 disabled:bg-red-500/5 text-red-500 font-bold py-3 px-4 rounded-xl transition-all border border-red-500/20 text-[11px] tracking-widest uppercase"
+            >
+              {isResetting ? 'Resetting...' : 'Confirm Reset'}
+            </button>
+            <button
+              onClick={() => setShowResetConfirm(false)}
+              disabled={isResetting}
+              className="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-3 px-4 rounded-xl transition-all border border-white/10 text-[11px] tracking-widest uppercase"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <p className="text-[9px] text-gray-600 text-center mt-6 tracking-widest uppercase">
+            All content will be restored to default state
+          </p>
+        </div>
+      </div>
+    )}
+
+    {/* Reset Button */}
+    <div className="flex justify-center mt-12">
+      <button
+        onClick={() => setShowResetConfirm(true)}
+        className="bg-red-500/10 hover:bg-red-500/20 text-red-500/80 hover:text-red-500 px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.4em] uppercase border border-red-500/20 hover:border-red-500/40 transition-all shadow-lg"
+      >
+        System Reset
+      </button>
     </div>
     </div>
   );

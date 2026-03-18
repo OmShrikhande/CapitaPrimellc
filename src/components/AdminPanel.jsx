@@ -55,7 +55,8 @@ const AdminPanel = () => {
     addTestimonial,
     updateTestimonial,
     deleteTestimonial,
-    updateTheme 
+    updateTheme,
+    resetData 
   } = useCMS();
 
   useEffect(() => {
@@ -325,7 +326,7 @@ const AdminPanel = () => {
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           <div className="w-full">
-            {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} />}
+            {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} resetData={resetData} />}
             {activeTab === 'assets' && <AssetsView />}
             {activeTab === 'offers' && (
               <OffersView

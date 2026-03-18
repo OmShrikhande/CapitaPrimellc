@@ -459,6 +459,29 @@ export const CMSProvider = ({ children }) => {
     }
   };
 
+  const resetData = async () => {
+    try {
+      // Reset frontend state to initial data
+      setData(INITIAL_DATA);
+      localStorage.setItem('capita_cms_data', JSON.stringify(INITIAL_DATA));
+
+      // Sync with backend if authenticated
+      if (adminAPI.isAuthenticated()) {
+        try {
+          await adminAPI.content.reset();
+          console.log('Data reset successfully on backend');
+        } catch (backendError) {
+          console.error('Failed to sync reset with backend:', backendError.message);
+          // Local data is still reset even if backend sync fails
+        }
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to reset data:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   return (
     <CMSContext.Provider value={{ 
       data, 
@@ -476,7 +499,8 @@ export const CMSProvider = ({ children }) => {
       addTestimonial,
       updateTestimonial,
       deleteTestimonial,
-      updateTheme
+      updateTheme,
+      resetData
     }}>
       {children}
     </CMSContext.Provider>
