@@ -1,6 +1,18 @@
-// API Configuration
-const isDevelopment = import.meta.env.MODE === 'development';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (isDevelopment ? 'http://localhost:3000' : 'https://capitaprimellc.onrender.com');
+// API Configuration - Auto-detect environment
+const getAPIBaseURL = () => {
+  const envURL = import.meta.env.VITE_API_BASE_URL;
+  if (envURL) return envURL;
+  
+  // Auto-detect local development
+  if (import.meta.env.DEV) {
+    return 'http://localhost:3000';
+  }
+  
+  // Production fallback
+  return 'https://capitaprimellc.onrender.com';
+};
+
+const API_BASE_URL = getAPIBaseURL();
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

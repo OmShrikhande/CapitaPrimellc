@@ -3,15 +3,23 @@ import Globe from './Globe';
 import StatCard from './StatCard';
 import FeedItem from './FeedItem';
 
-const DashboardView = ({ data, setActiveTab }) => (
-  <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-700 w-full">
-    {/* Key Matrix */}
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-10">
-      <StatCard label="Global Assets" value={data.properties.length} color="gold" icon="🏗️" trend="+12.4%" />
-      <StatCard label="Matrix Nodes" value={data.services.length} color="gold" icon="⚡" trend="Optimal" />
-      <StatCard label="Echo Base" value={data.testimonials.length} color="gold" icon="💎" trend="+5.2%" />
-      <StatCard label="System Integrity" value="ENCRYPTED" color="gold" icon="🛡️" trend="99.9%" isStatus />
-    </div>
+const DashboardView = ({ data, setActiveTab }) => {
+  const getLength = (val) => {
+    if (!val) return 0;
+    if (Array.isArray(val)) return val.length;
+    if (val.items && Array.isArray(val.items)) return val.items.length;
+    return 0;
+  };
+
+  return (
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-700 w-full">
+      {/* Key Matrix */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-10">
+        <StatCard label="Global Assets" value={getLength(data.properties)} color="gold" icon="🏗️" trend="+12.4%" />
+        <StatCard label="Matrix Nodes" value={getLength(data.services)} color="gold" icon="⚡" trend="Optimal" />
+        <StatCard label="Echo Base" value={getLength(data.testimonials)} color="gold" icon="💎" trend="+5.2%" />
+        <StatCard label="System Integrity" value="ENCRYPTED" color="gold" icon="🛡️" trend="99.9%" isStatus />
+      </div>
 
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
       {/* Globe Section */}
@@ -77,7 +85,8 @@ const DashboardView = ({ data, setActiveTab }) => (
         </div>
       </div>
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default DashboardView;

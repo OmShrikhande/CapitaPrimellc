@@ -329,7 +329,7 @@ const AdminPanel = () => {
             {activeTab === 'assets' && <AssetsView />}
             {activeTab === 'offers' && (
               <OffersView
-                offers={data.offers}
+                offers={Array.isArray(data.offers?.items) ? data.offers.items : []}
                 addOffer={addOffer}
                 updateOffer={updateOffer}
                 deleteOffer={deleteOffer}
@@ -338,7 +338,7 @@ const AdminPanel = () => {
             {activeTab === 'content' && <ContentView data={data} updateData={updateData} />}
             {activeTab === 'services' && (
               <ServicesView 
-                services={data.services} 
+                services={Array.isArray(data.services?.items) ? data.services.items : []} 
                 addService={addService}
                 updateService={updateService}
                 deleteService={deleteService}
@@ -346,7 +346,7 @@ const AdminPanel = () => {
             )}
             {activeTab === 'testimonials' && (
               <TestimonialsView 
-                testimonials={data.testimonials} 
+                testimonials={Array.isArray(data.testimonials?.items) ? data.testimonials.items : []} 
                 addTestimonial={addTestimonial}
                 updateTestimonial={updateTestimonial}
                 deleteTestimonial={deleteTestimonial}

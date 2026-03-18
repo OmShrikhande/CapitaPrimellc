@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 
-const TestimonialsView = ({ testimonials, addTestimonial, updateTestimonial, deleteTestimonial }) => {
+const TestimonialsView = ({ testimonials = [], addTestimonial, updateTestimonial, deleteTestimonial }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({
     name: '', title: '', quote: ''
   });
 
+  // Ensure testimonials is always an array
+  const testimonialsArray = Array.isArray(testimonials) ? testimonials : [];
+
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setFormData(testimonials[index]);
+    setFormData(testimonialsArray[index]);
     setIsAdding(true);
   };
 
@@ -76,7 +79,7 @@ const TestimonialsView = ({ testimonials, addTestimonial, updateTestimonial, del
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-10">
-        {testimonials.map((t, i) => (
+        {testimonialsArray.map((t, i) => (
           <div key={i} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-3xl p-10 shadow-2xl group hover:border-gold/30 transition-all relative overflow-hidden">
             <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
               <span className="text-8xl font-serif">"</span>

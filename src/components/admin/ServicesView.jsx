@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 
-const ServicesView = ({ services, addService, updateService, deleteService }) => {
+const ServicesView = ({ services = [], addService, updateService, deleteService }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({
     title: '', desc: ''
   });
 
+  // Ensure services is always an array
+  const servicesArray = Array.isArray(services) ? services : [];
+
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setFormData(services[index]);
+    setFormData(servicesArray[index]);
     setIsAdding(true);
   };
 
@@ -70,7 +73,7 @@ const ServicesView = ({ services, addService, updateService, deleteService }) =>
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-10">
-        {services.map((s, i) => (
+        {servicesArray.map((s, i) => (
           <div key={i} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-3xl p-10 shadow-2xl group hover:border-gold/30 transition-all relative overflow-hidden">
             <div className="absolute -right-8 -top-8 w-32 h-32 bg-gold/5 blur-3xl group-hover:bg-gold/10 transition-all rounded-full" />
             

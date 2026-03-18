@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 
-const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
+const OffersView = ({ offers = [], addOffer, updateOffer, deleteOffer }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({
     title: '', description: '', expiry: '', isVisible: false
   });
 
+  // Ensure offers is always an array
+  const offersArray = Array.isArray(offers) ? offers : [];
+
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setFormData(offers[index]);
+    setFormData(offersArray[index]);
     setIsAdding(true);
   };
 
@@ -26,7 +29,7 @@ const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
   };
 
   const toggleVisibility = (index) => {
-    const offer = offers[index];
+    const offer = offersArray[index];
     updateOffer(index, { ...offer, isVisible: !offer.isVisible });
   };
 
@@ -85,7 +88,7 @@ const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
       )}
 
       <div className="grid grid-cols-1 gap-6">
-        {offers.map((offer, i) => (
+        {offersArray.map((offer, i) => (
           <div key={i} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-[2rem] p-8 flex justify-between items-center hover:border-gold/40 transition-all group relative overflow-hidden">
             <div className="flex items-center gap-8">
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl border border-white/10 ${offer.isVisible ? 'bg-gold/10 text-gold' : 'bg-white/5 text-gray-500'}`}>
