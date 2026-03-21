@@ -34,7 +34,29 @@ const initializeDefaultContent = async () => {
       });
       console.log('✅ Default content initialized');
     } else {
-      console.log('✅ Content already exists in database');
+      const existingData = doc.data();
+      const mergedContent = {
+        ...INITIAL_DATA,
+        ...existingData,
+        popupSettings: {
+          ...INITIAL_DATA.popupSettings,
+          ...(existingData.popupSettings || {})
+        }
+      };
+
+      const missingTopLevelFields = Object.keys(INITIAL_DATA).filter((key) => existingData[key] === undefined);
+      const popupSettingsChanged = JSON.stringify(existingData.popupSettings || {}) !== JSON.stringify(mergedContent.popupSettings);
+
+      if (missingTopLevelFields.length > 0 || popupSettingsChanged) {
+        console.log('🔧 Content missing new fields, patching defaults...');
+        await contentRef.set({
+          ...mergedContent,
+          updatedAt: new Date()
+        }, { merge: true });
+        console.log('✅ Content schema updated');
+      } else {
+        console.log('✅ Content already exists in database');
+      }
     }
   } catch (error) {
     console.error('❌ Failed to initialize default content:', error);

@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
+const createPopupDelayState = (popupSettings) => {
+  const delays = Array.isArray(popupSettings?.delaysInSeconds) ? popupSettings.delaysInSeconds : [0, 60, 120];
+  return [
+    String(delays[0] ?? 0),
+    String(delays[1] ?? 60),
+    String(delays[2] ?? 120),
+  ];
+};
+
+const OffersView = ({ offers, popupSettings, addOffer, updateOffer, deleteOffer, updatePopupSettings }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [popupConfig, setPopupConfig] = useState(() => ({
+    enabled: popupSettings?.enabled !== false,
+    delaysInSeconds: createPopupDelayState(popupSettings),
+  }));
   const [formData, setFormData] = useState({
     title: '', description: '', expiry: '', isVisible: false
   });
+
+  useEffect(() => {
+    setPopupConfig({
+      enabled: popupSettings?.enabled !== false,
+      delaysInSeconds: createPopupDelayState(popupSettings),
+    });
+  }, [popupSettings]);
 
   const handleEdit = (index) => {
     setEditingIndex(index);
@@ -30,8 +50,108 @@ const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
     updateOffer(index, { ...offer, isVisible: !offer.isVisible });
   };
 
+  const handlePopupConfigSave = () => {
+    const normalizedDelays = popupConfig.delaysInSeconds.map((value, index) => {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return [0, 60, 120][index];
+      }
+      return Math.round(parsed);
+    });
+
+    updatePopupSettings({
+      enabled: popupConfig.enabled,
+      delaysInSeconds: normalizedDelays,
+    });
+  };
+
   return (
     <div className="space-y-10">
+      <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-8">
+        <div className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-[2rem] p-8">
+          <div className="flex items-center justify-between gap-4 mb-8">
+            <div>
+              <h4 className="font-serif text-2xl font-bold text-white">Popup Sequence Control</h4>
+              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.3em] opacity-60 mt-2">
+                Manage popup timing directly from admin
+              </p>
+            </div>
+            <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] text-gray-400">
+              <input
+                type="checkbox"
+                checked={popupConfig.enabled}
+                onChange={(e) => setPopupConfig((current) => ({ ...current, enabled: e.target.checked }))}
+                className="w-5 h-5 rounded bg-white/5 border-white/10 text-gold focus:ring-gold"
+              />
+              Enabled
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {popupConfig.delaysInSeconds.map((value, index) => (
+              <div key={index}>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 opacity-60">
+                  Popup {index + 1} Delay
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={value}
+                    onChange={(e) => {
+                      const nextDelays = [...popupConfig.delaysInSeconds];
+                      nextDelays[index] = e.target.value;
+                      setPopupConfig((current) => ({ ...current, delaysInSeconds: nextDelays }));
+                    }}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 pr-16 outline-none focus:border-gold/30 transition-all font-bold text-white"
+                  />
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black tracking-[0.2em] uppercase text-gray-500">
+                    Sec
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex items-center justify-between gap-4">
+            <p className="text-sm text-white/45">
+              Sequence runs at {popupConfig.delaysInSeconds.join('s, ')}s after page load.
+            </p>
+            <button
+              type="button"
+              onClick={handlePopupConfigSave}
+              className="bg-gold text-black px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.3em] uppercase hover:bg-white transition-all shadow-2xl"
+            >
+              Save Popup Timing
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-[2rem] p-8 flex flex-col justify-between">
+          <div>
+            <h4 className="font-serif text-2xl font-bold text-white">Offers Visibility</h4>
+            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.3em] opacity-60 mt-2">
+              Offer strip is shown below the navbar on public pages
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-6 mt-8">
+            <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6">
+              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-500">Visible Offers</p>
+              <p className="mt-3 text-4xl font-serif font-bold text-gold">
+                {offers.filter((offer) => offer.isVisible).length}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6">
+              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-500">Total Offers</p>
+              <p className="mt-3 text-4xl font-serif font-bold text-white">
+                {offers.length}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-end mb-4 px-2">
         <div>
           <h3 className="text-3xl font-serif font-bold tracking-tight mb-2">Offers Matrix</h3>

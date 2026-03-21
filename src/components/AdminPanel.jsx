@@ -55,7 +55,8 @@ const AdminPanel = () => {
     addTestimonial,
     updateTestimonial,
     deleteTestimonial,
-    updateTheme 
+    updateTheme,
+    updatePopupSettings
   } = useCMS();
 
   useEffect(() => {
@@ -330,9 +331,11 @@ const AdminPanel = () => {
             {activeTab === 'offers' && (
               <OffersView
                 offers={data.offers}
+                popupSettings={data.popupSettings}
                 addOffer={addOffer}
                 updateOffer={updateOffer}
                 deleteOffer={deleteOffer}
+                updatePopupSettings={updatePopupSettings}
               />
             )}
             {activeTab === 'content' && <ContentView data={data} updateData={updateData} />}

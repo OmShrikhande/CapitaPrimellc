@@ -3,10 +3,36 @@ import { INITIAL_DATA } from './initialData';
 import { CMSContext } from './CMSContextCore';
 import { adminAPI } from './api';
 
+const mergeCMSData = (incoming = {}) => ({
+  ...INITIAL_DATA,
+  ...incoming,
+  theme: {
+    ...INITIAL_DATA.theme,
+    ...(incoming.theme || {}),
+  },
+  hero: {
+    ...INITIAL_DATA.hero,
+    ...(incoming.hero || {}),
+  },
+  about: {
+    ...INITIAL_DATA.about,
+    ...(incoming.about || {}),
+  },
+  popupSettings: {
+    ...INITIAL_DATA.popupSettings,
+    ...(incoming.popupSettings || {}),
+  },
+  offers: Array.isArray(incoming.offers) ? incoming.offers : INITIAL_DATA.offers,
+  stats: Array.isArray(incoming.stats) ? incoming.stats : INITIAL_DATA.stats,
+  properties: Array.isArray(incoming.properties) ? incoming.properties : INITIAL_DATA.properties,
+  services: Array.isArray(incoming.services) ? incoming.services : INITIAL_DATA.services,
+  testimonials: Array.isArray(incoming.testimonials) ? incoming.testimonials : INITIAL_DATA.testimonials,
+});
+
 export const CMSProvider = ({ children }) => {
   const [data, setData] = useState(() => {
     const saved = localStorage.getItem('capita_cms_data');
-    return saved ? JSON.parse(saved) : INITIAL_DATA;
+    return saved ? mergeCMSData(JSON.parse(saved)) : INITIAL_DATA;
   });
   const [loading, setLoading] = useState(true);
 
@@ -17,8 +43,9 @@ export const CMSProvider = ({ children }) => {
         setLoading(true);
         const response = await adminAPI.content.get();
         if (response.success && response.data) {
-          setData(response.data);
-          localStorage.setItem('capita_cms_data', JSON.stringify(response.data));
+          const mergedData = mergeCMSData(response.data);
+          setData(mergedData);
+          localStorage.setItem('capita_cms_data', JSON.stringify(mergedData));
         }
       } catch (error) {
         console.error('Failed to fetch content from backend:', error);
@@ -33,7 +60,7 @@ export const CMSProvider = ({ children }) => {
   const updateData = async (newData) => {
     try {
       // Optimistic update
-      const updated = { ...data, ...newData };
+      const updated = mergeCMSData({ ...data, ...newData });
       setData(updated);
       localStorage.setItem('capita_cms_data', JSON.stringify(updated));
 
@@ -105,6 +132,7 @@ export const CMSProvider = ({ children }) => {
         const response = await adminAPI.content.updateArrayItem('offers', 'add', offer);
         if (response.success) {
           setData(prev => ({ ...prev, offers: response.data }));
+          localStorage.setItem('capita_cms_data', JSON.stringify(mergeCMSData({ ...data, offers: response.data })));
         }
       } else {
         const updatedOffers = [offer, ...data.offers];
@@ -121,6 +149,7 @@ export const CMSProvider = ({ children }) => {
         const response = await adminAPI.content.updateArrayItem('offers', index, offer);
         if (response.success) {
           setData(prev => ({ ...prev, offers: response.data }));
+          localStorage.setItem('capita_cms_data', JSON.stringify(mergeCMSData({ ...data, offers: response.data })));
         }
       } else {
         const updatedOffers = [...data.offers];
@@ -138,6 +167,7 @@ export const CMSProvider = ({ children }) => {
         const response = await adminAPI.content.deleteArrayItem('offers', index);
         if (response.success) {
           setData(prev => ({ ...prev, offers: response.data }));
+          localStorage.setItem('capita_cms_data', JSON.stringify(mergeCMSData({ ...data, offers: response.data })));
         }
       } else {
         const updatedOffers = data.offers.filter((_, i) => i !== index);
@@ -259,6 +289,25 @@ export const CMSProvider = ({ children }) => {
     }
   };
 
+  const updatePopupSettings = async (popupSettings) => {
+    try {
+      const nextPopupSettings = {
+        ...data.popupSettings,
+        ...popupSettings,
+      };
+
+      const updated = mergeCMSData({ ...data, popupSettings: nextPopupSettings });
+      setData(updated);
+      localStorage.setItem('capita_cms_data', JSON.stringify(updated));
+
+      if (adminAPI.isAuthenticated()) {
+        await adminAPI.content.updateSection('popupSettings', nextPopupSettings);
+      }
+    } catch (error) {
+      console.error('Failed to update popup settings:', error);
+    }
+  };
+
   return (
     <CMSContext.Provider value={{ 
       data, 
@@ -276,7 +325,8 @@ export const CMSProvider = ({ children }) => {
       addTestimonial,
       updateTestimonial,
       deleteTestimonial,
-      updateTheme
+      updateTheme,
+      updatePopupSettings
     }}>
       {children}
     </CMSContext.Provider>

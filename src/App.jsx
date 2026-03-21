@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import Navbar from './components/Navbar';
+import TimedInquiryPopup from './components/TimedInquiryPopup';
 import Hero from './components/Hero';
 import Offers from './components/Offers';
 import Marquee from './components/Marquee';
@@ -54,6 +55,16 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .catch((error) => {
+        console.warn('Failed to clear stale service workers:', error);
+      });
+  }, []);
+
+  useEffect(() => {
     if (!loaded || route !== 'home') return;
 
     const setup = () => {
@@ -100,8 +111,11 @@ function App() {
           {route === 'home' ? (
             <div className="flex flex-col gap-10 lg:gap-4">
               <Navbar />
+              <TimedInquiryPopup enabled={loaded} />
+              <div className="pt-20 lg:pt-24">
+                <Offers />
+              </div>
               <Hero />
-              <Offers />
               <Marquee />
               <Stats />
               <Properties />

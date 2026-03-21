@@ -70,7 +70,7 @@ const SERVICES = [
 const Services = () => {
   const headingRef = useReveal();
   const { data } = useCMS();
-  const { services } = data;
+  const services = Array.isArray(data.services) ? data.services : [];
 
   return (
     <section id="services" className="py-24 bg-obsidian relative overflow-hidden">

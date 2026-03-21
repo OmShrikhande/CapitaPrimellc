@@ -590,6 +590,16 @@ img {
   color: var(--theme-text-primary);
 }
 
+.popup-form-input {
+  min-height: 56px;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.popup-form-input:is(textarea) {
+  min-height: 140px;
+}
+
 .loading-letter {
   display: inline-block;
   opacity: 0;
@@ -622,11 +632,20 @@ img {
 .ticker-wrap {
   display: flex;
   white-space: nowrap;
-  animation: ticker 40s linear infinite;
+  width: max-content;
+  animation: ticker 30s linear infinite;
+  will-change: transform;
 }
 
 .marquee-container:hover .ticker-wrap {
   animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-wrap {
+    animation: none;
+    transform: none;
+  }
 }
 
 .prop-building-icon {

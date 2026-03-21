@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import Navbar from './Navbar';
+import Offers from './Offers';
 import Footer from './Footer';
 import { adminAPI } from '../context/api';
 
@@ -746,14 +747,14 @@ const ListingsPage = () => {
               asset.area ? `${asset.area} sq ft` : null,
               asset.parking ? `${asset.parking} Parking` : null,
               asset.neighborhood || null,
-              asset.completionStatus || null
+              asset.completionStatus || null,
+              ...(asset.features || [])
             ].filter(Boolean),
             description: asset.description,
             imageUrls: asset.imageUrls || [],
             // Additional data for detailed view
             coordinates: asset.coordinates,
             amenities: asset.amenities || [],
-            features: asset.features || [],
             agentName: asset.agentName,
             agentPhone: asset.agentPhone,
             agentEmail: asset.agentEmail,
@@ -813,8 +814,11 @@ const ListingsPage = () => {
   return (
     <div className="bg-void min-h-screen" >
       <Navbar />
+      <div className="pt-20 lg:pt-24">
+        <Offers />
+      </div>
       
-      <main className="pt-32 pb-20" style={{zIndex: 0, padding: '100px 60px 80px' }}>
+      <main className="pb-20" style={{ zIndex: 0, padding: '48px 60px 80px' }}>
         <div className="px-16 lg:px-24">
           <div className="mb-20 animate-on-scroll">
             <div className="flex items-center gap-4 mb-6" >

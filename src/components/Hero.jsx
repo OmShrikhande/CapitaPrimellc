@@ -193,8 +193,11 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden"
-      style={{ background: '#060606' }}
+      className="relative flex items-center overflow-hidden"
+      style={{
+        background: '#060606',
+        minHeight: 'calc(100vh - 58px)',
+      }}
     >
       <canvas
         ref={canvasRef}
@@ -203,20 +206,21 @@ const Hero = () => {
       />
 
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute left-1/2 top-1/2 pointer-events-none -translate-x-1/2 -translate-y-1/2"
         style={{
-          background:
-            `radial-gradient(ellipse 70% 60% at 50% 50%, ${theme.primary}20 0%, transparent 65%)`,
+          width: 'min(68vw, 980px)',
+          height: 'min(58vh, 620px)',
+          background: `radial-gradient(ellipse 62% 52% at 50% 50%, ${theme.primary}20 0%, transparent 65%)`,
           zIndex: 1,
         }}
       />
 
       <div
         className="mx-auto w-full relative"
-        style={{ zIndex: 10, padding: 'clamp(80px, 15vh, 120px) clamp(20px, 5vw, 60px) 80px' }}
+        style={{ zIndex: 10, padding: 'clamp(48px, 9vh, 84px) clamp(20px, 5vw, 60px) 56px' }}
       >
         <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-10 items-center min-h-[70vh] lg:min-h-[80vh]"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-10 items-center min-h-[64vh] lg:min-h-[72vh]"
         >
           <div className="flex flex-col gap-6 lg:gap-8 order-2 lg:order-1 relative" style={{ zIndex: 10 }}>
             <div className="flex items-center gap-4">
@@ -385,7 +389,7 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ zIndex: 2 }}>
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ zIndex: 2 }}>
         <span
           style={{
             fontFamily: "'Inter', sans-serif",

@@ -100,6 +100,10 @@ export const INITIAL_DATA = {
       isVisible: true,
     }
   ],
+  popupSettings: {
+    enabled: true,
+    delaysInSeconds: [0, 60, 120],
+  },
   services: [
     {
       title: 'Land Acquisition',
