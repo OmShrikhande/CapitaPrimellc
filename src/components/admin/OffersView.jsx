@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 const createPopupDelayState = (popupSettings) => {
   const delays = Array.isArray(popupSettings?.delaysInSeconds) ? popupSettings.delaysInSeconds : [0, 60, 120];
@@ -9,7 +9,14 @@ const createPopupDelayState = (popupSettings) => {
   ];
 };
 
-const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
+const OffersView = ({
+  offers = [],
+  popupSettings,
+  addOffer,
+  updateOffer,
+  deleteOffer,
+  updatePopupSettings,
+}) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [popupConfig, setPopupConfig] = useState(() => ({
@@ -22,7 +29,7 @@ const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
 
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setFormData(offersArray[index]);
+    setFormData(offers[index]);
     setIsAdding(true);
   };
 
@@ -39,7 +46,7 @@ const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
   };
 
   const toggleVisibility = (index) => {
-    const offer = offersArray[index];
+    const offer = offers[index];
     updateOffer(index, { ...offer, isVisible: !offer.isVisible });
   };
 
@@ -198,7 +205,7 @@ const OffersView = ({ offers, addOffer, updateOffer, deleteOffer }) => {
       )}
 
       <div className="grid grid-cols-1 gap-6">
-        {offersArray.map((offer, i) => (
+        {offers.map((offer, i) => (
           <div key={i} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-[2rem] p-8 flex justify-between items-center hover:border-gold/40 transition-all group relative overflow-hidden">
             <div className="flex items-center gap-8">
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl border border-white/10 ${offer.isVisible ? 'bg-gold/10 text-gold' : 'bg-white/5 text-gray-500'}`}>

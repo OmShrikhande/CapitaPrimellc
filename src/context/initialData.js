@@ -1,30 +1,30 @@
 export const INITIAL_DATA = {
   theme: {
-    primary: '#c5a059', // Gold
-    secondary: '#060606', // Neutral dark (was #0a0f1f)
+    primary: '#c5a059',
+    secondary: '#060606',
     accent: '#ffffff',
-    mode: 'dark', // 'dark' or 'light'
+    mode: 'dark',
   },
   hero: {
     label: "Dubai's Premier Land Consultancy",
-    titleLine1: "Where",
-    titleLine2: "Visionaries",
-    titleLine3: "Invest in the",
-    titleLine4: "Golden Horizon",
-    description: "Exclusive access to Dubai's most coveted land plots. From Palm Jumeirah fronds to downtown commercial masterpieces — we connect elite investors with tomorrow's landmarks.",
-    ctaPrimary: "Explore Listings",
-    ctaSecondary: "Book Consultation",
+    titleLine1: 'Where',
+    titleLine2: 'Visionaries',
+    titleLine3: 'Invest in the',
+    titleLine4: 'Golden Horizon',
+    description: "Exclusive access to Dubai's most coveted land plots. From Palm Jumeirah fronds to downtown commercial masterpieces - we connect elite investors with tomorrow's landmarks.",
+    ctaPrimary: 'Explore Listings',
+    ctaSecondary: 'Book Consultation',
     locations: ['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City'],
     floatBadge1: {
-      label: "Prime Listing",
-      value: "AED 24,000,000",
-      subLabel: "Jumeirah Bay Island"
+      label: 'Prime Listing',
+      value: 'AED 24,000,000',
+      subLabel: 'Jumeirah Bay Island',
     },
     floatBadge2: {
-      label: "RERA Certified",
-      subLabel: "DLD Approved Agency"
+      label: 'RERA Certified',
+      subLabel: 'DLD Approved Agency',
     },
-    bottomLabel: "Interactive Intelligence · Dubai, UAE"
+    bottomLabel: 'Interactive Intelligence � Dubai, UAE',
   },
   stats: [
     { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },
@@ -33,9 +33,9 @@ export const INITIAL_DATA = {
     { value: 1200, suffix: '+', prefix: '', label: 'Prime Plots Transacted', decimal: false },
   ],
   properties: {
-    label: "Featured Listings",
-    titleLine1: "Exclusive Land Opportunities",
-    titleLine2: "in Dubai",
+    label: 'Featured Listings',
+    titleLine1: 'Exclusive Land Opportunities',
+    titleLine2: 'in Dubai',
     items: [
       {
         id: 'p1',
@@ -50,12 +50,7 @@ export const INITIAL_DATA = {
         features: ['Sea View', 'Corner Plot', 'Freehold'],
         isVisible: true,
         gallery: ['/flaw.png'],
-        specs: {
-          zoning: 'Residential',
-          permit: 'G+2',
-          coverage: '65%',
-          ownership: 'Freehold'
-        }
+        specs: { zoning: 'Residential', permit: 'G+2', coverage: '65%', ownership: 'Freehold' },
       },
       {
         id: 'p2',
@@ -70,12 +65,7 @@ export const INITIAL_DATA = {
         features: ['Beachfront', 'Private Access', 'Freehold'],
         isVisible: true,
         gallery: ['/flaw.png'],
-        specs: {
-          zoning: 'Residential',
-          permit: 'G+1',
-          coverage: '50%',
-          ownership: 'Freehold'
-        }
+        specs: { zoning: 'Residential', permit: 'G+1', coverage: '50%', ownership: 'Freehold' },
       },
       {
         id: 'p3',
@@ -90,17 +80,12 @@ export const INITIAL_DATA = {
         features: ['Canal View', 'G+50 Permitted', 'Freehold'],
         isVisible: true,
         gallery: ['/flaw.png'],
-        specs: {
-          zoning: 'Commercial',
-          permit: 'G+50',
-          coverage: '100%',
-          ownership: 'Freehold'
-        }
+        specs: { zoning: 'Commercial', permit: 'G+50', coverage: '100%', ownership: 'Freehold' },
       },
-    ]
+    ],
   },
   offers: {
-    label: "Special Offer",
+    label: 'Special Offer',
     items: [
       {
         id: 'o1',
@@ -115,150 +100,54 @@ export const INITIAL_DATA = {
         description: 'Get up to 15% discount on purchasing 3 or more plots in MBR City.',
         expiry: '2024-12-31',
         isVisible: true,
-      }
-<<<<<<< HEAD
-    },
-    {
-      id: 'p2',
-      title: 'Palm Jumeirah Frond Plot',
-      location: 'Palm Jumeirah, Dubai',
-      area: '8,500',
-      price: '12,200,000',
-      category: 'Residential',
-      badge: 'PRIME',
-      gradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 40%, #050505 100%)',
-      accent: '#c5a059',
-      features: ['Beachfront', 'Private Access', 'Freehold'],
-      isVisible: true,
-      gallery: ['/flaw.png'],
-      specs: {
-        zoning: 'Residential',
-        permit: 'G+1',
-        coverage: '50%',
-        ownership: 'Freehold'
-      }
-    },
-    {
-      id: 'p3',
-      title: 'Business Bay Canal Front',
-      location: 'Business Bay, Dubai',
-      area: '22,000',
-      price: '9,750,000',
-      category: 'Commercial',
-      badge: 'HOT',
-      gradient: 'linear-gradient(135deg, #0f0a05 0%, #1a1510 40%, #080502 100%)',
-      accent: '#8B6B14',
-      features: ['Canal View', 'G+50 Permitted', 'Freehold'],
-      isVisible: true,
-      gallery: ['/flaw.png'],
-      specs: {
-        zoning: 'Commercial',
-        permit: 'G+50',
-        coverage: '100%',
-        ownership: 'Freehold'
-      }
-    },
-  ],
-  offers: [
-    {
-      id: 'o1',
-      title: 'Ramadan Special: Zero DLD Fees',
-      description: 'Book any prime plot this month and we cover 100% of your DLD registration fees.',
-      expiry: '2024-04-30',
-      isVisible: false,
-    },
-    {
-      id: 'o2',
-      title: 'Bulk Investment Discount',
-      description: 'Get up to 15% discount on purchasing 3 or more plots in MBR City.',
-      expiry: '2024-12-31',
-      isVisible: true,
-    }
-  ],
+      },
+    ],
+  },
   popupSettings: {
     enabled: true,
     delaysInSeconds: [0, 60, 120],
   },
-  services: [
-    {
-      title: 'Land Acquisition',
-      desc: 'Strategic sourcing and securing of prime Dubai land plots aligned with your investment vision and return objectives.',
-    },
-    {
-      title: 'Investment Strategy',
-      desc: 'Data-driven portfolio optimization tailored to maximize ROI across Dubai\'s rapidly evolving real estate landscape.',
-    },
-    {
-      title: 'Legal & Compliance',
-      desc: 'End-to-end RERA registration, DLD documentation, and regulatory compliance handled by our expert legal team.',
-    },
-    {
-      title: 'Market Intelligence',
-      desc: 'Proprietary analytics and real-time market data to identify emerging opportunities before they reach the public market.',
-    },
-  ],
-=======
-    ]
-  },
   services: {
-    label: "Our Services",
-    titleLine1: "Full-Spectrum Land",
-    titleLine2: "Investment Services",
-    description: "From initial consultation to final title deed — we orchestrate every aspect of your Dubai land investment journey.",
+    label: 'Our Services',
+    titleLine1: 'Full-Spectrum Land',
+    titleLine2: 'Investment Services',
+    description: 'From initial consultation to final title deed - we orchestrate every aspect of your Dubai land investment journey.',
     items: [
-      {
-        title: 'Land Acquisition',
-        desc: 'Strategic sourcing and securing of prime Dubai land plots aligned with your investment vision and return objectives.',
-      },
-      {
-        title: 'Investment Strategy',
-        desc: 'Data-driven portfolio optimization tailored to maximize ROI across Dubai\'s rapidly evolving real estate landscape.',
-      },
-      {
-        title: 'Legal & Compliance',
-        desc: 'End-to-end RERA registration, DLD documentation, and regulatory compliance handled by our expert legal team.',
-      },
-      {
-        title: 'Market Intelligence',
-        desc: 'Proprietary analytics and real-time market data to identify emerging opportunities before they reach the public market.',
-      },
-    ]
+      { title: 'Land Acquisition', desc: 'Strategic sourcing and securing of prime Dubai land plots aligned with your investment vision and return objectives.' },
+      { title: 'Investment Strategy', desc: "Data-driven portfolio optimization tailored to maximize ROI across Dubai's rapidly evolving real estate landscape." },
+      { title: 'Legal & Compliance', desc: 'End-to-end RERA registration, DLD documentation, and regulatory compliance handled by our expert legal team.' },
+      { title: 'Market Intelligence', desc: 'Proprietary analytics and real-time market data to identify emerging opportunities before they reach the public market.' },
+    ],
   },
->>>>>>> b053057bbfc162e91510ea3441f2ff65bc21391d
   about: {
-    label: "Our Legacy",
-    titleLine1: "Two Decades of Shaping",
+    label: 'Our Legacy',
+    titleLine1: 'Two Decades of Shaping',
     titleLine2: "Dubai's Landscape",
-    description1: "Founded in 2006 in the heart of the Burj Khalifa District, Capita Prime LLC was born from a singular vision: to redefine how the world's elite access and invest in Dubai's most prestigious land assets.",
-    description2: "Today, with over AED 4.2 billion in completed transactions and a clientele that spans 42 nationalities, we stand as Dubai's most trusted name in bespoke land investment advisory.",
+    description1: 'Founded in 2006 in the heart of the Burj Khalifa District, Capita Prime LLC was born from a singular vision: to redefine how the world\'s elite access and invest in Dubai\'s most prestigious land assets.',
+    description2: 'Today, with over AED 4.2 billion in completed transactions and a clientele that spans 42 nationalities, we stand as Dubai\'s most trusted name in bespoke land investment advisory.',
     values: [
       { label: 'Integrity', desc: 'Transparent dealings, always.' },
       { label: 'Precision', desc: 'Every detail matters.' },
       { label: 'Discretion', desc: 'Your privacy is sacred.' },
       { label: 'Excellence', desc: 'Nothing less, always more.' },
     ],
-    certifications: [
-      'RERA Certified Agency',
-      'DLD Registered',
-      'ISO 9001 Compliant',
-      'Member — Dubai Chamber',
-    ],
-    quote: "Where the desert meets ambition, we build legacies.",
-    estYear: "2006",
-    estLocation: "Est. Dubai, UAE",
-    teamSize: "45+"
+    certifications: ['RERA Certified Agency', 'DLD Registered', 'ISO 9001 Compliant', 'Member - Dubai Chamber'],
+    quote: 'Where the desert meets ambition, we build legacies.',
+    estYear: '2006',
+    estLocation: 'Est. Dubai, UAE',
+    teamSize: '45+',
   },
   contact: {
-    label: "Get in Touch",
-    titleLine1: "Begin Your Dubai Land",
-    titleLine2: "Investment Journey",
-    description: "Our advisory team is available for confidential consultations. Whether you are buying, selling, or evaluating — we provide unparalleled insight.",
+    label: 'Get in Touch',
+    titleLine1: 'Begin Your Dubai Land',
+    titleLine2: 'Investment Journey',
+    description: 'Our advisory team is available for confidential consultations. Whether you are buying, selling, or evaluating - we provide unparalleled insight.',
     info: [
       { label: 'Office', value: 'Burj Khalifa District, Downtown Dubai, UAE', icon: 'location' },
       { label: 'Phone', value: '+971 4 XXX XXXX', icon: 'phone' },
       { label: 'Email', value: 'invest@capitaprimellc.com', icon: 'mail' },
-      { label: 'Hours', value: 'Sun – Thu: 9:00 AM – 6:00 PM GST', icon: 'clock' },
-    ]
+      { label: 'Hours', value: 'Sun - Thu: 9:00 AM - 6:00 PM GST', icon: 'clock' },
+    ],
   },
   footer: {
     description: "Dubai's most trusted land investment consultancy. RERA Certified. DLD Registered. Serving elite investors across 42 nationalities.",
@@ -270,8 +159,8 @@ export const INITIAL_DATA = {
     socials: [
       { label: 'LinkedIn', icon: 'linkedin', href: '#' },
       { label: 'Instagram', icon: 'instagram', href: '#' },
-      { label: 'Twitter', icon: 'twitter', href: '#' }
-    ]
+      { label: 'Twitter', icon: 'twitter', href: '#' },
+    ],
   },
   navbar: {
     links: [
@@ -279,12 +168,12 @@ export const INITIAL_DATA = {
       { label: 'Services', href: '#services' },
       { label: 'About', href: '#about' },
       { label: 'Testimonials', href: '#testimonials' },
-    ]
+    ],
   },
   testimonials: {
-    label: "Client Voices",
-    titleLine1: "Words from Our",
-    titleLine2: "Distinguished Clients",
+    label: 'Client Voices',
+    titleLine1: 'Words from Our',
+    titleLine2: 'Distinguished Clients',
     items: [
       {
         quote: "Capita Prime LLC transformed my understanding of Dubai's land market. Their off-market access and due diligence process is unmatched. The Palm Jumeirah plot they secured for me has appreciated 180% in three years.",
@@ -293,17 +182,17 @@ export const INITIAL_DATA = {
         initials: 'KM',
       },
       {
-        quote: "As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation — every single time.",
+        quote: 'As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation - every single time.',
         name: 'James Whitfield',
         title: 'Fund Manager, Whitfield Capital, London',
         initials: 'JW',
       },
       {
-        quote: "Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.",
+        quote: 'Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.',
         name: 'Priya Krishnamurthy',
         title: 'Director of Investments, Meridian SWF, Singapore',
         initials: 'PK',
       },
-    ]
-  }
+    ],
+  },
 };

@@ -43,6 +43,7 @@ const AdminPanel = () => {
   const { 
     data, 
     updateData, 
+    resetData,
     addProperty, 
     updateProperty, 
     deleteProperty,
@@ -55,7 +56,8 @@ const AdminPanel = () => {
     addTestimonial,
     updateTestimonial,
     deleteTestimonial,
-    updateTheme 
+    updateTheme,
+    updatePopupSettings,
   } = useCMS();
 
   useEffect(() => {
@@ -329,7 +331,8 @@ const AdminPanel = () => {
             {activeTab === 'assets' && <AssetsView />}
             {activeTab === 'offers' && (
               <OffersView
-                offers={data.offers}
+                offers={Array.isArray(data.offers?.items) ? data.offers.items : []}
+                popupSettings={data.popupSettings}
                 addOffer={addOffer}
                 updateOffer={updateOffer}
                 deleteOffer={deleteOffer}
