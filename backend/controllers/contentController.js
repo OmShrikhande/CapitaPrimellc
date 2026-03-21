@@ -1,4 +1,5 @@
 const { db, isFirebaseConfigured } = require('../config/firebase');
+const { INITIAL_DATA } = require('../utils/initialData');
 
 const CONTENT_DOC_ID = 'main';
 const COLLECTION_NAME = 'content';
@@ -144,10 +145,34 @@ const deleteArrayItem = async (req, res) => {
   }
 };
 
+// Reset all content to default/initial state
+const resetContent = async (req, res) => {
+  try {
+    if (!isFirebaseConfigured()) {
+      return res.status(500).json({ success: false, message: 'Database not available' });
+    }
+
+    await db.collection(COLLECTION_NAME).doc(CONTENT_DOC_ID).set({
+      ...INITIAL_DATA,
+      updatedAt: new Date()
+    });
+
+    res.json({ 
+      success: true, 
+      message: 'All content reset to default state successfully',
+      data: INITIAL_DATA
+    });
+  } catch (error) {
+    console.error('Error resetting content:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   getContent,
   updateContent,
   updateSection,
   updateArrayItem,
-  deleteArrayItem
+  deleteArrayItem,
+  resetContent
 };

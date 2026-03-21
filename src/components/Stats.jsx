@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCMS } from '../context/useCMS';
 
-const STATS = [
-  { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },
-  { value: 18, suffix: '+', prefix: '', label: 'Years of Excellence', decimal: false },
-  { value: 650, suffix: '+', prefix: '', label: 'Satisfied Investors', decimal: false },
-  { value: 1200, suffix: '+', prefix: '', label: 'Prime Plots Transacted', decimal: false },
-];
-
 const useCounter = (target, decimal = false, duration = 2000) => {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
@@ -78,7 +71,9 @@ const StatItem = ({ value, suffix, prefix, label, decimal, index }) => {
 
 const Stats = () => {
   const { data } = useCMS();
-  const { stats } = data;
+  const stats = data?.stats;
+
+  if (!stats) return null;
 
   return (
     <section className="bg-obsidian relative overflow-hidden">

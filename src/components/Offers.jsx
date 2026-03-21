@@ -30,28 +30,36 @@ const OfferItems = ({ offers, hidden = false, groupId }) => (
 );
 
 const Offers = () => {
-  const { data, loading } = useCMS();
-  const sourceOffers = Array.isArray(data.offers) ? data.offers : INITIAL_DATA.offers;
-  const activeOffers = sourceOffers.filter((offer) => offer.isVisible);
-  const offersToRender = activeOffers.length > 0 ? activeOffers : (
-    Array.isArray(data.offers) ? [] : INITIAL_DATA.offers.filter((offer) => offer.isVisible)
-  );
-  const repeatedOffers = Array.from({ length: REPEAT_COUNT }, () => offersToRender).flat();
+  const { data } = useCMS();
+  const activeOffers = (data.offers || []).filter(o => o.isVisible);
 
   if (loading) return null;
   if (offersToRender.length === 0) return null;
 
   return (
-    <section
-      className="relative z-40 overflow-hidden border-y border-gold/20 bg-[linear-gradient(90deg,rgba(201,168,76,0.18),rgba(201,168,76,0.08),rgba(201,168,76,0.18))] py-4"
-      aria-label="Special offers"
-    >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.09),transparent_70%)]" />
-      <div className="marquee-container relative flex w-full overflow-hidden">
-        <div className="ticker-wrap flex items-center">
-          <OfferItems offers={repeatedOffers} groupId="primary" />
-          <OfferItems offers={repeatedOffers} hidden groupId="secondary" />
-        </div>
+    <div className="bg-gold/10 border-y border-gold/20 py-4 overflow-hidden relative w-full">
+      <div className="flex animate-marquee whitespace-nowrap items-center" style={{justifyContent:'space-around'}}>
+        <marquee behavior="scroll" direction="left" scrollamount="3">
+        {activeOffers.map((offer, i) => (
+          <div key={i} className="flex items-center mx-10">
+            <span className="text-gold text-[10px] font-black tracking-[0.4em] uppercase mr-4">Special Offer:</span>
+            <span className="text-white text-sm font-bold tracking-tight mr-4">{offer.title}</span>
+            <span className="text-white/40 text-xs mr-4">—</span>
+            <span className="text-white/60 text-xs italic">{offer.description}</span>
+            <span className="ml-10 text-gold opacity-20">✦</span>
+          </div>
+        ))}
+        {/* Duplicate for seamless loop */}
+        {activeOffers.map((offer, i) => (
+          <div key={`dup-${i}`} className="flex items-center mx-10">
+            <span className="text-gold text-[10px] font-black tracking-[0.4em] uppercase mr-4">Special Offer:</span>
+            <span className="text-white text-sm font-bold tracking-tight mr-4">{offer.title}</span>
+            <span className="text-white/40 text-xs mr-4">—</span>
+            <span className="text-white/60 text-xs italic">{offer.description}</span>
+            <span className="ml-10 text-gold opacity-20">✦</span>
+          </div>
+        ))}
+        </marquee>
       </div>
     </section>
   );

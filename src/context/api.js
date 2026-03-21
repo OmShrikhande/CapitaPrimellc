@@ -1,5 +1,36 @@
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://capitaprimellc.onrender.com';
+// API Configuration - Auto-detect environment
+const getAPIBaseURL = () => {
+  const envURL = import.meta.env.VITE_API_BASE_URL;
+  if (envURL) return envURL;
+  
+  // Auto-detect local development
+  if (import.meta.env.DEV) {
+    return 'http://localhost:3000';
+  }
+  
+  // Production fallback
+  return 'https://capitaprimellc.onrender.com';
+};
+
+const API_BASE_URL = getAPIBaseURL();
+
+// Utility function to construct full image URLs
+export const getImageURL = (imagePath) => {
+  if (!imagePath) return null;
+  
+  // If it's already a full URL, return it
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // If it's a relative uploads path, prepend the API base URL
+  if (imagePath.startsWith('/uploads/')) {
+    return `${API_BASE_URL}${imagePath}`;
+  }
+  
+  // For unknown paths, prepend uploads
+  return `${API_BASE_URL}/uploads/${imagePath}`;
+};
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -13,7 +44,12 @@ const REQUEST_CACHE_TIME = 5000; // 5 seconds
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (e) {
+    throw new Error(`Invalid response from server (HTTP ${response.status})`);
+  }
 
   if (!response.ok) {
     // Handle specific error codes
@@ -43,11 +79,12 @@ const cachedRequest = async (url, options = {}, cacheKey = null) => {
 
   try {
     const response = await fetch(url, {
-      headers: {
-        ...options.headers, // Auth headers first
-        'Content-Type': 'application/json', // Override any existing content-type
-      },
       ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+        ...getAuthHeaders(),
+      },
     });
 
     const result = await handleResponse(response);
@@ -64,12 +101,24 @@ const cachedRequest = async (url, options = {}, cacheKey = null) => {
   } catch (error) {
     // Clear cache on error
     requestCache.delete(key);
+    console.error(`API Request failed [${url}]:`, error.message);
     throw error;
   }
 };
 
 // Admin API functions
 export const adminAPI = {
+  // Connection Test
+  testConnection: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`);
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('Backend connection test failed:', error.message);
+      return { success: false, message: error.message };
+    }
+  },
+
   // Admin Login
   login: async (email, password) => {
     const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
@@ -93,15 +142,7 @@ export const adminAPI = {
 
   // Get Admin Profile
   getProfile: async () => {
-    const response = await fetch(`${API_BASE_URL}/api/admin/profile`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(),
-      },
-    });
-
-    return handleResponse(response);
+    return cachedRequest(`${API_BASE_URL}/api/admin/profile`);
   },
 
   // Logout (client-side only)
@@ -114,17 +155,7 @@ export const adminAPI = {
   isAuthenticated: () => {
     const token = localStorage.getItem('adminToken');
     const user = localStorage.getItem('adminUser');
-
-    if (!token || !user) return false;
-
-    try {
-      // Basic token validation (you might want to decode JWT to check expiry)
-      return true;
-    } catch {
-      // Invalid token format
-      adminAPI.logout();
-      return false;
-    }
+    return !!(token && user);
   },
 
   // Get stored user data
@@ -141,30 +172,16 @@ export const adminAPI = {
   theme: {
     // Get current active theme (public - no auth required)
     get: async () => {
-      return cachedRequest(`${API_BASE_URL}/api/admin/theme`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return cachedRequest(`${API_BASE_URL}/api/admin/theme`);
     },
 
     // Update current theme
     update: async (themeData) => {
-      const authHeaders = getAuthHeaders();
-      console.log('Auth headers for theme update:', authHeaders);
-      console.log('Theme data being sent:', themeData);
-
-      if (!authHeaders.Authorization) {
-        throw new Error('No authentication token found. Please login as admin first.');
-      }
-
-      // Use direct fetch instead of cachedRequest for debugging
       const response = await fetch(`${API_BASE_URL}/api/admin/theme`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(themeData),
       });
@@ -174,33 +191,31 @@ export const adminAPI = {
 
     // Get all themes
     getAll: async () => {
-      return cachedRequest(`${API_BASE_URL}/api/admin/themes`, {
-        method: 'GET',
-        headers: {
-          ...getAuthHeaders(),
-        },
-      });
+      return cachedRequest(`${API_BASE_URL}/api/admin/themes`);
     },
 
     // Create theme preset
     createPreset: async (themeData) => {
-      return cachedRequest(`${API_BASE_URL}/api/admin/themes`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/themes`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
         body: JSON.stringify(themeData),
-      }, `POST-${API_BASE_URL}/api/admin/themes-${Date.now()}`);
+      });
+      return handleResponse(response);
     },
 
     // Activate a theme
     activate: async (themeId) => {
-      return cachedRequest(`${API_BASE_URL}/api/admin/themes/${themeId}/activate`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/themes/${themeId}/activate`, {
         method: 'PUT',
         headers: {
           ...getAuthHeaders(),
         },
-      }, `PUT-${API_BASE_URL}/api/admin/themes/${themeId}/activate-${Date.now()}`);
+      });
+      return handleResponse(response);
     },
   },
 
@@ -208,12 +223,7 @@ export const adminAPI = {
   content: {
     // Get all content (public)
     get: async () => {
-      return cachedRequest(`${API_BASE_URL}/api/content`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return cachedRequest(`${API_BASE_URL}/api/content`);
     },
 
     // Update all content
@@ -269,28 +279,31 @@ export const adminAPI = {
 
       return handleResponse(response);
     },
+
+    // Reset all content to default state
+    reset: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/content/reset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+      });
+
+      return handleResponse(response);
+    },
   },
 
   // Asset API functions
   assets: {
     // Get all assets (public)
     getAll: async () => {
-      return cachedRequest(`${API_BASE_URL}/api/assets`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return cachedRequest(`${API_BASE_URL}/api/assets`);
     },
 
     // Get single asset (public)
     get: async (id) => {
-      return cachedRequest(`${API_BASE_URL}/api/assets/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return cachedRequest(`${API_BASE_URL}/api/assets/${id}`);
     },
 
     // Create new asset (admin only)
@@ -299,14 +312,18 @@ export const adminAPI = {
 
       // Add text fields
       Object.keys(assetData).forEach(key => {
-        if (key !== 'images' && assetData[key] !== undefined) {
-          formData.append(key, assetData[key]);
+        if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
+          if (Array.isArray(assetData[key])) {
+            assetData[key].forEach(item => formData.append(key, item));
+          } else {
+            formData.append(key, assetData[key]);
+          }
         }
       });
 
       // Add image files if provided (up to 7)
       if (assetData.images && Array.isArray(assetData.images)) {
-        assetData.images.slice(0, 7).forEach((image, index) => {
+        assetData.images.slice(0, 7).forEach((image) => {
           formData.append('images', image);
         });
       }
@@ -328,14 +345,18 @@ export const adminAPI = {
 
       // Add text fields
       Object.keys(assetData).forEach(key => {
-        if (key !== 'images' && assetData[key] !== undefined) {
-          formData.append(key, assetData[key]);
+        if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
+          if (Array.isArray(assetData[key])) {
+            assetData[key].forEach(item => formData.append(key, item));
+          } else {
+            formData.append(key, assetData[key]);
+          }
         }
       });
 
       // Add image files if provided (up to 7)
       if (assetData.images && Array.isArray(assetData.images)) {
-        assetData.images.slice(0, 7).forEach((image, index) => {
+        assetData.images.slice(0, 7).forEach((image) => {
           formData.append('images', image);
         });
       }

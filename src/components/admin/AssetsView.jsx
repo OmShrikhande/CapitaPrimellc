@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { adminAPI } from '../../context/api';
+import { adminAPI, getImageURL } from '../../context/api';
 import Sparkline from './Sparkline';
+import ImagePreview from './ImagePreview';
 
 const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -630,8 +631,17 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 <div className="grid grid-cols-4 gap-3">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative group">
-                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10">
-                        <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 relative">
+                        {/* Handle both data URLs (new uploads) and backend URLs (existing images) */}
+                        {preview.startsWith('data:') || preview.startsWith('blob:') ? (
+                          <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <ImagePreview
+                            imagePath={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </div>
                       <button
                         type="button"
@@ -797,14 +807,24 @@ const AssetsView = () => {
             <div className="absolute -right-16 -top-16 w-48 h-48 bg-gold/5 blur-[80px] group-hover:bg-gold/10 transition-all rounded-full" />
 
             <div className="flex gap-6 lg:gap-8 items-center relative flex-1">
-              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0">
+              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0 relative">
                 {asset.imageUrls && asset.imageUrls.length > 0 ? (
-                  <img src={asset.imageUrls[0]} alt={asset.name} className="w-full h-full object-cover" />
+                  <ImagePreview
+                    imagePath={asset.imageUrls[0]}
+                    alt={asset.name}
+                    className="w-full h-full object-cover"
+                    fallbackEmoji={
+                      asset.type === 'Equipment' ? '🔧' :
+                      asset.type === 'Furniture' ? '🪑' :
+                      asset.type === 'Vehicle' ? '🚗' :
+                      asset.type === 'Property' ? '🏢' : '📦'
+                    }
+                  />
                 ) : (
-                  asset.type === 'Equipment' ? '🔧' :
+                  (asset.type === 'Equipment' ? '🔧' :
                   asset.type === 'Furniture' ? '🪑' :
                   asset.type === 'Vehicle' ? '🚗' :
-                  asset.type === 'Property' ? '🏢' : '📦'
+                  asset.type === 'Property' ? '🏢' : '📦')
                 )}
               </div>
               <div className="flex-1 min-w-0">

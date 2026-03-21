@@ -2,75 +2,6 @@ import { useRef } from 'react';
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
 
-const PROPERTIES = [
-  {
-    title: 'Emirates Hills Grand Estate',
-    location: 'Emirates Hills, Dubai',
-    area: '15,000',
-    price: '18,500,000',
-    category: 'Residential',
-    badge: 'EXCLUSIVE',
-    gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
-    accent: '#1a4d1a',
-    features: ['Sea View', 'Corner Plot', 'Freehold'],
-  },
-  {
-    title: 'Palm Jumeirah Frond Plot',
-    location: 'Palm Jumeirah, Dubai',
-    area: '8,500',
-    price: '12,200,000',
-    category: 'Residential',
-    badge: 'PRIME',
-    gradient: 'linear-gradient(135deg, #021929 0%, #032438 40%, #01131e 100%)',
-    accent: '#044266',
-    features: ['Beachfront', 'Private Access', 'Freehold'],
-  },
-  {
-    title: 'Business Bay Canal Front',
-    location: 'Business Bay, Dubai',
-    area: '22,000',
-    price: '9,750,000',
-    category: 'Commercial',
-    badge: 'HOT',
-    gradient: 'linear-gradient(135deg, #0d0a1f 0%, #151030 40%, #090714 100%)',
-    accent: '#2a2060',
-    features: ['Canal View', 'G+50 Permitted', 'Freehold'],
-  },
-  {
-    title: 'MBR City Prime Plot',
-    location: 'Mohammed Bin Rashid City',
-    area: '30,000',
-    price: '7,800,000',
-    category: 'Mixed Use',
-    badge: 'NEW',
-    gradient: 'linear-gradient(135deg, #0a0f1f 0%, #101828 40%, #080d1a 100%)',
-    accent: '#1a2a50',
-    features: ['Master Plan', 'Flexible Zoning', 'Freehold'],
-  },
-  {
-    title: 'Jumeirah Bay Island',
-    location: 'Jumeirah Bay Island, Dubai',
-    area: '12,000',
-    price: '24,000,000',
-    category: 'Residential',
-    badge: 'ULTRA PRIME',
-    gradient: 'linear-gradient(135deg, #011a1a 0%, #022828 40%, #010f0f 100%)',
-    accent: '#044040',
-    features: ['Island Living', '360° Views', 'Ultra-Premium'],
-  },
-  {
-    title: 'Downtown Dubai Plot',
-    location: 'Downtown Dubai, Sheikh Zayed Rd',
-    area: '6,000',
-    price: '32,000,000',
-    category: 'Commercial',
-    badge: 'LANDMARK',
-    gradient: 'linear-gradient(135deg, #1a0a00 0%, #2a1200 40%, #140800 100%)',
-    accent: '#4a2000',
-    features: ['Burj Khalifa View', 'High ROI', 'Freehold'],
-  },
-];
-
 const CATEGORY_COLORS = {
   Residential: '#4ade80',
   Commercial: '#60a5fa',
@@ -339,7 +270,8 @@ const PropertyCard = ({ property, index }) => {
 const Properties = () => {
   const headingRef = useReveal();
   const { data } = useCMS();
-  const properties = (data.properties || []).filter(p => p.isVisible);
+  const propertiesData = data.properties || {};
+  const properties = (propertiesData.items || []).filter(p => p.isVisible);
 
   return (
     <section id="properties" className="py-32 bg-void relative overflow-hidden">
@@ -354,7 +286,7 @@ const Properties = () => {
         <div ref={headingRef} className="mb-12 lg:mb-20">
           <div className="flex items-center gap-4 mb-6">
             <div className="gold-line-h w-8 lg:w-12" />
-            <span className="section-label text-[9px] lg:text-[10px]">Featured Listings</span>
+            <span className="section-label text-[9px] lg:text-[10px]">{propertiesData.label}</span>
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 px-0 sm:px-5" style={{marginBottom:"1.5%"}}>
             <h2
@@ -367,8 +299,8 @@ const Properties = () => {
                 color: '#ffffff'
               }}
             >
-              Exclusive Land Opportunities
-              <span className="text-gold-gradient"> in Dubai</span>
+              {propertiesData.titleLine1}
+              <span className="text-gold-gradient"> {propertiesData.titleLine2}</span>
             </h2>
             <a href="#listings" className="btn-outline self-start lg:self-end py-3 px-6 lg:py-4 lg:px-8">
               <span>View All Listings</span>

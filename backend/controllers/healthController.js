@@ -6,7 +6,12 @@ const getRoot = (req, res) => {
     message: 'CapitaPrimellc Backend API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    config: {
+      firebase_configured: isFirebaseConfigured(),
+      jwt_secret_configured: !!process.env.JWT_SECRET,
+      port: process.env.PORT || 3000
+    }
   });
 };
 

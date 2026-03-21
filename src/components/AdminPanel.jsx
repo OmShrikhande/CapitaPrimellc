@@ -55,8 +55,7 @@ const AdminPanel = () => {
     addTestimonial,
     updateTestimonial,
     deleteTestimonial,
-    updateTheme,
-    updatePopupSettings
+    updateTheme 
   } = useCMS();
 
   useEffect(() => {
@@ -326,12 +325,11 @@ const AdminPanel = () => {
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           <div className="w-full">
-            {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} />}
+            {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} resetData={resetData} />}
             {activeTab === 'assets' && <AssetsView />}
             {activeTab === 'offers' && (
               <OffersView
                 offers={data.offers}
-                popupSettings={data.popupSettings}
                 addOffer={addOffer}
                 updateOffer={updateOffer}
                 deleteOffer={deleteOffer}
@@ -341,7 +339,7 @@ const AdminPanel = () => {
             {activeTab === 'content' && <ContentView data={data} updateData={updateData} />}
             {activeTab === 'services' && (
               <ServicesView 
-                services={data.services} 
+                services={Array.isArray(data.services?.items) ? data.services.items : []} 
                 addService={addService}
                 updateService={updateService}
                 deleteService={deleteService}
@@ -349,7 +347,7 @@ const AdminPanel = () => {
             )}
             {activeTab === 'testimonials' && (
               <TestimonialsView 
-                testimonials={data.testimonials} 
+                testimonials={Array.isArray(data.testimonials?.items) ? data.testimonials.items : []} 
                 addTestimonial={addTestimonial}
                 updateTestimonial={updateTestimonial}
                 deleteTestimonial={deleteTestimonial}

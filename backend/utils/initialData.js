@@ -14,7 +14,17 @@ const INITIAL_DATA = {
     description: "Exclusive access to Dubai's most coveted land plots. From Palm Jumeirah fronds to downtown commercial masterpieces — we connect elite investors with tomorrow's landmarks.",
     ctaPrimary: "Explore Listings",
     ctaSecondary: "Book Consultation",
-    locations: ['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City']
+    locations: ['Palm Jumeirah', 'Emirates Hills', 'Creek Harbour', 'MBR City'],
+    floatBadge1: {
+      label: "Prime Listing",
+      value: "AED 24,000,000",
+      subLabel: "Jumeirah Bay Island"
+    },
+    floatBadge2: {
+      label: "RERA Certified",
+      subLabel: "DLD Approved Agency"
+    },
+    bottomLabel: "Interactive Intelligence · Dubai, UAE"
   },
   stats: [
     { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },
@@ -100,10 +110,6 @@ const INITIAL_DATA = {
       isVisible: true,
     }
   ],
-  popupSettings: {
-    enabled: true,
-    delaysInSeconds: [0, 60, 120],
-  },
   services: [
     {
       title: 'Land Acquisition',
@@ -142,28 +148,67 @@ const INITIAL_DATA = {
     ],
     quote: "Where the desert meets ambition, we build legacies.",
     estYear: "2006",
+    estLocation: "Est. Dubai, UAE",
     teamSize: "45+"
   },
-  testimonials: [
-    {
-      quote: "Capita Prime LLC transformed my understanding of Dubai's land market. Their off-market access and due diligence process is unmatched. The Palm Jumeirah plot they secured for me has appreciated 180% in three years.",
-      name: 'Khalid Al Mansoori',
-      title: 'Private Equity Investor, Abu Dhabi',
-      initials: 'KM',
+  contact: {
+    label: "Get in Touch",
+    titleLine1: "Begin Your Dubai Land",
+    titleLine2: "Investment Journey",
+    description: "Our advisory team is available for confidential consultations. Whether you are buying, selling, or evaluating — we provide unparalleled insight.",
+    info: [
+      { label: 'Office', value: 'Burj Khalifa District, Downtown Dubai, UAE', icon: 'location' },
+      { label: 'Phone', value: '+971 4 XXX XXXX', icon: 'phone' },
+      { label: 'Email', value: 'invest@capitaprimellc.com', icon: 'mail' },
+      { label: 'Hours', value: 'Sun – Thu: 9:00 AM – 6:00 PM GST', icon: 'clock' },
+    ]
+  },
+  footer: {
+    description: "Dubai's most trusted land investment consultancy. RERA Certified. DLD Registered. Serving elite investors across 42 nationalities.",
+    links: {
+      Services: ['Land Acquisition', 'Investment Strategy', 'Legal & Compliance', 'Market Intelligence', 'Property Valuation'],
+      Locations: ['Palm Jumeirah', 'Emirates Hills', 'Downtown Dubai', 'Business Bay', 'Creek Harbour', 'MBR City'],
+      Company: ['About Us', 'Our Team', 'Press', 'Careers', 'Privacy Policy'],
     },
-    {
-      quote: "As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation — every single time.",
-      name: 'James Whitfield',
-      title: 'Fund Manager, Whitfield Capital, London',
-      initials: 'JW',
-    },
-    {
-      quote: "Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.",
-      name: 'Priya Krishnamurthy',
-      title: 'Director of Investments, Meridian SWF, Singapore',
-      initials: 'PK',
-    },
-  ]
+    socials: [
+      { label: 'LinkedIn', icon: 'linkedin', href: '#' },
+      { label: 'Instagram', icon: 'instagram', href: '#' },
+      { label: 'Twitter', icon: 'twitter', href: '#' }
+    ]
+  },
+  navbar: {
+    links: [
+      { label: 'Properties', href: '#properties' },
+      { label: 'Services', href: '#services' },
+      { label: 'About', href: '#about' },
+      { label: 'Testimonials', href: '#testimonials' },
+    ]
+  },
+  testimonials: {
+    label: "Client Voices",
+    titleLine1: "Words from Our",
+    titleLine2: "Distinguished Clients",
+    items: [
+      {
+        quote: "Capita Prime LLC transformed my understanding of Dubai's land market. Their off-market access and due diligence process is unmatched. The Palm Jumeirah plot they secured for me has appreciated 180% in three years.",
+        name: 'Khalid Al Mansoori',
+        title: 'Private Equity Investor, Abu Dhabi',
+        initials: 'KM',
+      },
+      {
+        quote: "As a London-based fund manager overseeing a $2B real estate portfolio, I needed a partner who understood both international standards and local nuances. Capita Prime exceeds every expectation — every single time.",
+        name: 'James Whitfield',
+        title: 'Fund Manager, Whitfield Capital, London',
+        initials: 'JW',
+      },
+      {
+        quote: "Our Singapore office has allocated over SGD 400M to Dubai land through Capita Prime. Their market intelligence, legal coordination, and speed of execution is genuinely world-class. A rare firm.",
+        name: 'Priya Krishnamurthy',
+        title: 'Director of Investments, Meridian SWF, Singapore',
+        initials: 'PK',
+      },
+    ]
+  }
 };
 
 module.exports = { INITIAL_DATA };

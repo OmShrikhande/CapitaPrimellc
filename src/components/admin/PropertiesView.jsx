@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import Sparkline from './Sparkline';
 import PropertyForm from './PropertyForm';
+import ImagePreview from './ImagePreview';
 
-const PropertiesView = ({ properties, addProperty, updateProperty, deleteProperty }) => {
+const PropertiesView = ({ properties = [], addProperty, updateProperty, deleteProperty }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
 
+  // Ensure properties is always an array
+  const propertiesArray = Array.isArray(properties) ? properties : [];
+
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setEditingProperty(properties[index]);
+    setEditingProperty(propertiesArray[index]);
     setIsAdding(true);
   };
 
@@ -32,7 +36,7 @@ const PropertiesView = ({ properties, addProperty, updateProperty, deletePropert
   };
 
   const toggleVisibility = (index) => {
-    const p = properties[index];
+    const p = propertiesArray[index];
     updateProperty(index, { ...p, isVisible: !p.isVisible });
   };
 
@@ -41,7 +45,7 @@ const PropertiesView = ({ properties, addProperty, updateProperty, deletePropert
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4 px-2">
         <div>
           <h3 className="text-3xl font-serif font-bold tracking-tight mb-2">Asset Inventory</h3>
-          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.3em] opacity-60">Managing {properties.length} Active Nodes</p>
+          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.3em] opacity-60">Managing {propertiesArray.length} Active Nodes</p>
         </div>
         <button
           onClick={() => { setIsAdding(true); setEditingIndex(null); setEditingProperty(null); }}
@@ -61,16 +65,21 @@ const PropertiesView = ({ properties, addProperty, updateProperty, deletePropert
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-10">
-        {properties.map((p, i) => (
+        {propertiesArray.map((p, i) => (
           <div key={i} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 lg:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center hover:border-gold/40 transition-all group relative overflow-hidden shadow-2xl">
             <div className="absolute -right-16 -top-16 w-48 h-48 bg-gold/5 blur-[80px] group-hover:bg-gold/10 transition-all rounded-full" />
             
             <div className="flex gap-6 lg:gap-8 items-center relative flex-1">
-              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0">
+              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0 relative">
                 {p.gallery && p.gallery.length > 0 ? (
-                  <img src={p.gallery[0]} alt="" className="w-full h-full object-cover" />
+                  <ImagePreview
+                    imagePath={p.gallery[0]}
+                    alt={p.title}
+                    className="w-full h-full object-cover"
+                    fallbackEmoji={p.category === 'Commercial' ? '🏢' : '🏡'}
+                  />
                 ) : (
-                  p.category === 'Commercial' ? '🏢' : '🏡'
+                  (p.category === 'Commercial' ? '🏢' : '🏡')
                 )}
               </div>
               <div className="flex-1 min-w-0">

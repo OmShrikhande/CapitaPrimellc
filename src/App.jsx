@@ -20,9 +20,11 @@ import ThemeManager from './components/ThemeManager';
 
 import { CMSProvider } from './context/CMSContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { useCMS } from './context/useCMS';
 
-function App() {
+function AppContent() {
   const [loaded, setLoaded] = useState(false);
+  const { loading: cmsLoading } = useCMS();
   const [route, setRoute] = useState(() => {
     const hash = window.location.hash;
     if (hash === '#listings') return 'listings';
@@ -95,6 +97,8 @@ function App() {
     };
   }, [loaded, route]);
 
+  const isFullyLoaded = loaded && !cmsLoading;
+
   return (
     <ThemeProvider>
       <CMSProvider>
@@ -111,11 +115,8 @@ function App() {
           {route === 'home' ? (
             <div className="flex flex-col gap-10 lg:gap-4">
               <Navbar />
-              <TimedInquiryPopup enabled={loaded} />
-              <div className="pt-20 lg:pt-24">
-                <Offers />
-              </div>
               <Hero />
+              <Offers />
               <Marquee />
               <Stats />
               <Properties />

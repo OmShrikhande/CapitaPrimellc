@@ -10,6 +10,7 @@
     "build": "echo \"No build step required for this Node.js application\"",
     "create-admin": "node scripts/create-admin.js",
     "init-theme": "node scripts/initialize-default-theme.js",
+    "init-content": "node scripts/initialize-content.js",
     "fix-colors": "node scripts/fix-missing-colors.js"
   },
   "keywords": [],

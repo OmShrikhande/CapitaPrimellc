@@ -407,6 +407,23 @@ img {
   width: 100%;
 }
 
+.admin-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  color: white;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.admin-input:focus {
+  border-color: rgba(201, 168, 76, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.05);
+}
+
 .property-card {
   position: relative;
   overflow: hidden;

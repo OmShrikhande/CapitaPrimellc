@@ -2,7 +2,8 @@ import { useRef, useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import Offers from './Offers';
 import Footer from './Footer';
-import { adminAPI } from '../context/api';
+import { adminAPI, getImageURL } from '../context/api';
+import ImagePreview from './admin/ImagePreview';
 
 const ALL_PROPERTIES = [
   {
@@ -158,63 +159,77 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
               className="h-64 lg:h-full relative"
               style={{ background: property.gradient }}
             >
-              <div className="prop-blueprint-fine" />
-              <div className="prop-blueprint" />
-              <div className="prop-scan" />
+              {/* Show image if available */}
+              {property.imageUrls && property.imageUrls.length > 0 ? (
+                <div className="w-full h-full overflow-hidden relative">
+                  <ImagePreview
+                    imagePath={property.imageUrls[0]}
+                    alt={property.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Pattern background if no image */}
+                  <div className="prop-blueprint-fine" />
+                  <div className="prop-blueprint" />
+                  <div className="prop-scan" />
 
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}60 0%, transparent 65%)`,
-                  zIndex: 1,
-                }}
-              />
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}60 0%, transparent 65%)`,
+                      zIndex: 1,
+                    }}
+                  />
 
-              <div className="corner-bracket-tl" />
-              <div className="corner-bracket-br" />
+                  <div className="corner-bracket-tl" />
+                  <div className="corner-bracket-br" />
 
-              {/* Building Icon */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                {property.category === 'Residential' ? (
-                  <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
-                    <rect x="15" y="35" width="40" height="28" />
-                    <polyline points="5,35 35,10 65,35" />
-                    <rect x="28" y="45" width="14" height="18" />
-                    <line x1="15" y1="35" x2="55" y2="35" />
-                    <rect x="18" y="40" width="8" height="8" />
-                    <rect x="44" y="40" width="8" height="8" />
-                  </svg>
-                ) : property.category === 'Commercial' ? (
-                  <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
-                    <rect x="18" y="10" width="34" height="53" />
-                    <line x1="18" y1="20" x2="52" y2="20" />
-                    <line x1="18" y1="30" x2="52" y2="30" />
-                    <line x1="18" y1="40" x2="52" y2="40" />
-                    <line x1="18" y1="50" x2="52" y2="50" />
-                    <rect x="23" y="14" width="6" height="4" />
-                    <rect x="33" y="14" width="6" height="4" />
-                    <rect x="43" y="14" width="6" height="4" />
-                    <rect x="23" y="23" width="6" height="4" />
-                    <rect x="33" y="23" width="6" height="4" />
-                    <rect x="43" y="23" width="6" height="4" />
-                    <rect x="29" y="54" width="12" height="9" />
-                  </svg>
-                ) : (
-                  <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
-                    <rect x="10" y="30" width="22" height="33" />
-                    <rect x="38" y="15" width="22" height="48" />
-                    <line x1="32" y1="30" x2="38" y2="30" />
-                    <line x1="10" y1="45" x2="32" y2="45" />
-                    <line x1="38" y1="30" x2="38" y2="15" />
-                    <rect x="43" y="20" width="5" height="5" />
-                    <rect x="51" y="20" width="5" height="5" />
-                    <rect x="43" y="30" width="5" height="5" />
-                    <rect x="51" y="30" width="5" height="5" />
-                    <rect x="14" y="35" width="5" height="5" />
-                    <rect x="22" y="35" width="5" height="5" />
-                  </svg>
-                )}
-              </div>
+                  {/* Building Icon */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    {property.category === 'Residential' ? (
+                      <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                        <rect x="15" y="35" width="40" height="28" />
+                        <polyline points="5,35 35,10 65,35" />
+                        <rect x="28" y="45" width="14" height="18" />
+                        <line x1="15" y1="35" x2="55" y2="35" />
+                        <rect x="18" y="40" width="8" height="8" />
+                        <rect x="44" y="40" width="8" height="8" />
+                      </svg>
+                    ) : property.category === 'Commercial' ? (
+                      <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                        <rect x="18" y="10" width="34" height="53" />
+                        <line x1="18" y1="20" x2="52" y2="20" />
+                        <line x1="18" y1="30" x2="52" y2="30" />
+                        <line x1="18" y1="40" x2="52" y2="40" />
+                        <line x1="18" y1="50" x2="52" y2="50" />
+                        <rect x="23" y="14" width="6" height="4" />
+                        <rect x="33" y="14" width="6" height="4" />
+                        <rect x="43" y="14" width="6" height="4" />
+                        <rect x="23" y="23" width="6" height="4" />
+                        <rect x="33" y="23" width="6" height="4" />
+                        <rect x="43" y="23" width="6" height="4" />
+                        <rect x="29" y="54" width="12" height="9" />
+                      </svg>
+                    ) : (
+                      <svg width="120" height="120" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                        <rect x="10" y="30" width="22" height="33" />
+                        <rect x="38" y="15" width="22" height="48" />
+                        <line x1="32" y1="30" x2="38" y2="30" />
+                        <line x1="10" y1="45" x2="32" y2="45" />
+                        <line x1="38" y1="30" x2="38" y2="15" />
+                        <rect x="43" y="20" width="5" height="5" />
+                        <rect x="51" y="20" width="5" height="5" />
+                        <rect x="43" y="30" width="5" height="5" />
+                        <rect x="51" y="30" width="5" height="5" />
+                        <rect x="14" y="35" width="5" height="5" />
+                        <rect x="22" y="35" width="5" height="5" />
+                      </svg>
+                    )}
+                  </div>
+                </>
+              )}
 
               {/* Badges */}
               <div className="absolute top-6 left-6 flex gap-3">
@@ -447,23 +462,6 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 };
@@ -488,6 +486,9 @@ const PropertyCard = ({ property, index, onClick }) => {
     card.style.transition = 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
   };
 
+  // Check if we have images from the asset
+  const hasImages = property.imageUrls && property.imageUrls.length > 0;
+
   return (
     <div
       ref={cardRef}
@@ -498,62 +499,85 @@ const PropertyCard = ({ property, index, onClick }) => {
       style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
     >
       <div className="property-card-img" style={{ background: property.gradient }}>
-        <div className="prop-blueprint-fine" />
-        <div className="prop-blueprint" />
-        <div className="prop-scan" />
+        {/* Show image if available, otherwise show pattern background */}
+        {hasImages ? (
+          <div className="w-full h-full overflow-hidden relative">
+            <ImagePreview
+              imagePath={property.imageUrls[0]}
+              alt={property.title}
+              className="w-full h-full object-cover"
+              fallbackEmoji="🏘️"
+            />
+            {/* Overlay patterns */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}40 0%, transparent 65%)`,
+                zIndex: 2,
+              }}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Original pattern styles when no image */}
+            <div className="prop-blueprint-fine" />
+            <div className="prop-blueprint" />
+            <div className="prop-scan" />
 
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}60 0%, transparent 65%)`,
-            zIndex: 1,
-          }}
-        />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(ellipse 70% 80% at 20% 20%, ${property.accent}60 0%, transparent 65%)`,
+                zIndex: 1,
+              }}
+            />
 
-        <div className="corner-bracket-tl" />
-        <div className="corner-bracket-br" />
+            <div className="corner-bracket-tl" />
+            <div className="corner-bracket-br" />
 
-        <div className="prop-building-icon">
-          {property.category === 'Residential' ? (
-            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
-              <rect x="15" y="35" width="40" height="28" />
-              <polyline points="5,35 35,10 65,35" />
-              <rect x="28" y="45" width="14" height="18" />
-              <line x1="15" y1="35" x2="55" y2="35" />
-              <rect x="18" y="40" width="8" height="8" />
-              <rect x="44" y="40" width="8" height="8" />
-            </svg>
-          ) : property.category === 'Commercial' ? (
-            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
-              <rect x="18" y="10" width="34" height="53" />
-              <line x1="18" y1="20" x2="52" y2="20" />
-              <line x1="18" y1="30" x2="52" y2="30" />
-              <line x1="18" y1="40" x2="52" y2="40" />
-              <line x1="18" y1="50" x2="52" y2="50" />
-              <rect x="23" y="14" width="6" height="4" />
-              <rect x="33" y="14" width="6" height="4" />
-              <rect x="43" y="14" width="6" height="4" />
-              <rect x="23" y="23" width="6" height="4" />
-              <rect x="33" y="23" width="6" height="4" />
-              <rect x="43" y="23" width="6" height="4" />
-              <rect x="29" y="54" width="12" height="9" />
-            </svg>
-          ) : (
-            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
-              <rect x="10" y="30" width="22" height="33" />
-              <rect x="38" y="15" width="22" height="48" />
-              <line x1="32" y1="30" x2="38" y2="30" />
-              <line x1="10" y1="45" x2="32" y2="45" />
-              <line x1="38" y1="30" x2="38" y2="15" />
-              <rect x="43" y="20" width="5" height="5" />
-              <rect x="51" y="20" width="5" height="5" />
-              <rect x="43" y="30" width="5" height="5" />
-              <rect x="51" y="30" width="5" height="5" />
-              <rect x="14" y="35" width="5" height="5" />
-              <rect x="22" y="35" width="5" height="5" />
-            </svg>
-          )}
-        </div>
+            <div className="prop-building-icon">
+              {property.category === 'Residential' ? (
+                <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                  <rect x="15" y="35" width="40" height="28" />
+                  <polyline points="5,35 35,10 65,35" />
+                  <rect x="28" y="45" width="14" height="18" />
+                  <line x1="15" y1="35" x2="55" y2="35" />
+                  <rect x="18" y="40" width="8" height="8" />
+                  <rect x="44" y="40" width="8" height="8" />
+                </svg>
+              ) : property.category === 'Commercial' ? (
+                <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                  <rect x="18" y="10" width="34" height="53" />
+                  <line x1="18" y1="20" x2="52" y2="20" />
+                  <line x1="18" y1="30" x2="52" y2="30" />
+                  <line x1="18" y1="40" x2="52" y2="40" />
+                  <line x1="18" y1="50" x2="52" y2="50" />
+                  <rect x="23" y="14" width="6" height="4" />
+                  <rect x="33" y="14" width="6" height="4" />
+                  <rect x="43" y="14" width="6" height="4" />
+                  <rect x="23" y="23" width="6" height="4" />
+                  <rect x="33" y="23" width="6" height="4" />
+                  <rect x="43" y="23" width="6" height="4" />
+                  <rect x="29" y="54" width="12" height="9" />
+                </svg>
+              ) : (
+                <svg width="70" height="70" viewBox="0 0 70 70" fill="none" stroke="rgba(201,168,76,0.9)" strokeWidth="1">
+                  <rect x="10" y="30" width="22" height="33" />
+                  <rect x="38" y="15" width="22" height="48" />
+                  <line x1="32" y1="30" x2="38" y2="30" />
+                  <line x1="10" y1="45" x2="32" y2="45" />
+                  <line x1="38" y1="30" x2="38" y2="15" />
+                  <rect x="43" y="20" width="5" height="5" />
+                  <rect x="51" y="20" width="5" height="5" />
+                  <rect x="43" y="30" width="5" height="5" />
+                  <rect x="51" y="30" width="5" height="5" />
+                  <rect x="14" y="35" width="5" height="5" />
+                  <rect x="22" y="35" width="5" height="5" />
+                </svg>
+              )}
+            </div>
+          </>
+        )}
 
         <div
           style={{
@@ -729,8 +753,16 @@ const ListingsPage = () => {
     const loadAssets = async () => {
       try {
         setLoading(true);
+        setError('');
+        
+        console.log('📦 Fetching assets from API...');
         const response = await adminAPI.assets.getAll();
-        if (response.success) {
+        
+        console.log('📋 API Response:', response);
+
+        if (response.success && response.data && response.data.length > 0) {
+          console.log(`✅ Loaded ${response.data.length} assets from API`);
+          
           // Transform assets to match the expected property format for the UI
           const transformedAssets = response.data.map(asset => ({
             title: asset.name,
@@ -747,14 +779,14 @@ const ListingsPage = () => {
               asset.area ? `${asset.area} sq ft` : null,
               asset.parking ? `${asset.parking} Parking` : null,
               asset.neighborhood || null,
-              asset.completionStatus || null,
-              ...(asset.features || [])
+              asset.completionStatus || null
             ].filter(Boolean),
             description: asset.description,
             imageUrls: asset.imageUrls || [],
             // Additional data for detailed view
             coordinates: asset.coordinates,
             amenities: asset.amenities || [],
+            features: asset.features || [],
             agentName: asset.agentName,
             agentPhone: asset.agentPhone,
             agentEmail: asset.agentEmail,
@@ -763,11 +795,18 @@ const ListingsPage = () => {
             paymentPlan: asset.paymentPlan
           }));
           setAssets(transformedAssets);
+        } else if (response.success && (!response.data || response.data.length === 0)) {
+          console.log('⚠️ No assets found in API, using fallback properties');
+          setAssets(ALL_PROPERTIES);
+        } else {
+          throw new Error(response.message || 'Failed to load assets');
         }
       } catch (err) {
-        setError('Failed to load assets');
-        console.error('Error loading assets:', err);
+        console.error('❌ Error loading assets:', err);
+        setError(`Failed to load assets: ${err.message}`);
+        
         // Fallback to hardcoded properties if API fails
+        console.log('📌 Using fallback properties');
         setAssets(ALL_PROPERTIES);
       } finally {
         setLoading(false);
@@ -844,7 +883,27 @@ const ListingsPage = () => {
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="text-gold text-lg">Loading assets...</div>
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+                </div>
+                <div className="text-gold text-lg">Loading assets...</div>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center space-y-4 max-w-md">
+                <div className="text-yellow-400 text-2xl">⚠️</div>
+                <p className="text-white/60">{error}</p>
+                <p className="text-white/40 text-sm">Showing fallback listings instead</p>
+              </div>
+            </div>
+          ) : assets.length === 0 ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center space-y-4">
+                <div className="text-4xl">🏘️</div>
+                <p className="text-white/60">No properties available at the moment</p>
+              </div>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
