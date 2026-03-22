@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCMS } from '../context/useCMS';
 import { submitInquiry } from '../context/api';
+import { sendUserConfirmationEmail } from '../context/emailService';
 
 const STORAGE_KEY = 'capita-prime-popup-submitted';
 
@@ -161,7 +162,21 @@ const TimedInquiryPopup = ({ enabled }) => {
         source: 'popup',
         hp_field: formData.get('hp_field'),
       };
+
+      // Submit inquiry to backend (sends admin notification)
       await submitInquiry(payload);
+
+      // Send confirmation email to user using EmailJS
+      try {
+        const emailResult = await sendUserConfirmationEmail(payload);
+        if (!emailResult.success) {
+          console.warn('Failed to send confirmation email:', emailResult.message);
+          // Don't fail the form submission if email fails
+        }
+      } catch (emailError) {
+        console.warn('EmailJS error:', emailError);
+        // Don't fail the form submission if email fails
+      }
 
       setSubmitted(true);
       window.sessionStorage.setItem(STORAGE_KEY, 'true');
