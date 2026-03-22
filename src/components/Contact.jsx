@@ -3,7 +3,6 @@ import useReveal from '../hooks/useReveal';
 
 import { useCMS } from '../context/useCMS';
 import { submitInquiry } from '../context/api';
-import { sendUserConfirmationEmail } from '../context/emailService';
 
 const ICON_MAP = {
   location: (
@@ -89,21 +88,7 @@ const Contact = () => {
         source: 'contact',
       };
 
-      // Submit inquiry to backend (sends admin notification)
       await submitInquiry(payload);
-
-      // Send confirmation email to user using EmailJS
-      try {
-        const emailResult = await sendUserConfirmationEmail(payload);
-        if (!emailResult.success) {
-          console.warn('Failed to send confirmation email:', emailResult.message);
-          // Don't fail the form submission if email fails
-        }
-      } catch (emailError) {
-        console.warn('EmailJS error:', emailError);
-        // Don't fail the form submission if email fails
-      }
-
       setSubmitted(true);
       form.reset();
     } catch (err) {
