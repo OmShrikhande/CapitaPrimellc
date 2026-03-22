@@ -823,25 +823,32 @@ const ListingsPage = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    // Setup observer for animations
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('in-view');
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.07, rootMargin: '0px 0px -20px 0px' }
-    );
-
-    const SELECTORS = '.animate-on-scroll, .animate-on-scroll-left, .animate-on-scroll-right';
-    document.querySelectorAll(SELECTORS).forEach((el) => obs.observe(el));
-
-    return () => obs.disconnect();
   }, []);
+
+  useEffect(() => {
+    // Setup observer for animations after assets are loaded
+    if (assets.length > 0) {
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              obs.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.07, rootMargin: '0px 0px -20px 0px' }
+      );
+
+      const SELECTORS = '.animate-on-scroll, .animate-on-scroll-left, .animate-on-scroll-right';
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
+        document.querySelectorAll(SELECTORS).forEach((el) => obs.observe(el));
+      }, 100);
+
+      return () => obs.disconnect();
+    }
+  }, [assets]);
 
   const openModal = (property) => {
     setSelectedProperty(property);

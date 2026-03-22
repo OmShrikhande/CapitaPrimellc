@@ -1,6 +1,7 @@
 const { db } = require('../config/firebase');
 const fs = require('fs');
 const path = require('path');
+const { deleteFromCloudinary, extractPublicId, isCloudinaryConfigured } = require('../utils/cloudinary');
 
 // @desc    Get all assets
 // @route   GET /api/assets
@@ -108,9 +109,9 @@ const createAsset = async (req, res) => {
 
     let imageUrls = [];
 
-    if (req.files && req.files.length > 0) {
-      // Store relative paths for up to 7 images
-      imageUrls = req.files.slice(0, 7).map(file => `/uploads/${file.filename}`);
+    if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
+      // Use Cloudinary URLs (or fallback local URLs)
+      imageUrls = req.cloudinaryUrls.slice(0, 7);
     }
 
     const newAsset = {
@@ -268,10 +269,10 @@ const updateAsset = async (req, res) => {
     if (agentEmail !== undefined) updateData.agentEmail = agentEmail;
 
     // Handle new images if uploaded
-    if (req.files && req.files.length > 0) {
+    if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
       const oldAsset = assetDoc.data();
       const existingImages = oldAsset.imageUrls || [];
-      const newImages = req.files.slice(0, 7 - existingImages.length).map(file => `/uploads/${file.filename}`);
+      const newImages = req.cloudinaryUrls.slice(0, 7 - existingImages.length);
 
       updateData.imageUrls = [...existingImages, ...newImages];
     }
@@ -311,14 +312,29 @@ const deleteAsset = async (req, res) => {
     // Delete all images if they exist
     const asset = assetDoc.data();
     if (asset.imageUrls && Array.isArray(asset.imageUrls)) {
-      asset.imageUrls.forEach(imageUrl => {
-        if (imageUrl && imageUrl.startsWith('/uploads/')) {
-          const imagePath = path.join(__dirname, '../../public', imageUrl);
-          if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath);
+      for (const imageUrl of asset.imageUrls) {
+        if (imageUrl) {
+          // Check if it's a Cloudinary URL
+          if (imageUrl.includes('cloudinary.com') && isCloudinaryConfigured()) {
+            const publicId = extractPublicId(imageUrl);
+            if (publicId) {
+              try {
+                await deleteFromCloudinary(publicId);
+                console.log(`🗑️ Deleted image from Cloudinary: ${publicId}`);
+              } catch (deleteError) {
+                console.error(`❌ Failed to delete image from Cloudinary: ${publicId}`, deleteError);
+              }
+            }
+          } else if (imageUrl.startsWith('/uploads/')) {
+            // Local file deletion (fallback)
+            const imagePath = path.join(__dirname, '../../public', imageUrl);
+            if (fs.existsSync(imagePath)) {
+              fs.unlinkSync(imagePath);
+              console.log(`🗑️ Deleted local image: ${imageUrl}`);
+            }
           }
         }
-      });
+      }
     }
 
     await assetRef.delete();

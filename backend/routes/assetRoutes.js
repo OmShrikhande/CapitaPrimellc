@@ -7,7 +7,7 @@ const {
   deleteAsset
 } = require('../controllers/assetController');
 const { authenticateToken } = require('../middleware/auth');
-const upload = require('../utils/upload');
+const { upload, uploadToCloudinaryMiddleware } = require('../utils/upload');
 
 const router = express.Router();
 
@@ -16,14 +16,17 @@ router.get('/', getAssets);
 router.get('/:id', getAsset);
 
 // Protected admin routes
-router.post('/', authenticateToken, upload.array('images', 7), createAsset);
+router.post('/', authenticateToken, upload.array('images', 7), uploadToCloudinaryMiddleware, createAsset);
 
 // For updates, use multer conditionally - it will only process multipart/form-data
 router.put('/:id', authenticateToken, (req, res, next) => {
   // Check if this is multipart/form-data
   if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
-    // Use multer to process files
-    upload.array('images', 7)(req, res, next);
+    // Use multer to process files, then upload to Cloudinary
+    upload.array('images', 7)(req, res, (err) => {
+      if (err) return next(err);
+      uploadToCloudinaryMiddleware(req, res, next);
+    });
   } else {
     // Skip multer for JSON requests
     next();
