@@ -7,11 +7,27 @@ const path = require('path');
 // @access  Public
 const getAssets = async (req, res) => {
   try {
-    const assetsSnapshot = await db.collection('assets').orderBy('createdAt', 'desc').get();
+    let assetsSnapshot;
+    try {
+      assetsSnapshot = await db.collection('assets').orderBy('createdAt', 'desc').get();
+    } catch (orderErr) {
+      console.warn('assets orderBy failed, using unordered fetch:', orderErr.message);
+      assetsSnapshot = await db.collection('assets').get();
+    }
+
     const assets = [];
     assetsSnapshot.forEach(doc => {
       assets.push({ id: doc.id, ...doc.data() });
     });
+
+    const time = (row) => {
+      const c = row.createdAt;
+      if (c && typeof c.toDate === 'function') return c.toDate().getTime();
+      if (c && typeof c._seconds === 'number') return c._seconds * 1000;
+      const d = new Date(c);
+      return Number.isFinite(d.getTime()) ? d.getTime() : 0;
+    };
+    assets.sort((a, b) => time(b) - time(a));
 
     res.status(200).json({
       success: true,

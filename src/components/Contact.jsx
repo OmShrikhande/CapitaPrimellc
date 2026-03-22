@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback, useId } from 'react';
 import useReveal from '../hooks/useReveal';
 
 import { useCMS } from '../context/useCMS';
+import { submitInquiry } from '../context/api';
 
 const ICON_MAP = {
   location: (
@@ -29,34 +30,75 @@ const ICON_MAP = {
   ),
 };
 
+function getInquiryErrorMessage(error) {
+  if (error == null) return 'Something went wrong. Please try again.';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'object' && typeof error.message === 'string') return error.message;
+  return 'Something went wrong. Please try again.';
+}
+
 const Contact = () => {
   const { data } = useCMS();
   const contact = data?.contact;
+  const formErrorId = useId();
 
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [formError, setFormError] = useState('');
   const leftRef = useReveal('animate-on-scroll-left');
   const rightRef = useReveal('animate-on-scroll-right');
 
-  if (!contact) return null;
+  const clearFormError = useCallback(() => {
+    setFormError('');
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    if (!(form instanceof HTMLFormElement)) return;
+
     setSending(true);
+    setFormError('');
+
     try {
-      const formData = new FormData(e.target);
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formData).toString(),
-      });
+      const formData = new FormData(form);
+      const hp = formData.get('hp_field');
+      if (hp != null && String(hp).trim() !== '') {
+        setFormError('Unable to send this submission.');
+        return;
+      }
+
+      const name = String(formData.get('name') ?? '').trim();
+      const email = String(formData.get('email') ?? '').trim();
+      const message = String(formData.get('message') ?? '').trim();
+
+      if (!name || !email || !message) {
+        setFormError('Please fill in your name, email, and message.');
+        return;
+      }
+
+      const payload = {
+        name,
+        email,
+        phone: String(formData.get('phone') ?? '').trim(),
+        type: String(formData.get('type') ?? '').trim(),
+        budget: String(formData.get('budget') ?? '').trim(),
+        message,
+        source: 'contact',
+      };
+
+      await submitInquiry(payload);
       setSubmitted(true);
-    } catch {
-      setSubmitted(true);
+      form.reset();
+    } catch (err) {
+      setFormError(getInquiryErrorMessage(err));
     } finally {
       setSending(false);
     }
-  };
+  }, []);
+
+  if (!contact) return null;
 
   return (
     <section id="contact" className="py-28 bg-void relative overflow-hidden">
@@ -67,12 +109,15 @@ const Contact = () => {
         }}
       />
 
-      <div className="px-6 sm:px-10 lg:px-16 relative" style={{zIndex: 2, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }}>
+      <div
+        className="px-6 sm:px-10 lg:px-16 relative"
+        style={{ zIndex: 2, padding: 'clamp(60px, 10vh, 100px) clamp(20px, 5vw, 60px) 80px' }}
+      >
         <div className="flex flex-col lg:grid lg:grid-cols-5 gap-12 lg:gap-16 items-start">
           <div ref={leftRef} className="lg:col-span-2 flex flex-col gap-8">
             <div>
               <div className="flex items-center gap-4 mb-6">
-                <div className="gold-line-h w-8 lg:w-12" />
+                <div className="gold-line-h w-8 lg:w-12 animate-[expand-x_0.8s_ease-out_forwards] origin-left" />
                 <span className="section-label text-[9px] lg:text-[10px]">{contact.label}</span>
               </div>
               <h2
@@ -103,10 +148,14 @@ const Contact = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
-              {contact.info?.map(info => (
-                <div key={info.label} className="flex items-start gap-4">
+              {contact.info?.map((info, idx) => (
+                <div
+                  key={info.label}
+                  className="flex items-start gap-4 transition-transform duration-300 hover:translate-x-1"
+                  style={{ animationDelay: `${idx * 80}ms` }}
+                >
                   <div
-                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center"
+                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all duration-300 hover:border-gold/40 hover:shadow-[0_0_20px_rgba(201,168,76,0.12)]"
                     style={{
                       background: 'rgba(201,168,76,0.08)',
                       border: '1px solid rgba(201,168,76,0.2)',
@@ -146,27 +195,30 @@ const Contact = () => {
           <div ref={rightRef} className="lg:col-span-3 w-full">
             {submitted ? (
               <div
-                className="flex flex-col items-center justify-center text-center gap-6 py-16 lg:py-20"
+                className="contact-success-card flex flex-col items-center justify-center text-center gap-6 py-16 lg:py-20 rounded-sm"
                 style={{
-                  border: '1px solid rgba(201,168,76,0.2)',
-                  background: 'rgba(201,168,76,0.03)',
+                  border: '1px solid rgba(201,168,76,0.25)',
+                  background: 'linear-gradient(165deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.02) 45%, rgba(255,255,255,0.02) 100%)',
+                  boxShadow: '0 24px 80px rgba(0,0,0,0.35), 0 0 60px rgba(201,168,76,0.06)',
                 }}
               >
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: '50%',
-                    background: 'rgba(201,168,76,0.1)',
-                    border: '1px solid rgba(201,168,76,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                <div className="relative flex items-center justify-center">
+                  <span
+                    className="contact-success-icon-ring absolute w-20 h-20 rounded-full border border-gold/25 pointer-events-none"
+                    aria-hidden
+                  />
+                  <div
+                    className="relative flex items-center justify-center w-16 h-16 rounded-full"
+                    style={{
+                      background: 'rgba(201,168,76,0.12)',
+                      border: '1px solid rgba(201,168,76,0.35)',
+                      boxShadow: '0 0 40px rgba(201,168,76,0.2)',
+                    }}
+                  >
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
                 </div>
                 <div>
                   <h3
@@ -193,87 +245,154 @@ const Contact = () => {
               </div>
             ) : (
               <form
-                name="contact"
-                method="POST"
-                data-netlify="true"
                 onSubmit={handleSubmit}
-                className="flex flex-col gap-5 w-full"
+                noValidate
+                className="contact-form-panel flex flex-col gap-5 w-full rounded-sm"
                 style={{
                   padding: 'clamp(24px, 5vw, 48px)',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  border: '1px solid rgba(255,255,255,0.08)',
                   background: 'rgba(255,255,255,0.02)',
                 }}
+                aria-describedby={formError ? formErrorId : undefined}
               >
-                <input type="hidden" name="form-name" value="contact" />
+                <div className="contact-form-inner flex flex-col gap-5">
+                  <input
+                    type="text"
+                    name="hp_field"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="sr-only"
+                    aria-hidden="true"
+                  />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      className="text-[9px] lg:text-[10px]"
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontWeight: 600,
-                        letterSpacing: '0.2em',
-                        textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,0.4)',
-                      }}
+                  {formError ? (
+                    <div
+                      id={formErrorId}
+                      className="contact-alert-banner text-sm px-4 py-3 rounded-sm border border-red-500/35 bg-red-950/40 text-red-200/95 backdrop-blur-sm"
+                      role="alert"
+                      aria-live="assertive"
                     >
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      required
-                      placeholder="Your full name"
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label
-                      className="text-[9px] lg:text-[10px]"
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontWeight: 600,
-                        letterSpacing: '0.2em',
-                        textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,0.4)',
-                      }}
-                    >
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      placeholder="your@email.com"
-                      className="form-input"
-                    />
-                  </div>
-                </div>
+                      {formError}
+                    </div>
+                  ) : null}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      className="text-[9px] lg:text-[10px]"
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontWeight: 600,
-                        letterSpacing: '0.2em',
-                        textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,0.4)',
-                      }}
-                    >
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      placeholder="+971 XX XXX XXXX"
-                      className="form-input"
-                    />
+                  <div
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+                    onInput={clearFormError}
+                    onChange={clearFormError}
+                  >
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="contact-name"
+                        className="text-[9px] lg:text-[10px]"
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600,
+                          letterSpacing: '0.2em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(255,255,255,0.4)',
+                        }}
+                      >
+                        Full Name
+                      </label>
+                      <input
+                        id="contact-name"
+                        type="text"
+                        name="name"
+                        required
+                        placeholder="Your full name"
+                        className="form-input transition-[border-color,background,box-shadow] duration-300"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="contact-email"
+                        className="text-[9px] lg:text-[10px]"
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600,
+                          letterSpacing: '0.2em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(255,255,255,0.4)',
+                        }}
+                      >
+                        Email Address
+                      </label>
+                      <input
+                        id="contact-email"
+                        type="email"
+                        name="email"
+                        required
+                        autoComplete="email"
+                        placeholder="your@email.com"
+                        className="form-input transition-[border-color,background,box-shadow] duration-300"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-2">
+
+                  <div
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+                    onInput={clearFormError}
+                    onChange={clearFormError}
+                  >
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="contact-phone"
+                        className="text-[9px] lg:text-[10px]"
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600,
+                          letterSpacing: '0.2em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(255,255,255,0.4)',
+                        }}
+                      >
+                        Phone Number
+                      </label>
+                      <input
+                        id="contact-phone"
+                        type="tel"
+                        name="phone"
+                        autoComplete="tel"
+                        placeholder="+971 XX XXX XXXX"
+                        className="form-input transition-[border-color,background,box-shadow] duration-300"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="contact-type"
+                        className="text-[9px] lg:text-[10px]"
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600,
+                          letterSpacing: '0.2em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(255,255,255,0.4)',
+                        }}
+                      >
+                        Investment Type
+                      </label>
+                      <select
+                        id="contact-type"
+                        name="type"
+                        className="form-input transition-[border-color,background,box-shadow] duration-300"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          Select interest
+                        </option>
+                        <option value="buy">Buying Land</option>
+                        <option value="sell">Selling Land</option>
+                        <option value="invest">Investment Advisory</option>
+                        <option value="valuation">Property Valuation</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2" onInput={clearFormError} onChange={clearFormError}>
                     <label
+                      htmlFor="contact-budget"
                       className="text-[9px] lg:text-[10px]"
                       style={{
                         fontFamily: "'Inter', sans-serif",
@@ -283,78 +402,82 @@ const Contact = () => {
                         color: 'rgba(255,255,255,0.4)',
                       }}
                     >
-                      Investment Type
+                      Budget Range (AED)
                     </label>
-                    <select name="type" className="form-input" defaultValue="">
-                      <option value="" disabled>Select interest</option>
-                      <option value="buy">Buying Land</option>
-                      <option value="sell">Selling Land</option>
-                      <option value="invest">Investment Advisory</option>
-                      <option value="valuation">Property Valuation</option>
-                      <option value="other">Other</option>
+                    <select
+                      id="contact-budget"
+                      name="budget"
+                      className="form-input transition-[border-color,background,box-shadow] duration-300"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Select budget range
+                      </option>
+                      <option value="under5m">Under 5 Million</option>
+                      <option value="5-10m">5 – 10 Million</option>
+                      <option value="10-25m">10 – 25 Million</option>
+                      <option value="25-50m">25 – 50 Million</option>
+                      <option value="50m+">50 Million+</option>
                     </select>
                   </div>
-                </div>
 
-                <div className="flex flex-col gap-2">
-                  <label
-                    className="text-[9px] lg:text-[10px]"
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontWeight: 600,
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                      color: 'rgba(255,255,255,0.4)',
-                    }}
+                  <div className="flex flex-col gap-2" onInput={clearFormError} onChange={clearFormError}>
+                    <label
+                      htmlFor="contact-message"
+                      className="text-[9px] lg:text-[10px]"
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontWeight: 600,
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,0.4)',
+                      }}
+                    >
+                      Message
+                    </label>
+                    <textarea
+                      id="contact-message"
+                      name="message"
+                      rows={4}
+                      required
+                      placeholder="Tell us about your land investment goals..."
+                      className="form-input text-sm lg:text-base transition-[border-color,background,box-shadow] duration-300"
+                      style={{ resize: 'none' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="btn-primary w-full justify-center mt-2 py-3 lg:py-4 relative overflow-hidden group"
+                    style={{ opacity: sending ? 0.85 : 1 }}
                   >
-                    Budget Range (AED)
-                  </label>
-                  <select name="budget" className="form-input" defaultValue="">
-                    <option value="" disabled>Select budget range</option>
-                    <option value="under5m">Under 5 Million</option>
-                    <option value="5-10m">5 – 10 Million</option>
-                    <option value="10-25m">10 – 25 Million</option>
-                    <option value="25-50m">25 – 50 Million</option>
-                    <option value="50m+">50 Million+</option>
-                  </select>
+                    <span className="relative z-10 flex items-center gap-2">
+                      {sending ? (
+                        <>
+                          <span
+                            className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"
+                            aria-hidden
+                          />
+                          Sending…
+                        </>
+                      ) : (
+                        <>
+                          Submit Inquiry
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                          </svg>
+                        </>
+                      )}
+                    </span>
+                    {!sending ? (
+                      <span
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </button>
                 </div>
-
-                <div className="flex flex-col gap-2">
-                  <label
-                    className="text-[9px] lg:text-[10px]"
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontWeight: 600,
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                      color: 'rgba(255,255,255,0.4)',
-                    }}
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    name="message"
-                    rows={4}
-                    required
-                    placeholder="Tell us about your land investment goals..."
-                    className="form-input text-sm lg:text-base"
-                    style={{ resize: 'none' }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="btn-primary w-full justify-center mt-2 py-3 lg:py-4"
-                  style={{ opacity: sending ? 0.7 : 1 }}
-                >
-                  <span>{sending ? 'Sending...' : 'Submit Inquiry'}</span>
-                  {!sending && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </button>
               </form>
             )}
           </div>

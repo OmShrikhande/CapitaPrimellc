@@ -2,8 +2,48 @@ const bcrypt = require('bcryptjs');
 const { generateToken } = require('../utils/jwt');
 const { db, isFirebaseConfigured } = require('../config/firebase');
 
+const loginRateState = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_FAILED = 12;
+
+const isLoginRateLimited = (ip) => {
+  const key = ip || 'unknown';
+  const row = loginRateState.get(key);
+  if (!row) return false;
+  const now = Date.now();
+  if (now > row.resetAt) {
+    loginRateState.delete(key);
+    return false;
+  }
+  return row.count >= LOGIN_MAX_FAILED;
+};
+
+const recordFailedLoginAttempt = (ip) => {
+  const key = ip || 'unknown';
+  const now = Date.now();
+  let row = loginRateState.get(key);
+  if (!row || now > row.resetAt) {
+    row = { count: 0, resetAt: now + LOGIN_WINDOW_MS };
+  }
+  row.count += 1;
+  loginRateState.set(key, row);
+  if (loginRateState.size > 5000) {
+    for (const [k, v] of loginRateState) {
+      if (now > v.resetAt) loginRateState.delete(k);
+    }
+  }
+};
+
 const login = async (req, res) => {
   try {
+    if (isLoginRateLimited(req.ip)) {
+      return res.status(429).json({
+        success: false,
+        status: 'error',
+        description: 'Too many attempts. Try again later.',
+      });
+    }
+
     const { email, password } = req.body;
 
     // Validate input
@@ -28,6 +68,7 @@ const login = async (req, res) => {
     const adminQuery = await db.collection('admins').where('email', '==', email).limit(1).get();
 
     if (adminQuery.empty) {
+      recordFailedLoginAttempt(req.ip);
       return res.status(401).json({
         success: false,
         status: 'unauthorized',
@@ -42,6 +83,7 @@ const login = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, adminData.password);
 
     if (!isPasswordValid) {
+      recordFailedLoginAttempt(req.ip);
       return res.status(401).json({
         success: false,
         status: 'unauthorized',
@@ -55,6 +97,8 @@ const login = async (req, res) => {
       role: 'admin',
       type: 'admin'
     });
+
+    loginRateState.delete(req.ip || 'unknown');
 
     // Store login session in Firebase (optional)
     if (isFirebaseConfigured()) {

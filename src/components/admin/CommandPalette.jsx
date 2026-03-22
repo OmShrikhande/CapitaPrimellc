@@ -4,8 +4,16 @@ const CommandPalette = ({ isOpen, onClose, data, setActiveTab }) => {
   const [search, setSearch] = useState('');
   if (!isOpen) return null;
 
+  const propertyItems = Array.isArray(data?.properties?.items) ? data.properties.items : [];
   const results = [
-    ...data.properties.map(p => ({ type: 'Asset', label: p.title, action: () => { setActiveTab('properties'); onClose(); } })),
+    ...propertyItems.map((p) => ({
+      type: 'Asset',
+      label: p.title,
+      action: () => {
+        setActiveTab('content');
+        onClose();
+      },
+    })),
     { type: 'View', label: 'Go to Nexus Overview', action: () => { setActiveTab('dashboard'); onClose(); } },
     { type: 'View', label: 'Go to Site Architect', action: () => { setActiveTab('content'); onClose(); } },
     { type: 'Command', label: 'Toggle Maintenance Mode', action: () => { alert('Maintenance Mode Toggled'); onClose(); } },

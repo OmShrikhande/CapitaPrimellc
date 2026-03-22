@@ -10,6 +10,7 @@ import ServicesView from './admin/ServicesView';
 import TestimonialsView from './admin/TestimonialsView';
 import OffersView from './admin/OffersView';
 import ThemeView from './admin/ThemeView';
+import InquiriesView from './admin/InquiriesView';
 
 const SidebarItem = ({ id, label, icon, activeTab, setActiveTab }) => (
   <button
@@ -268,6 +269,7 @@ const AdminPanel = () => {
           <p className="px-6 mb-4 text-[9px] text-gray-600 font-black tracking-widest uppercase opacity-40">Main Menu</p>
           <SidebarItem id="dashboard" label="Nexus Overview" icon="🛰️" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="assets" label="Asset Inventory" icon="📦" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="inquiries" label="Inquiry Inbox" icon="✉️" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="offers" label="Offers Matrix" icon="🏷️" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="content" label="Site Architect" icon="🏗️" activeTab={activeTab} setActiveTab={setActiveTab} />
           
@@ -298,7 +300,11 @@ const AdminPanel = () => {
         <header className="px-12 py-8 border-b border-white/5 flex justify-between items-center bg-black">
           <div>
             <h2 className="text-3xl font-serif font-bold tracking-tight text-white mb-1">
-              {activeTab === 'dashboard' ? 'Nexus Console' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              {activeTab === 'dashboard'
+                ? 'Nexus Console'
+                : activeTab === 'inquiries'
+                  ? 'Inquiry Inbox'
+                  : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] text-gold font-bold tracking-widest uppercase bg-gold/5 px-3 py-0.5 rounded-full border border-gold/10">Live Production Node</span>
@@ -329,6 +335,7 @@ const AdminPanel = () => {
           <div className="w-full">
             {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} resetData={resetData} />}
             {activeTab === 'assets' && <AssetsView />}
+            {activeTab === 'inquiries' && <InquiriesView />}
             {activeTab === 'offers' && (
               <OffersView
                 offers={Array.isArray(data.offers?.items) ? data.offers.items : []}

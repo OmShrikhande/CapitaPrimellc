@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import Offers from './Offers';
 import Footer from './Footer';
-import { adminAPI, getImageURL } from '../context/api';
+import { adminAPI } from '../context/api';
 import ImagePreview from './admin/ImagePreview';
 
 const ALL_PROPERTIES = [
@@ -623,7 +623,7 @@ const PropertyCard = ({ property, index, onClick }) => {
           style={{
             position: 'absolute',
             bottom: 16,
-            left: 16,
+            left: 16, 
             right: 16,
             zIndex: 10,
             display: 'flex',
@@ -765,10 +765,14 @@ const ListingsPage = () => {
           
           // Transform assets to match the expected property format for the UI
           const transformedAssets = response.data.map(asset => ({
+            id: asset.id,
             title: asset.name,
             location: asset.location || 'Dubai, UAE',
-            area: asset.area || 'N/A',
-            price: asset.price ? `AED ${asset.price.toLocaleString()}` : 'Contact for Price',
+            area: asset.area != null && asset.area !== '' ? String(asset.area) : 'N/A',
+            price:
+              asset.price != null && asset.price !== ''
+                ? Number(asset.price).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                : 'Contact for Price',
             category: asset.propertyType || asset.type || 'Property',
             badge: asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK'),
             gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
@@ -909,7 +913,12 @@ const ListingsPage = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
               {assets.map((asset, i) => (
-                <PropertyCard key={i} property={asset} index={i} onClick={() => openModal(asset)} />
+                <PropertyCard
+                  key={asset.id || `listing-${i}`}
+                  property={asset}
+                  index={i}
+                  onClick={() => openModal(asset)}
+                />
               ))}
             </div>
           )}

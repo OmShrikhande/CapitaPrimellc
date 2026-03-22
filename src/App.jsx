@@ -9,6 +9,7 @@ import Stats from './components/Stats';
 import Properties from './components/Properties';
 import Services from './components/Services';
 import About from './components/About';
+import OwnerSection from './components/OwnerSection';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -88,6 +89,7 @@ function AppShell() {
             <Properties />
             <Services />
             <About />
+            <OwnerSection />
             <Testimonials />
             <Contact />
             <Footer />

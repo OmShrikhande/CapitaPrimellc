@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCMS } from '../context/useCMS';
+import { submitInquiry } from '../context/api';
 
 const STORAGE_KEY = 'capita-prime-popup-submitted';
 
@@ -66,6 +67,7 @@ const TimedInquiryPopup = ({ enabled }) => {
   const [queueCount, setQueueCount] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [formError, setFormError] = useState('');
   const [shouldStayHidden, setShouldStayHidden] = useState(false);
   const timersRef = useRef([]);
   const initializedRef = useRef(false);
@@ -130,6 +132,7 @@ const TimedInquiryPopup = ({ enabled }) => {
   const closePopup = () => {
     setIsOpen(false);
     setSubmitted(false);
+    setFormError('');
 
     setQueueCount((currentQueue) => {
       if (currentQueue > 0) {
@@ -144,14 +147,21 @@ const TimedInquiryPopup = ({ enabled }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSending(true);
+    setFormError('');
 
     try {
       const formData = new FormData(event.target);
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formData).toString(),
-      });
+      const payload = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        type: formData.get('type'),
+        budget: formData.get('budget'),
+        message: formData.get('message'),
+        source: 'popup',
+        hp_field: formData.get('hp_field'),
+      };
+      await submitInquiry(payload);
 
       setSubmitted(true);
       window.sessionStorage.setItem(STORAGE_KEY, 'true');
@@ -159,8 +169,8 @@ const TimedInquiryPopup = ({ enabled }) => {
       timersRef.current.forEach(window.clearTimeout);
       timersRef.current = [];
       setQueueCount(0);
-    } catch {
-      setSubmitted(true);
+    } catch (err) {
+      setFormError(err.message || 'Could not send. Please try again.');
     } finally {
       setSending(false);
     }
@@ -265,14 +275,25 @@ const TimedInquiryPopup = ({ enabled }) => {
                 </p>
               </div>
 
-              <form
-                name="popup-inquiry"
-                method="POST"
-                data-netlify="true"
-                onSubmit={handleSubmit}
-                className="flex flex-col gap-5"
-              >
-                <input type="hidden" name="form-name" value="popup-inquiry" />
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <input
+                  type="text"
+                  name="hp_field"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0"
+                  style={{ clip: 'rect(0,0,0,0)' }}
+                  aria-hidden="true"
+                />
+
+                {formError ? (
+                  <div
+                    className="text-sm px-4 py-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-300/90"
+                    role="alert"
+                  >
+                    {formError}
+                  </div>
+                ) : null}
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {FORM_FIELDS.slice(0, 2).map((field) => (

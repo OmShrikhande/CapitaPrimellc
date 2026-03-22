@@ -62,14 +62,18 @@ const ImagePreview = ({
 
       {/* Image */}
       <img
+        key={imageURL}
         src={imageURL}
         alt={alt}
         className={className}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer-when-downgrade"
         onLoad={handleImageLoad}
         onError={handleImageError}
         style={{
           opacity: imageState === 'loaded' ? 1 : 0,
-          transition: 'opacity 300ms ease-in-out'
+          transition: 'opacity 300ms ease-in-out',
         }}
       />
     </>

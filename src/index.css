@@ -147,6 +147,102 @@
   100% { background-position: 40px 40px; }
 }
 
+@keyframes contact-alert-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes contact-success-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes contact-shimmer-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.contact-form-panel {
+  position: relative;
+  isolation: isolate;
+  transition:
+    box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.45s ease;
+}
+
+.contact-form-panel::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    125deg,
+    rgba(201, 168, 76, 0.15),
+    rgba(255, 255, 255, 0.04),
+    rgba(201, 168, 76, 0.12),
+    rgba(255, 255, 255, 0.06)
+  );
+  background-size: 200% 200%;
+  animation: contact-shimmer-border 8s ease infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+.contact-form-panel:hover {
+  box-shadow:
+    0 0 0 1px rgba(201, 168, 76, 0.14),
+    0 28px 90px rgba(0, 0, 0, 0.42);
+}
+
+.contact-form-panel:focus-within {
+  box-shadow:
+    0 0 0 1px rgba(201, 168, 76, 0.22),
+    0 32px 100px rgba(0, 0, 0, 0.48);
+}
+
+.contact-form-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.contact-alert-banner {
+  animation: contact-alert-in 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.contact-success-card {
+  animation: contact-success-in 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.contact-success-icon-ring {
+  animation: ring-pulse 2s ease-out infinite;
+}
+
 
 html {
   scroll-behavior: smooth;
@@ -583,6 +679,7 @@ img {
   width: 100%;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 2px;
   color: var(--theme-text-primary);
   padding: 16px 20px;
   font-family: 'Inter', sans-serif;
@@ -590,6 +687,16 @@ img {
   outline: none;
   transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
   appearance: none;
+}
+
+.form-input:is(select) {
+  min-height: 52px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(201, 168, 76, 0.55) 50%), linear-gradient(135deg, rgba(201, 168, 76, 0.55) 50%, transparent 50%);
+  background-position: calc(100% - 22px) calc(50% - 3px), calc(100% - 16px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 44px;
 }
 
 .form-input::placeholder {

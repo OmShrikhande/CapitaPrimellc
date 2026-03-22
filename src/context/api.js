@@ -1,14 +1,14 @@
 // API Configuration - Auto-detect environment
 const getAPIBaseURL = () => {
   const envURL = import.meta.env.VITE_API_BASE_URL;
-  if (envURL) return envURL;
-  
+  if (envURL) return String(envURL).replace(/\/$/, '');
+
   // Auto-detect local development
   if (import.meta.env.DEV) {
-    return 'http://localhost:3000';
+    return 'https://capitaprimellc.onrender.com';
   }
-  
-  // Production fallback
+
+  // Production fallback — set VITE_API_BASE_URL on the static host if this differs
   return 'https://capitaprimellc.onrender.com';
 };
 
@@ -17,19 +17,29 @@ const API_BASE_URL = getAPIBaseURL();
 // Utility function to construct full image URLs
 export const getImageURL = (imagePath) => {
   if (!imagePath) return null;
-  
-  // If it's already a full URL, return it
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    return imagePath;
+
+  const raw = String(imagePath).trim().replace(/\\/g, '/');
+
+  if (raw.startsWith('http://') || raw.startsWith('https://')) {
+    return raw;
   }
-  
-  // If it's a relative uploads path, prepend the API base URL
-  if (imagePath.startsWith('/uploads/')) {
-    return `${API_BASE_URL}${imagePath}`;
+
+  // Same-origin public assets (Vite `public/`, e.g. /flaw.png) — not on the API host
+  if (raw.startsWith('/') && !raw.startsWith('/uploads')) {
+    return encodeURI(raw);
   }
-  
-  // For unknown paths, prepend uploads
-  return `${API_BASE_URL}/uploads/${imagePath}`;
+
+  const base = API_BASE_URL.replace(/\/$/, '');
+  let path = raw;
+  if (!path.startsWith('/')) {
+    path = path.startsWith('uploads/') ? `/${path}` : `/uploads/${path}`;
+  }
+
+  const qIndex = path.indexOf('?');
+  const pathOnly = qIndex >= 0 ? path.slice(0, qIndex) : path;
+  const query = qIndex >= 0 ? path.slice(qIndex) : '';
+
+  return encodeURI(`${base}${pathOnly}`) + query;
 };
 
 // Helper function to get auth headers
@@ -66,31 +76,40 @@ const handleResponse = async (response) => {
 };
 
 // Cached request wrapper to prevent duplicate requests
+// Public GET routes must not send Authorization (per backend design).
 const cachedRequest = async (url, options = {}, cacheKey = null) => {
-  const key = cacheKey || `${options.method || 'GET'}-${url}`;
+  const method = (options.method || 'GET').toUpperCase();
+  const key = cacheKey || `${method}-${url}`;
+  const sendAuth = options.auth === true || (method !== 'GET' && method !== 'HEAD');
 
   // Check cache for GET requests
-  if (!options.method || options.method === 'GET') {
+  if (method === 'GET' || method === 'HEAD') {
     const cached = requestCache.get(key);
     if (cached && (Date.now() - cached.timestamp) < REQUEST_CACHE_TIME) {
       return cached.data;
     }
   }
 
+  const headers = {
+    ...options.headers,
+  };
+  if (method !== 'GET' && method !== 'HEAD') {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
+  if (sendAuth) {
+    Object.assign(headers, getAuthHeaders());
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-        ...getAuthHeaders(),
-      },
+      headers,
     });
 
     const result = await handleResponse(response);
 
     // Cache successful GET requests
-    if (!options.method || options.method === 'GET') {
+    if (method === 'GET') {
       requestCache.set(key, {
         data: result,
         timestamp: Date.now(),
@@ -104,6 +123,15 @@ const cachedRequest = async (url, options = {}, cacheKey = null) => {
     console.error(`API Request failed [${url}]:`, error.message);
     throw error;
   }
+};
+
+export const submitInquiry = async (payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/inquiries`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
 };
 
 // Admin API functions
@@ -142,7 +170,7 @@ export const adminAPI = {
 
   // Get Admin Profile
   getProfile: async () => {
-    return cachedRequest(`${API_BASE_URL}/api/admin/profile`);
+    return cachedRequest(`${API_BASE_URL}/api/admin/profile`, { auth: true });
   },
 
   // Logout (client-side only)
@@ -191,7 +219,7 @@ export const adminAPI = {
 
     // Get all themes
     getAll: async () => {
-      return cachedRequest(`${API_BASE_URL}/api/admin/themes`);
+      return cachedRequest(`${API_BASE_URL}/api/admin/themes`, { auth: true });
     },
 
     // Create theme preset
@@ -382,6 +410,12 @@ export const adminAPI = {
       });
 
       return handleResponse(response);
+    },
+  },
+
+  inquiries: {
+    list: async () => {
+      return cachedRequest(`${API_BASE_URL}/api/admin/inquiries`, { auth: true });
     },
   },
 };

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
+import { getImageURL } from '../context/api';
 
 const CATEGORY_COLORS = {
   Residential: '#4ade80',
@@ -38,10 +39,13 @@ const PropertyCard = ({ property, index }) => {
     >
       <div className="property-card-img" style={{ background: property.gradient }}>
         {property.gallery && property.gallery.length > 0 ? (
-          <img 
-            src={property.gallery[0]} 
-            alt={property.title} 
-            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60" 
+          <img
+            src={getImageURL(property.gallery[0]) || property.gallery[0]}
+            alt={property.title}
+            className="absolute inset-0 z-[1] w-full h-full object-cover opacity-90"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer-when-downgrade"
           />
         ) : (
           <>

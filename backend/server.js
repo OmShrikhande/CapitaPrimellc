@@ -9,6 +9,10 @@ const healthRoutes = require('./routes/health');
 const adminRoutes = require('./routes/admin');
 const assetRoutes = require('./routes/assetRoutes');
 const contentRoutes = require('./routes/content');
+const inquiryRoutes = require('./routes/inquiries');
+
+const http = require('http');
+const https = require('https');
 
 // Initialize Firebase (this will validate the configuration)
 const { db, isFirebaseConfigured } = require('./config/firebase');
@@ -194,6 +198,8 @@ const initializeDefaultTheme = async () => {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: false, // Required for displaying local uploads
@@ -226,9 +232,17 @@ app.use('/', healthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/inquiries', inquiryRoutes);
 
-// Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+// Static files for uploads (permissive CORS for cross-origin <img> from the SPA)
+app.use(
+  '/uploads',
+  (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  },
+  express.static(path.join(__dirname, '../public/uploads'), { maxAge: '7d' })
+);
 
 // 404 handler
 app.use((req, res) => {
@@ -281,6 +295,26 @@ const startServer = async () => {
       console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
       console.log(`🔐 Admin login: http://localhost:${PORT}/api/admin/login`);
+
+      // Render free tier sleeps after ~15 min idle — ping ourselves every 14 minutes (no Firebase I/O)
+      const pingMs = 14 * 60 * 1000;
+      const baseUrl = (process.env.RENDER_EXTERNAL_URL || `http://127.0.0.1:${PORT}`).replace(/\/$/, '');
+      const pingOnce = () => {
+        try {
+          const u = new URL(`${baseUrl}/health/light`);
+          const lib = u.protocol === 'https:' ? https : http;
+          const req = lib
+            .get(u.href, (r) => {
+              r.resume();
+            })
+            .on('error', (err) => console.warn('Keep-alive ping failed:', err.message));
+          req.setTimeout(25000, () => req.destroy());
+        } catch (e) {
+          console.warn('Keep-alive ping error:', e.message);
+        }
+      };
+      setInterval(pingOnce, pingMs);
+      setTimeout(pingOnce, 8000);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

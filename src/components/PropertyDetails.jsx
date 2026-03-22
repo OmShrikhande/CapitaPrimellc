@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCMS } from '../context/useCMS';
+import { getImageURL } from '../context/api';
 import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -9,13 +10,14 @@ const PropertyDetails = ({ id }) => {
   const { theme } = useTheme();
   const property = data?.properties?.items?.find(p => p.id === id);
 
-  const [activeImage, setActiveImage] = useState(() => {
-    return property?.gallery && property.gallery[0] ? property.gallery[0] : '/flaw.png';
-  });
+  const resolveImg = (src) => getImageURL(src) || src;
+
+  const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    setActiveIdx(0);
+  }, [id]);
 
   if (!property) {
     return (
@@ -24,6 +26,10 @@ const PropertyDetails = ({ id }) => {
       </div>
     );
   }
+
+  const gallery = property.gallery?.length ? property.gallery : ['/flaw.png'];
+  const resolvedGallery = gallery.map((g) => resolveImg(g));
+  const activeImage = resolvedGallery[activeIdx] || resolvedGallery[0];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: theme.secondary, color: theme.accent }}>
@@ -34,10 +40,13 @@ const PropertyDetails = ({ id }) => {
           {/* Gallery Section */}
           <div className="space-y-6">
             <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative group">
-              <img 
-                src={activeImage} 
-                alt={property.title} 
+              <img
+                src={activeImage}
+                alt={property.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                loading="eager"
+                decoding="async"
+                referrerPolicy="no-referrer-when-downgrade"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
               <div className="absolute top-6 left-6">
@@ -48,13 +57,21 @@ const PropertyDetails = ({ id }) => {
             </div>
             
             <div className="grid grid-cols-4 gap-4">
-              {property.gallery && property.gallery.map((img, idx) => (
-                <button 
-                  key={idx} 
-                  onClick={() => setActiveImage(img)}
-                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${activeImage === img ? 'border-gold' : 'border-transparent opacity-50 hover:opacity-100'}`}
+              {gallery.map((img, idx) => (
+                <button
+                  key={`${img}-${idx}`}
+                  type="button"
+                  onClick={() => setActiveIdx(idx)}
+                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${activeIdx === idx ? 'border-gold' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={resolvedGallery[idx]}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
                 </button>
               ))}
             </div>

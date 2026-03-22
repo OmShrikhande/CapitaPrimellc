@@ -15,6 +15,14 @@ const getRoot = (req, res) => {
   });
 };
 
+const getLightHealth = (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+};
+
 const getHealth = async (req, res) => {
   try {
     // Check Firebase connection
@@ -67,5 +75,6 @@ const getHealth = async (req, res) => {
 
 module.exports = {
   getRoot,
+  getLightHealth,
   getHealth
 };
