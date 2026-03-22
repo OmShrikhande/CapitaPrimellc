@@ -754,19 +754,19 @@ const ListingsPage = () => {
       try {
         setLoading(true);
         setError('');
-        
+
         console.log('📦 Fetching assets from API...');
         const response = await adminAPI.assets.getAll();
-        
+
         console.log('📋 API Response:', response);
 
         if (response.success && response.data && response.data.length > 0) {
           console.log(`✅ Loaded ${response.data.length} assets from API`);
-          
+
           // Transform assets to match the expected property format for the UI
           const transformedAssets = response.data.map(asset => ({
             id: asset.id,
-            title: asset.name,
+            title: asset.name || 'Unnamed Property',
             location: asset.location || 'Dubai, UAE',
             area: asset.area != null && asset.area !== '' ? String(asset.area) : 'N/A',
             price:
@@ -786,7 +786,7 @@ const ListingsPage = () => {
               asset.parking ? `${asset.parking} Parking` : null,
               asset.neighborhood || null,
               asset.completionStatus || null
-            ].filter(Boolean),
+            ].filter(Boolean).slice(0, 3), // Limit to 3 features max
             description: asset.description,
             imageUrls: asset.imageUrls || [],
             // Additional data for detailed view
@@ -804,15 +804,16 @@ const ListingsPage = () => {
           console.log('⚠️ No assets found in API, using fallback properties');
           setAssets(ALL_PROPERTIES);
         } else {
-          throw new Error(response.message || 'Failed to load assets');
+          console.warn('⚠️ API call failed or returned unexpected data, using fallback properties');
+          setAssets(ALL_PROPERTIES);
         }
       } catch (err) {
         console.error('❌ Error loading assets:', err);
-        setError(`Failed to load assets: ${err.message}`);
-        
-        // Fallback to hardcoded properties if API fails
-        console.log('📌 Using fallback properties');
+        console.log('📌 Using fallback properties due to error');
+
+        // Always fallback to hardcoded properties if API fails
         setAssets(ALL_PROPERTIES);
+        setError(''); // Clear error since we have fallback
       } finally {
         setLoading(false);
       }

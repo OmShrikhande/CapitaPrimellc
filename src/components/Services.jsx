@@ -1,5 +1,6 @@
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
+import { INITIAL_DATA } from '../context/initialData';
 
 const ICON_MAP = {
   'Land Acquisition': <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
@@ -14,10 +15,13 @@ const DEFAULT_ICON = <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
 
 const Services = () => {
   const headingRef = useReveal();
-  const { data } = useCMS();
-  const services = data?.services;
+  const { data, loading } = useCMS();
 
-  if (!services) return null;
+  // Use CMS data if available, otherwise fallback to initial data
+  const services = data?.services || INITIAL_DATA.services;
+
+  // Don't render if still loading and no fallback data available
+  if (loading && !services) return null;
 
   return (
     <section id="services" className="py-24 bg-obsidian relative overflow-hidden">

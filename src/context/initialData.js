@@ -24,7 +24,7 @@ export const INITIAL_DATA = {
       label: 'RERA Certified',
       subLabel: 'DLD Approved Agency',
     },
-    bottomLabel: 'Interactive Intelligence · Dubai, UAE',
+    bottomLabel: 'Interactive Intelligence ï¿½ Dubai, UAE',
   },
   stats: [
     { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },
@@ -117,6 +117,8 @@ export const INITIAL_DATA = {
       { title: 'Investment Strategy', desc: "Data-driven portfolio optimization tailored to maximize ROI across Dubai's rapidly evolving real estate landscape." },
       { title: 'Legal & Compliance', desc: 'End-to-end RERA registration, DLD documentation, and regulatory compliance handled by our expert legal team.' },
       { title: 'Market Intelligence', desc: 'Proprietary analytics and real-time market data to identify emerging opportunities before they reach the public market.' },
+      { title: 'Property Valuation', desc: 'Comprehensive valuation services using advanced methodologies to determine accurate market value and investment potential.' },
+      { title: 'Global Investor Relations', desc: 'Dedicated support for international investors with multi-language assistance and cross-border transaction coordination.' },
     ],
   },
   about: {
