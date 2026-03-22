@@ -169,6 +169,15 @@ const createAsset = async (req, res) => {
 // @access  Admin
 const updateAsset = async (req, res) => {
   try {
+    // Handle both JSON and multipart/form-data requests
+    let bodyData = req.body;
+
+    // If it's multipart/form-data, parse the fields
+    if (req.files || (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data'))) {
+      // Multer has already parsed the fields into req.body
+      bodyData = req.body;
+    }
+
     const {
       name,
       type,
@@ -198,7 +207,7 @@ const updateAsset = async (req, res) => {
       agentName,
       agentPhone,
       agentEmail
-    } = req.body;
+    } = bodyData;
 
     const assetRef = db.collection('assets').doc(req.params.id);
     const assetDoc = await assetRef.get();
@@ -258,8 +267,8 @@ const updateAsset = async (req, res) => {
     if (agentPhone !== undefined) updateData.agentPhone = agentPhone;
     if (agentEmail !== undefined) updateData.agentEmail = agentEmail;
 
+    // Handle new images if uploaded
     if (req.files && req.files.length > 0) {
-      // Handle new images (up to 7 total)
       const oldAsset = assetDoc.data();
       const existingImages = oldAsset.imageUrls || [];
       const newImages = req.files.slice(0, 7 - existingImages.length).map(file => `/uploads/${file.filename}`);

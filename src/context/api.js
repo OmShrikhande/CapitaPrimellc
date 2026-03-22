@@ -369,35 +369,54 @@ export const adminAPI = {
 
     // Update asset (admin only)
     update: async (id, assetData) => {
-      const formData = new FormData();
+      // Check if there are new images to upload
+      const hasImages = assetData.images && Array.isArray(assetData.images) && assetData.images.length > 0;
 
-      // Add text fields
-      Object.keys(assetData).forEach(key => {
-        if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
-          if (Array.isArray(assetData[key])) {
-            assetData[key].forEach(item => formData.append(key, item));
-          } else {
-            formData.append(key, assetData[key]);
+      if (hasImages) {
+        // Use FormData for file uploads
+        const formData = new FormData();
+
+        // Add text fields
+        Object.keys(assetData).forEach(key => {
+          if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
+            if (Array.isArray(assetData[key])) {
+              assetData[key].forEach(item => formData.append(key, item));
+            } else {
+              formData.append(key, assetData[key]);
+            }
           }
-        }
-      });
+        });
 
-      // Add image files if provided (up to 7)
-      if (assetData.images && Array.isArray(assetData.images)) {
+        // Add image files (up to 7)
         assetData.images.slice(0, 7).forEach((image) => {
           formData.append('images', image);
         });
+
+        const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
+          method: 'PUT',
+          headers: {
+            ...getAuthHeaders(),
+          },
+          body: formData,
+        });
+
+        return handleResponse(response);
+      } else {
+        // Use JSON for updates without images
+        const updateData = { ...assetData };
+        delete updateData.images; // Remove empty images array
+
+        const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+          },
+          body: JSON.stringify(updateData),
+        });
+
+        return handleResponse(response);
       }
-
-      const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
-        method: 'PUT',
-        headers: {
-          ...getAuthHeaders(),
-        },
-        body: formData,
-      });
-
-      return handleResponse(response);
     },
 
     // Delete asset (admin only)
