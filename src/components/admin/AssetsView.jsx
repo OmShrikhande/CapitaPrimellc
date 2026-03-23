@@ -10,6 +10,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     quantity: '',
     location: '',
     description: '',
+    isVisible: true,
     images: [],
     // Property-specific fields
     price: '',
@@ -46,6 +47,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         quantity: editingAsset.quantity || '',
         location: editingAsset.location || '',
         description: editingAsset.description || '',
+        isVisible: editingAsset.isVisible !== undefined ? !!editingAsset.isVisible : true,
         images: [],
         // Property-specific fields
         price: editingAsset.price || '',
@@ -79,6 +81,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         quantity: '',
         location: '',
         description: '',
+        isVisible: true,
         images: [],
         // Property-specific fields
         price: '',
@@ -398,6 +401,19 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 <option value="Rent">For Rent</option>
                 <option value="Lease">For Lease</option>
               </select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="isVisible"
+                checked={!!formData.isVisible}
+                onChange={(e) => setFormData((prev) => ({ ...prev, isVisible: e.target.checked }))}
+                className="w-6 h-6 rounded bg-white/5 border-white/10 text-gold focus:ring-gold"
+              />
+              <label htmlFor="isVisible" className="text-sm font-bold text-gray-400 uppercase tracking-widest opacity-70">
+                Show on Dashboard
+              </label>
             </div>
 
             {/* Coordinates */}

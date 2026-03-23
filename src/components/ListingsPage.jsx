@@ -16,6 +16,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
     accent: '#1a4d1a',
     features: ['Sea View', 'Corner Plot', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Palm Jumeirah Frond Plot',
@@ -27,6 +28,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #021929 0%, #032438 40%, #01131e 100%)',
     accent: '#044266',
     features: ['Beachfront', 'Private Access', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Business Bay Canal Front',
@@ -38,6 +40,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #0d0a1f 0%, #151030 40%, #090714 100%)',
     accent: '#2a2060',
     features: ['Canal View', 'G+50 Permitted', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'MBR City Prime Plot',
@@ -49,6 +52,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #0a0f1f 0%, #101828 40%, #080d1a 100%)',
     accent: '#1a2a50',
     features: ['Master Plan', 'Flexible Zoning', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Jumeirah Bay Island',
@@ -60,6 +64,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #011a1a 0%, #022828 40%, #010f0f 100%)',
     accent: '#044040',
     features: ['Island Living', '360° Views', 'Ultra-Premium'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Downtown Dubai Plot',
@@ -71,6 +76,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #1a0a00 0%, #2a1200 40%, #140800 100%)',
     accent: '#4a2000',
     features: ['Burj Khalifa View', 'High ROI', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Dubai Hills Villa Plot',
@@ -82,6 +88,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #1f1a0a 0%, #2b240d 40%, #1a1609 100%)',
     accent: '#4d411a',
     features: ['Golf Course View', 'Park Facing', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Al Barari Sanctuary Plot',
@@ -93,6 +100,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #0a1f15 0%, #0d2b1e 40%, #091a12 100%)',
     accent: '#1a4d34',
     features: ['Greenery View', 'Private Cul-de-sac', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   },
   {
     title: 'Dubai Creek Harbour Plot',
@@ -104,6 +112,7 @@ const ALL_PROPERTIES = [
     gradient: 'linear-gradient(135deg, #0a151f 0%, #0d1e2b 40%, #09121a 100%)',
     accent: '#1a344d',
     features: ['Waterfront', 'Iconic Tower View', 'Freehold'],
+    imageUrls: ['/flaw.png'],
   }
 ];
 
@@ -788,7 +797,8 @@ const ListingsPage = () => {
               asset.completionStatus || null
             ].filter(Boolean).slice(0, 3), // Limit to 3 features max
             description: asset.description,
-            imageUrls: asset.imageUrls || [],
+            imageUrls: Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls : ['/flaw.png'],
+            isVisible: asset.isVisible !== undefined ? asset.isVisible : true,
             // Additional data for detailed view
             coordinates: asset.coordinates,
             amenities: asset.amenities || [],
@@ -799,7 +809,8 @@ const ListingsPage = () => {
             yearBuilt: asset.yearBuilt,
             paymentPlan: asset.paymentPlan
           }));
-          setAssets(transformedAssets);
+          const visibleAssets = transformedAssets.filter((a) => a.isVisible !== false);
+          setAssets(visibleAssets.length > 0 ? visibleAssets : ALL_PROPERTIES);
         } else if (response.success && (!response.data || response.data.length === 0)) {
           console.log('⚠️ No assets found in API, using fallback properties');
           setAssets(ALL_PROPERTIES);

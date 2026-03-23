@@ -5,11 +5,23 @@ import { adminAPI } from './api';
 
 const ensureArray = (value, fallback = []) => (Array.isArray(value) ? value : fallback);
 
-const ensureSectionWithItems = (section, initialSection) => ({
-  ...initialSection,
-  ...(section || {}),
-  items: ensureArray(section?.items, initialSection.items || []),
-});
+const ensureSectionWithItems = (section, initialSection) => {
+  const incomingItems = section?.items;
+  const initialItems = initialSection.items || [];
+
+  // If backend returns `items: []`, treat it as "no content configured yet"
+  // and fall back to INITIAL_DATA so the UI doesn't render empty sections.
+  const normalizedItems =
+    Array.isArray(incomingItems) && incomingItems.length > 0
+      ? incomingItems
+      : ensureArray(incomingItems, initialItems);
+
+  return {
+    ...initialSection,
+    ...(section || {}),
+    items: normalizedItems,
+  };
+};
 
 const mergeCMSData = (incoming = {}) => ({
   ...INITIAL_DATA,

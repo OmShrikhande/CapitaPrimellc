@@ -3,6 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const { deleteFromCloudinary, extractPublicId, isCloudinaryConfigured } = require('../utils/cloudinary');
 
+const parseBoolean = (value, defaultValue = false) => {
+  if (value === undefined || value === null || value === '') return defaultValue;
+  if (typeof value === 'boolean') return value;
+  const normalized = String(value).toLowerCase().trim();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  return defaultValue;
+};
+
 // @desc    Get all assets
 // @route   GET /api/assets
 // @access  Public
@@ -109,6 +118,8 @@ const createAsset = async (req, res) => {
 
     let imageUrls = [];
 
+    const isVisible = parseBoolean(req.body.isVisible, true);
+
     if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
       // Use Cloudinary URLs (or fallback local URLs)
       imageUrls = req.cloudinaryUrls.slice(0, 7);
@@ -121,6 +132,7 @@ const createAsset = async (req, res) => {
       location,
       description,
       imageUrls,
+      isVisible,
       // Property details
       price: price ? parseFloat(price) : null,
       area: area ? parseFloat(area) : null,
@@ -210,6 +222,10 @@ const updateAsset = async (req, res) => {
       agentEmail
     } = bodyData;
 
+    // If `isVisible` was provided, normalize it; otherwise keep current value.
+    const hasIsVisible = bodyData.isVisible !== undefined;
+    const isVisible = parseBoolean(bodyData.isVisible, true);
+
     const assetRef = db.collection('assets').doc(req.params.id);
     const assetDoc = await assetRef.get();
 
@@ -267,6 +283,8 @@ const updateAsset = async (req, res) => {
     if (agentName !== undefined) updateData.agentName = agentName;
     if (agentPhone !== undefined) updateData.agentPhone = agentPhone;
     if (agentEmail !== undefined) updateData.agentEmail = agentEmail;
+
+    if (hasIsVisible) updateData.isVisible = isVisible;
 
     // Handle new images if uploaded
     if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
