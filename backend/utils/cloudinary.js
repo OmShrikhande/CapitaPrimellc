@@ -23,9 +23,9 @@ const uploadToCloudinary = async (fileBuffer, options = {}) => {
 
     const defaultOptions = {
       folder: 'capita-properties',
-      resource_type: 'auto',
-      quality: 'auto',
-      format: 'auto',
+      // Avoid "auto" for format/quality because it can be rejected by Cloudinary upload transformations.
+      // Let Cloudinary keep the original format and apply its defaults.
+      resource_type: 'image',
       ...options
     };
 

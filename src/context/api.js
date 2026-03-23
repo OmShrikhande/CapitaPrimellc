@@ -182,8 +182,9 @@ export const adminAPI = {
   // Check if user is authenticated
   isAuthenticated: () => {
     const token = localStorage.getItem('adminToken');
-    const user = localStorage.getItem('adminUser');
-    return !!(token && user);
+    // Token is what backend auth actually verifies.
+    // Some flows may not have `adminUser` in storage, but API calls should still work as long as a token exists.
+    return !!token;
   },
 
   // Get stored user data
@@ -342,7 +343,13 @@ export const adminAPI = {
       Object.keys(assetData).forEach(key => {
         if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
           if (Array.isArray(assetData[key])) {
-            assetData[key].forEach(item => formData.append(key, item));
+            // Multi-value fields like amenities/features tend to get collapsed by multipart parsing.
+            // Send them as JSON arrays to keep every entry intact.
+            if (key === 'amenities' || key === 'features') {
+              formData.append(key, JSON.stringify(assetData[key]));
+            } else {
+              assetData[key].forEach(item => formData.append(key, item));
+            }
           } else {
             formData.append(key, assetData[key]);
           }
@@ -380,7 +387,11 @@ export const adminAPI = {
         Object.keys(assetData).forEach(key => {
           if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
             if (Array.isArray(assetData[key])) {
-              assetData[key].forEach(item => formData.append(key, item));
+              if (key === 'amenities' || key === 'features') {
+                formData.append(key, JSON.stringify(assetData[key]));
+              } else {
+                assetData[key].forEach(item => formData.append(key, item));
+              }
             } else {
               formData.append(key, assetData[key]);
             }

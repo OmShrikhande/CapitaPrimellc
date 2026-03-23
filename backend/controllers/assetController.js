@@ -12,6 +12,46 @@ const parseBoolean = (value, defaultValue = false) => {
   return defaultValue;
 };
 
+// Normalizes multi-value fields coming from multipart/form-data.
+// Depending on the client + multer behavior, values may arrive as:
+// - an array (most ideal)
+// - a JSON string of an array (recommended)
+// - a comma-separated string
+const normalizeStringArray = (value) => {
+  if (value === undefined || value === null) return [];
+  if (Array.isArray(value)) {
+    return value.map(String).map(s => s.trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    // Try JSON array first
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map(String).map(s => s.trim()).filter(Boolean);
+      }
+    } catch {
+      // fallthrough
+    }
+
+    // Fallback: comma-separated list
+    if (trimmed.includes(',')) {
+      return trimmed
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    // Single value
+    return [trimmed];
+  }
+
+  // Unknown type: coerce to single string
+  return [String(value).trim()].filter(Boolean);
+};
+
 // @desc    Get all assets
 // @route   GET /api/assets
 // @access  Public
@@ -148,8 +188,8 @@ const createAsset = async (req, res) => {
         longitude: parseFloat(longitude)
       } : null,
       // Additional details
-      amenities: amenities ? (Array.isArray(amenities) ? amenities : [amenities]) : [],
-      features: features ? (Array.isArray(features) ? features : [features]) : [],
+      amenities: normalizeStringArray(amenities),
+      features: normalizeStringArray(features),
       neighborhood,
       developer,
       completionStatus,
@@ -272,8 +312,8 @@ const updateAsset = async (req, res) => {
     }
 
     // Additional details
-    if (amenities !== undefined) updateData.amenities = amenities ? (Array.isArray(amenities) ? amenities : [amenities]) : [];
-    if (features !== undefined) updateData.features = features ? (Array.isArray(features) ? features : [features]) : [];
+    if (amenities !== undefined) updateData.amenities = normalizeStringArray(amenities);
+    if (features !== undefined) updateData.features = normalizeStringArray(features);
     if (neighborhood !== undefined) updateData.neighborhood = neighborhood;
     if (developer !== undefined) updateData.developer = developer;
     if (completionStatus !== undefined) updateData.completionStatus = completionStatus;
