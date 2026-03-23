@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
 const TestimonialsView = ({ testimonials = [], addTestimonial, updateTestimonial, deleteTestimonial }) => {
-  const [isAdding, setIsAdding] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({
     name: '', title: '', quote: ''
@@ -13,17 +14,19 @@ const TestimonialsView = ({ testimonials = [], addTestimonial, updateTestimonial
   const handleEdit = (index) => {
     setEditingIndex(index);
     setFormData(testimonialsArray[index]);
-    setIsAdding(true);
+    setIsEditing(true);
+    setIsModalOpen(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingIndex !== null) {
+    if (isEditing) {
       updateTestimonial(editingIndex, formData);
     } else {
       addTestimonial(formData);
     }
-    setIsAdding(false);
+    setIsModalOpen(false);
+    setIsEditing(false);
     setEditingIndex(null);
     setFormData({ name: '', title: '', quote: '' });
   };
@@ -35,21 +38,27 @@ const TestimonialsView = ({ testimonials = [], addTestimonial, updateTestimonial
           <h3 className="text-3xl font-serif font-bold tracking-tight mb-2">Echo Streams</h3>
           <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.3em] opacity-60">Client Sentiment Management</p>
         </div>
-        <button 
-          onClick={() => { setIsAdding(true); setEditingIndex(null); setFormData({ name: '', title: '', quote: '' }); }}
-          className="bg-gold text-black px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.3em] uppercase hover:bg-white transition-all shadow-2xl scale-105 active:scale-95"
+        <button
+          onClick={() => {
+            // Ensure clean state for adding new testimonial
+            setIsEditing(false);
+            setEditingIndex(null);
+            setFormData({ name: '', title: '', quote: '' });
+            setIsModalOpen(true);
+          }}
+          className="bg-gold text-white px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.3em] uppercase hover:bg-white hover:text-black transition-all shadow-2xl scale-105 active:scale-95"
         >
           + Add New Echo
         </button>
       </div>
 
-      {isAdding && (
+      {isModalOpen && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-8">
           <div className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-12 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative shadow-[0_0_100px_rgba(0,0,0,0.8)]">
             <div className="absolute top-0 right-0 p-12">
-              <button onClick={() => setIsAdding(false)} className="text-gray-500 hover:text-white transition-colors text-2xl">✕</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-white transition-colors text-2xl">✕</button>
             </div>
-            <h3 className="text-4xl font-serif font-bold mb-10 tracking-tight">{editingIndex !== null ? 'Modify Echo' : 'Initialize New Echo'}</h3>
+            <h3 className="text-4xl font-serif font-bold mb-10 tracking-tight">{isEditing ? 'Modify Echo' : 'Initialize New Echo'}</h3>
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-2 gap-8">
                 <div>
@@ -67,9 +76,9 @@ const TestimonialsView = ({ testimonials = [], addTestimonial, updateTestimonial
               </div>
               <div className="flex gap-6 mt-6">
                 <button type="submit" className="flex-1 bg-gold text-black font-black py-5 rounded-2xl hover:bg-white transition-all shadow-2xl tracking-[0.2em] uppercase text-xs">
-                  {editingIndex !== null ? 'Sync Changes' : 'Launch Echo'}
+                  {isEditing ? 'Sync Changes' : 'Launch Echo'}
                 </button>
-                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 bg-white/5 text-white font-black py-5 rounded-2xl hover:bg-white/10 transition-all tracking-[0.2em] uppercase text-xs border border-white/10">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-white/5 text-white font-black py-5 rounded-2xl hover:bg-white/10 transition-all tracking-[0.2em] uppercase text-xs border border-white/10">
                   Abort
                 </button>
               </div>

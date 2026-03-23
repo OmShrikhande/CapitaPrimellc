@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
-import { getImageURL } from '../context/api';
+import { adminAPI, getImageURL } from '../context/api';
 
 const CATEGORY_COLORS = {
   Residential: '#4ade80',
@@ -273,9 +273,89 @@ const PropertyCard = ({ property, index }) => {
 
 const Properties = () => {
   const headingRef = useReveal();
-  const { data } = useCMS();
+  const { data, loading: cmsLoading } = useCMS();
   const propertiesData = data.properties || {};
-  const properties = (propertiesData.items || []).filter(p => p.isVisible);
+  const cmsProperties = (propertiesData.items || []).filter((p) => p.isVisible);
+  const [apiProperties, setApiProperties] = useState([]);
+
+  useEffect(() => {
+    // Only load API assets after CMS data has loaded to avoid conflicts
+    if (cmsLoading) {
+      return;
+    }
+
+    const loadAssetsForHome = async () => {
+      try {
+        const response = await adminAPI.assets.getAll();
+
+        if (!response?.success || !Array.isArray(response.data) || response.data.length === 0) {
+          setApiProperties([]);
+          return;
+        }
+
+        const filtered = response.data.filter((asset) => asset?.isVisible !== false);
+
+        const mapped = filtered
+          .map((asset) => ({
+            id: asset.id,
+            title: asset.name || 'Unnamed Property',
+            location: asset.location || 'Dubai, UAE',
+            area: asset.area != null && asset.area !== '' ? String(asset.area) : 'N/A',
+            price:
+              asset.price != null && asset.price !== ''
+                ? Number(asset.price).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                : 'Contact',
+            category: asset.propertyType || asset.type || 'Property',
+            badge: asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK'),
+            gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
+            accent: '#1a4d1a',
+            features: asset.features?.length
+              ? asset.features
+              : [
+                  asset.bedrooms ? `${asset.bedrooms} Beds` : null,
+                  asset.bathrooms ? `${asset.bathrooms} Baths` : null,
+                  asset.parking ? `${asset.parking} Parking` : null,
+                ].filter(Boolean),
+            gallery: Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls : ['/flaw.png'],
+            isVisible: asset.isVisible !== false,
+          }));
+
+        setApiProperties(mapped);
+      } catch (error) {
+        console.error('Failed to load home assets from API:', error);
+        setApiProperties([]);
+      }
+    };
+
+    loadAssetsForHome();
+  }, [cmsLoading]);
+
+  const properties = apiProperties.length > 0 ? apiProperties : cmsProperties;
+
+  // Setup intersection observer for animations
+  useEffect(() => {
+    if (properties.length > 0) {
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              obs.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.07, rootMargin: '0px 0px -20px 0px' }
+      );
+
+      const SELECTORS = '.animate-on-scroll, .animate-on-scroll-left, .animate-on-scroll-right';
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
+        document.querySelectorAll(SELECTORS).forEach((el) => obs.observe(el));
+      }, 100);
+
+      return () => obs.disconnect();
+    }
+  }, [properties]);
 
   return (
     <section id="properties" className="py-32 bg-void relative overflow-hidden">

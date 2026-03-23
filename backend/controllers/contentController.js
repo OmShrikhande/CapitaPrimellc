@@ -78,14 +78,32 @@ const updateArrayItem = async (req, res) => {
 
     const docRef = db.collection(COLLECTION_NAME).doc(CONTENT_DOC_ID);
     const doc = await docRef.get();
-    
+
     if (!doc.exists) {
       return res.status(404).json({ success: false, message: 'Content not found' });
     }
 
     const data = doc.data();
-    const array = data[type] || [];
-    
+
+    // Handle nested paths like "services.items"
+    const keys = type.split('.');
+    let target = data;
+    let parent = null;
+    let lastKey = null;
+
+    // Navigate to the parent of the target array
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!target[keys[i]]) {
+        target[keys[i]] = {};
+      }
+      parent = target;
+      lastKey = keys[i];
+      target = target[keys[i]];
+    }
+
+    const finalKey = keys[keys.length - 1];
+    const array = target[finalKey] || [];
+
     if (index === 'add') {
       array.unshift(itemData); // Add to beginning like in CMSContext
     } else {
@@ -96,10 +114,19 @@ const updateArrayItem = async (req, res) => {
       array[idx] = itemData;
     }
 
-    await docRef.update({
-      [type]: array,
-      updatedAt: new Date()
-    });
+    // Update the nested structure
+    if (parent && lastKey) {
+      parent[lastKey][finalKey] = array;
+      await docRef.update({
+        [keys[0]]: parent[lastKey],
+        updatedAt: new Date()
+      });
+    } else {
+      await docRef.update({
+        [type]: array,
+        updatedAt: new Date()
+      });
+    }
 
     res.json({ success: true, message: `${type} updated successfully`, data: array });
   } catch (error) {
@@ -118,25 +145,52 @@ const deleteArrayItem = async (req, res) => {
 
     const docRef = db.collection(COLLECTION_NAME).doc(CONTENT_DOC_ID);
     const doc = await docRef.get();
-    
+
     if (!doc.exists) {
       return res.status(404).json({ success: false, message: 'Content not found' });
     }
 
     const data = doc.data();
-    const array = data[type] || [];
+
+    // Handle nested paths like "services.items"
+    const keys = type.split('.');
+    let target = data;
+    let parent = null;
+    let lastKey = null;
+
+    // Navigate to the parent of the target array
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!target[keys[i]]) {
+        target[keys[i]] = {};
+      }
+      parent = target;
+      lastKey = keys[i];
+      target = target[keys[i]];
+    }
+
+    const finalKey = keys[keys.length - 1];
+    const array = target[finalKey] || [];
     const idx = parseInt(index);
-    
+
     if (isNaN(idx) || idx < 0 || idx >= array.length) {
       return res.status(400).json({ success: false, message: 'Invalid index' });
     }
 
     array.splice(idx, 1);
 
-    await docRef.update({
-      [type]: array,
-      updatedAt: new Date()
-    });
+    // Update the nested structure
+    if (parent && lastKey) {
+      parent[lastKey][finalKey] = array;
+      await docRef.update({
+        [keys[0]]: parent[lastKey],
+        updatedAt: new Date()
+      });
+    } else {
+      await docRef.update({
+        [type]: array,
+        updatedAt: new Date()
+      });
+    }
 
     res.json({ success: true, message: `${type} deleted successfully`, data: array });
   } catch (error) {
