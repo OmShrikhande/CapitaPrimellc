@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import Navbar from './components/Navbar';
 import TimedInquiryPopup from './components/TimedInquiryPopup';
+import ScrollToTop from './components/ScrollToTop';
 import Hero from './components/Hero';
 import Offers from './components/Offers';
 import Marquee from './components/Marquee';
@@ -102,6 +103,7 @@ function AppShell() {
           <PropertyDetails key={propertyId} id={propertyId} />
         ) : null}
       </div>
+      <ScrollToTop />
     </div>
   );
 }
