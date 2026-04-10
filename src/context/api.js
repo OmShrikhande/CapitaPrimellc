@@ -134,6 +134,23 @@ export const submitInquiry = async (payload) => {
   return handleResponse(response);
 };
 
+export const createSiteConfirmationCheckout = async (payload = {}) => {
+  const response = await fetch(`${API_BASE_URL}/api/payments/checkout-session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response);
+};
+
+export const getCheckoutSessionStatus = async (sessionId) => {
+  const encoded = encodeURIComponent(String(sessionId || ''));
+  const response = await fetch(`${API_BASE_URL}/api/payments/checkout-session/${encoded}`, {
+    method: 'GET',
+  });
+  return handleResponse(response);
+};
+
 // Admin API functions
 export const adminAPI = {
   // Connection Test

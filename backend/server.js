@@ -10,6 +10,8 @@ const adminRoutes = require('./routes/admin');
 const assetRoutes = require('./routes/assetRoutes');
 const contentRoutes = require('./routes/content');
 const inquiryRoutes = require('./routes/inquiries');
+const paymentRoutes = require('./routes/payments');
+const { handleWebhook } = require('./controllers/paymentController');
 
 const http = require('http');
 const https = require('https');
@@ -213,6 +215,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
+// Stripe webhook must read raw body for signature verification.
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -233,6 +238,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Static files for uploads (permissive CORS for cross-origin <img> from the SPA)
 app.use(

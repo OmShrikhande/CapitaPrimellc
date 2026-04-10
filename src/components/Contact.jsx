@@ -2,7 +2,7 @@ import { useState, useCallback, useId } from 'react';
 import useReveal from '../hooks/useReveal';
 
 import { useCMS } from '../context/useCMS';
-import { submitInquiry } from '../context/api';
+import { createSiteConfirmationCheckout, submitInquiry } from '../context/api';
 
 const ICON_MAP = {
   location: (
@@ -45,7 +45,9 @@ const Contact = () => {
 
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [startingPayment, setStartingPayment] = useState(false);
   const [formError, setFormError] = useState('');
+  const [paymentError, setPaymentError] = useState('');
   const leftRef = useReveal('animate-on-scroll-left');
   const rightRef = useReveal('animate-on-scroll-right');
 
@@ -95,6 +97,24 @@ const Contact = () => {
       setFormError(getInquiryErrorMessage(err));
     } finally {
       setSending(false);
+    }
+  }, []);
+
+  const handlePaymentStart = useCallback(async () => {
+    setStartingPayment(true);
+    setPaymentError('');
+    try {
+      const response = await createSiteConfirmationCheckout({
+        source: 'contact',
+      });
+      const checkoutUrl = response?.data?.url;
+      if (!checkoutUrl) {
+        throw new Error('Payment session was not created. Please try again.');
+      }
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      setPaymentError(getInquiryErrorMessage(error));
+      setStartingPayment(false);
     }
   }, []);
 
@@ -189,6 +209,58 @@ const Contact = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div
+              className="rounded-sm p-5 lg:p-6 flex flex-col gap-4"
+              style={{
+                border: '1px solid rgba(201,168,76,0.25)',
+                background: 'rgba(201,168,76,0.06)',
+              }}
+            >
+              <div>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '9px',
+                    fontWeight: 600,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: '#C9A84C',
+                    marginBottom: 8,
+                  }}
+                >
+                  Site Confirmation
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '13px',
+                    lineHeight: 1.6,
+                    color: 'rgba(255,255,255,0.65)',
+                  }}
+                >
+                  Pay securely using Stripe Checkout to confirm your site booking.
+                </p>
+              </div>
+              {paymentError ? (
+                <div
+                  className="text-sm px-4 py-3 rounded-sm border border-red-500/35 bg-red-950/40 text-red-200/95 backdrop-blur-sm"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  {paymentError}
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={handlePaymentStart}
+                disabled={startingPayment}
+                className="btn-primary justify-center py-3"
+                style={{ opacity: startingPayment ? 0.85 : 1 }}
+              >
+                {startingPayment ? 'Redirecting to secure payment...' : 'Pay Site Confirmation Fee'}
+              </button>
             </div>
           </div>
 

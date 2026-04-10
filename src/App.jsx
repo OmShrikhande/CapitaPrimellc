@@ -18,6 +18,7 @@ import ListingsPage from './components/ListingsPage';
 import AdminPanel from './components/AdminPanel';
 import PropertyDetails from './components/PropertyDetails';
 import ThemeManager from './components/ThemeManager';
+import PaymentConfirmation from './components/PaymentConfirmation';
 import { CMSProvider } from './context/CMSContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { useCMS } from './context/useCMS';
@@ -29,6 +30,8 @@ function AppShell() {
     const hash = window.location.hash;
     if (hash === '#listings') return 'listings';
     if (hash === '#asdftyhnmkfdj') return 'admin';
+    if (hash.startsWith('#payment-confirmation')) return 'payment-confirmation';
+    if (hash.startsWith('#payment-cancelled')) return 'payment-cancelled';
     if (hash.startsWith('#property/')) return 'property';
     return 'home';
   });
@@ -43,6 +46,8 @@ function AppShell() {
       let newRoute = 'home';
       if (hash === '#listings') newRoute = 'listings';
       if (hash === '#asdftyhnmkfdj') newRoute = 'admin';
+      if (hash.startsWith('#payment-confirmation')) newRoute = 'payment-confirmation';
+      if (hash.startsWith('#payment-cancelled')) newRoute = 'payment-cancelled';
       if (hash.startsWith('#property/')) {
         newRoute = 'property';
         setPropertyId(hash.split('/')[1]);
@@ -101,6 +106,10 @@ function AppShell() {
           <AdminPanel />
         ) : route === 'property' ? (
           <PropertyDetails key={propertyId} id={propertyId} />
+        ) : route === 'payment-confirmation' ? (
+          <PaymentConfirmation />
+        ) : route === 'payment-cancelled' ? (
+          <PaymentConfirmation cancelled />
         ) : null}
       </div>
       <ScrollToTop />
