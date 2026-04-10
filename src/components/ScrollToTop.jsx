@@ -5,12 +5,15 @@ const ScrollToTop = () => {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 100) { // Show earlier
+      if (window.pageYOffset > 50) { // Show very early for testing
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
     };
+
+    // Show immediately for testing
+    setIsVisible(true);
 
     window.addEventListener('scroll', toggleVisibility);
     return () => window.removeEventListener('scroll', toggleVisibility);
@@ -28,26 +31,17 @@ const ScrollToTop = () => {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-50">
-      <div className="absolute inset-0 w-16 h-16 bg-primary/20 rounded-full animate-pulse"></div>
-      <button
-        onClick={scrollToTop}
-        className="relative w-12 h-12 bg-primary hover:bg-primary/80 text-black rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group border-2 border-primary/50"
-        aria-label="Scroll to top"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="transform group-hover:-translate-y-1 transition-transform duration-300"
-        >
-          <path d="M18 15l-6-6-6 6" />
-        </svg>
-      </button>
-    </div>
+    <button
+      onClick={scrollToTop}
+      className="fixed bottom-8 right-8 z-50 w-20 h-20 rounded-full group"
+      aria-label="Scroll to top"
+    >
+      <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-gold/10 via-gold/5 to-transparent rounded-full animate-pulse"></div>
+      <div className="absolute inset-2 w-16 h-16 bg-gold/15 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute inset-4 w-12 h-12 bg-gold hover:bg-gold/80 text-black rounded-full shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gold/60 flex items-center justify-center">
+        <span className="text-xl font-bold leading-none transform group-hover:-translate-y-0.5 transition-transform duration-300 select-none">↑</span>
+      </div>
+    </button>
   );
 };
 

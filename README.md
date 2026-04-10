@@ -1,6 +1,6 @@
 # CapitaPrimellc Frontend
 
-A modern React frontend application for CapitaPrimellc, featuring an admin panel and public asset listings.
+Welcome to CapitaPrimellc - your premier asset management platform! This modern React application empowers businesses with comprehensive asset tracking, featuring a powerful admin panel and intuitive public listings that make managing and discovering assets effortless.
 
 ## Features
 
@@ -229,6 +229,12 @@ The built files will be in the `dist/` directory, ready for deployment to any st
 Ensure the following environment variables are set in your deployment platform:
 
 - `VITE_API_BASE_URL`: Your backend API URL
+
+## Upcoming Features
+
+We're continuously improving CapitaPrimellc to provide the best asset management experience. Here are some exciting features coming soon:
+
+- **Payment Gateway Integration**: Enable secure online transactions for asset purchases, with support for multiple payment methods and currencies.
 
 ## Contributing
 
