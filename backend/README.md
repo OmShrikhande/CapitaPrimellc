@@ -449,17 +449,26 @@ Set these in **Render → Environment** (never commit real keys to git).
 | `FRONTEND_BASE_URL` | Public site origin for Checkout success/cancel URLs, e.g. `https://yourdomain.com` |
 
 ### Email (inquiry notifications)
-Gmail (recommended) uses an [App Password](https://myaccount.google.com/apppasswords), not your normal login password.
+
+**On Render, Gmail SMTP often times out** (outbound port 587/465 blocked or flaky). Prefer **[Resend](https://resend.com)** (HTTPS only, no SMTP):
+
+| Variable | Description |
+|----------|-------------|
+| `RESEND_API_KEY` | API key `re_…` from [Resend](https://resend.com). When set, **all** outgoing mail uses Resend (recommended on Render). |
+| `RESEND_FROM` | Verified sender, e.g. `Capita Prime <notify@yourdomain.com>`. For quick tests only, Resend allows `onboarding@resend.dev` (see Resend docs for limits). |
+| `RESEND_REQUEST_TIMEOUT_MS` | Optional fetch timeout (default 25000). |
+
+**Gmail SMTP** (fallback if `RESEND_API_KEY` is unset) uses an [App Password](https://myaccount.google.com/apppasswords), not your normal login password.
 
 | Variable | Description |
 |----------|-------------|
 | `GMAIL_USER` | Full Gmail address used to send mail |
 | `GMAIL_APP_PASSWORD` | 16-character app password |
 | `INQUIRY_NOTIFY_EMAIL` | Optional inbox to receive inquiry copies (defaults to a project address if unset) |
-| `SMTP_PREFER_IPV4` | Default `true`. On Render, resolving `smtp.gmail.com` to **IPv6** can cause `ENETUNREACH`; forcing IPv4 fixes delivery. Set to `false` only if you must use IPv6 SMTP. |
-| `SMTP_CONNECTION_TIMEOUT_MS` / `SMTP_GREETING_TIMEOUT_MS` / `SMTP_SOCKET_TIMEOUT_MS` | Optional timeouts (defaults ~15–20s) |
+| `SMTP_PREFER_IPV4` | Default `true`. On Render, IPv6 to Google can fail (`ENETUNREACH`); IPv4 lookup avoids that. |
+| `SMTP_CONNECTION_TIMEOUT_MS` / `SMTP_GREETING_TIMEOUT_MS` / `SMTP_SOCKET_TIMEOUT_MS` | Optional SMTP timeouts (defaults ~20–35s) |
 
-Generic SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) is also supported.
+Generic SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) is also supported when not using Resend.
 
 ## Deployment on Render
 This backend is configured for deployment on Render:
@@ -477,8 +486,9 @@ This backend is configured for deployment on Render:
    - Webhook URL: `https://<your-render-service>/api/payments/webhook` with event `checkout.session.completed`.
 
 2. **Email**
-   - Set `GMAIL_USER` + `GMAIL_APP_PASSWORD` on Render (local `.env` is not uploaded; Render shows `injecting env (0) from .env` when no file is present — that is normal).
-   - Keep **`SMTP_PREFER_IPV4` unset or `true`** so outbound SMTP uses IPv4 (avoids `ENETUNREACH` to Gmail’s IPv6 from some hosts).
+   - **Recommended on Render:** add **`RESEND_API_KEY`** (+ **`RESEND_FROM`** with a verified domain) so notifications use HTTPS and avoid SMTP timeouts entirely.
+   - **Alternative:** `GMAIL_USER` + `GMAIL_APP_PASSWORD` on Render (local `.env` is not uploaded; `injecting env (0) from .env` means no file on the server — use the Render dashboard).
+   - Keep **`SMTP_PREFER_IPV4` unset or `true`** if you still use Gmail SMTP (IPv4 avoids `ENETUNREACH` to Google’s IPv6).
 
 3. **CORS / frontend**
    - Point `FRONTEND_BASE_URL` at your real static site URL so Checkout redirects work when the browser does not send an `Origin` header.
