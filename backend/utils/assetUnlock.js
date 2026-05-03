@@ -1,14 +1,4 @@
-const Stripe = require('stripe');
-
-let stripeClient = null;
-
-const getStripe = () => {
-  if (!process.env.STRIPE_SECRET_KEY) return null;
-  if (!stripeClient) {
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
-  }
-  return stripeClient;
-};
+const { getStripeClientOrNull } = require('./stripeClient');
 
 /**
  * Confirms a Checkout Session unlocked full details for a special asset (server-side; never trust the client alone).
@@ -16,7 +6,7 @@ const getStripe = () => {
 const verifyAssetViewingUnlock = async (sessionId, assetId) => {
   if (!sessionId || !String(sessionId).startsWith('cs_')) return false;
   if (!assetId) return false;
-  const stripe = getStripe();
+  const stripe = getStripeClientOrNull();
   if (!stripe) return false;
   try {
     const session = await stripe.checkout.sessions.retrieve(String(sessionId));

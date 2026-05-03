@@ -1,6 +1,12 @@
+const dns = require('dns');
 const nodemailer = require('nodemailer');
 
 let transporter;
+
+/** Render and many clouds lack working IPv6 to smtp.gmail.com — ENETUNREACH on :: addresses. */
+const smtpLookupIpv4 = (hostname, _options, callback) => {
+  dns.lookup(hostname, { family: 4 }, callback);
+};
 
 /**
  * Gmail: use GMAIL_USER + GMAIL_APP_PASSWORD (Google Account → Security → App passwords).
@@ -18,6 +24,7 @@ const getTransporter = () => {
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   const secure = process.env.SMTP_SECURE === 'true' || port === 465;
   const isGmailHost = /gmail\.com/i.test(host || '');
+  const preferIpv4 = process.env.SMTP_PREFER_IPV4 !== 'false';
 
   transporter = nodemailer.createTransport({
     host,
@@ -28,6 +35,7 @@ const getTransporter = () => {
     connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT_MS || '15000', 10),
     greetingTimeout: parseInt(process.env.SMTP_GREETING_TIMEOUT_MS || '15000', 10),
     socketTimeout: parseInt(process.env.SMTP_SOCKET_TIMEOUT_MS || '20000', 10),
+    ...(preferIpv4 ? { lookup: smtpLookupIpv4 } : {}),
     ...(isGmailHost && !secure
       ? {
           requireTLS: true,

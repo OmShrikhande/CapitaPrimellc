@@ -1,29 +1,18 @@
 const crypto = require('crypto');
-const Stripe = require('stripe');
 const { db, isFirebaseConfigured } = require('../config/firebase');
+const { getStripeClient } = require('../utils/stripeClient');
 
 const REQUIRED_SITE_CONFIRMATION_ENV = ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID'];
 const REQUIRED_WEBHOOK_ENV_VARS = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
 const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 120;
 
-let stripeClient = null;
 const processedEventIds = new Set();
 
 const sanitize = (value, max) => {
   if (value == null) return '';
   const next = String(value).trim();
   return next.length > max ? next.slice(0, max) : next;
-};
-
-const getStripeClient = () => {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('Stripe is not configured');
-  }
-  if (!stripeClient) {
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
-  }
-  return stripeClient;
 };
 
 const getFrontendBaseUrl = (req) => {
@@ -56,11 +45,6 @@ const parseBoolean = (value, defaultValue = false) => {
 
 const createCheckoutSession = async (req, res) => {
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      const err = new Error('Stripe is not configured');
-      err.statusCode = 500;
-      throw err;
-    }
     const stripe = getStripeClient();
 
     const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -180,9 +164,6 @@ const createCheckoutSession = async (req, res) => {
 
 const getCheckoutSession = async (req, res) => {
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return res.status(500).json({ success: false, message: 'Stripe is not configured' });
-    }
     const stripe = getStripeClient();
 
     const sessionId = sanitize(req.params.sessionId, 255);

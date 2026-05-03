@@ -438,6 +438,29 @@ The following environment variables are required:
 - `FIREBASE_AUTH_PROVIDER_X509_CERT_URL`: Firebase auth provider cert URL
 - `FIREBASE_CLIENT_X509_CERT_URL`: Firebase client cert URL
 
+### Stripe (payments)
+Set these in **Render → Environment** (never commit real keys to git).
+
+| Variable | Description |
+|----------|-------------|
+| `STRIPE_SECRET_KEY` | **Secret** API key only: must start with `sk_test_` (test) or `sk_live_` (production). **Do not** put the publishable key (`pk_…`) here — Checkout will fail with `secret_key_required`. |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret from Stripe Dashboard → Webhooks (`whsec_…`). Not the API secret. |
+| `STRIPE_PRICE_ID` | Optional: `price_…` for fixed “site confirmation” checkout only. |
+| `FRONTEND_BASE_URL` | Public site origin for Checkout success/cancel URLs, e.g. `https://yourdomain.com` |
+
+### Email (inquiry notifications)
+Gmail (recommended) uses an [App Password](https://myaccount.google.com/apppasswords), not your normal login password.
+
+| Variable | Description |
+|----------|-------------|
+| `GMAIL_USER` | Full Gmail address used to send mail |
+| `GMAIL_APP_PASSWORD` | 16-character app password |
+| `INQUIRY_NOTIFY_EMAIL` | Optional inbox to receive inquiry copies (defaults to a project address if unset) |
+| `SMTP_PREFER_IPV4` | Default `true`. On Render, resolving `smtp.gmail.com` to **IPv6** can cause `ENETUNREACH`; forcing IPv4 fixes delivery. Set to `false` only if you must use IPv6 SMTP. |
+| `SMTP_CONNECTION_TIMEOUT_MS` / `SMTP_GREETING_TIMEOUT_MS` / `SMTP_SOCKET_TIMEOUT_MS` | Optional timeouts (defaults ~15–20s) |
+
+Generic SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) is also supported.
+
 ## Deployment on Render
 This backend is configured for deployment on Render:
 
@@ -445,6 +468,20 @@ This backend is configured for deployment on Render:
 2. **Start Command**: `pnpm run dev`
 3. **Environment**: Set all required environment variables in Render dashboard
 4. **Node Version**: 18.x or higher recommended
+
+### Production checklist (Render)
+
+1. **Stripe**
+   - `STRIPE_SECRET_KEY` = key starting with **`sk_`** from [API keys](https://dashboard.stripe.com/apikeys).
+   - Test and live keys must match your mode (`sk_test_` with test prices and test webhooks; `sk_live_` for production).
+   - Webhook URL: `https://<your-render-service>/api/payments/webhook` with event `checkout.session.completed`.
+
+2. **Email**
+   - Set `GMAIL_USER` + `GMAIL_APP_PASSWORD` on Render (local `.env` is not uploaded; Render shows `injecting env (0) from .env` when no file is present — that is normal).
+   - Keep **`SMTP_PREFER_IPV4` unset or `true`** so outbound SMTP uses IPv4 (avoids `ENETUNREACH` to Gmail’s IPv6 from some hosts).
+
+3. **CORS / frontend**
+   - Point `FRONTEND_BASE_URL` at your real static site URL so Checkout redirects work when the browser does not send an `Origin` header.
 
 ## Development Setup
 1. Clone the repository
