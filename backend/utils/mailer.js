@@ -17,12 +17,22 @@ const getTransporter = () => {
 
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+  const isGmailHost = /gmail\.com/i.test(host || '');
 
   transporter = nodemailer.createTransport({
     host,
     port,
     secure,
     auth: { user, pass },
+    // Avoid hanging the process for minutes when the network or provider blocks SMTP.
+    connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT_MS || '15000', 10),
+    greetingTimeout: parseInt(process.env.SMTP_GREETING_TIMEOUT_MS || '15000', 10),
+    socketTimeout: parseInt(process.env.SMTP_SOCKET_TIMEOUT_MS || '20000', 10),
+    ...(isGmailHost && !secure
+      ? {
+          requireTLS: true,
+        }
+      : {}),
   });
   return transporter;
 };

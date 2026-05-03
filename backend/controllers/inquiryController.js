@@ -81,15 +81,16 @@ const createInquiry = async (req, res) => {
       message,
     ].filter(Boolean);
 
-    try {
-      await sendMail({
+    // Never block the HTTP response on SMTP (Render → Gmail can hang or time out).
+    setImmediate(() => {
+      sendMail({
         to: notifyTo,
         subject: `[Capita Prime] Inquiry from ${name}`,
         text: lines.join('\n'),
+      }).catch((mailErr) => {
+        console.error('Inquiry notify email failed:', mailErr.message);
       });
-    } catch (mailErr) {
-      console.error('Inquiry email failed:', mailErr.message);
-    }
+    });
 
     return res.status(201).json({
       success: true,
