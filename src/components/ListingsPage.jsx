@@ -936,6 +936,12 @@ const ListingsPage = () => {
   }, []);
 
   useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  useEffect(() => {
     // Setup observer for animations after assets are loaded
     if (assets.length > 0) {
       const obs = new IntersectionObserver(

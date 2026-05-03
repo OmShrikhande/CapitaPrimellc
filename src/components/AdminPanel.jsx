@@ -11,6 +11,7 @@ import TestimonialsView from './admin/TestimonialsView';
 import OffersView from './admin/OffersView';
 import ThemeView from './admin/ThemeView';
 import InquiriesView from './admin/InquiriesView';
+import PaymentsView from './admin/PaymentsView';
 
 const SidebarItem = ({ id, label, icon, activeTab, setActiveTab }) => (
   <button
@@ -270,6 +271,7 @@ const AdminPanel = () => {
           <SidebarItem id="dashboard" label="Nexus Overview" icon="🛰️" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="assets" label="Asset Inventory" icon="📦" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="inquiries" label="Inquiry Inbox" icon="✉️" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarItem id="payments" label="Stripe Activity" icon="💳" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="offers" label="Offers Matrix" icon="🏷️" activeTab={activeTab} setActiveTab={setActiveTab} />
           <SidebarItem id="content" label="Site Architect" icon="🏗️" activeTab={activeTab} setActiveTab={setActiveTab} />
           
@@ -304,7 +306,9 @@ const AdminPanel = () => {
                 ? 'Nexus Console'
                 : activeTab === 'inquiries'
                   ? 'Inquiry Inbox'
-                  : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                  : activeTab === 'payments'
+                    ? 'Stripe activity'
+                    : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] text-gold font-bold tracking-widest uppercase bg-gold/5 px-3 py-0.5 rounded-full border border-gold/10">Live Production Node</span>
@@ -336,6 +340,7 @@ const AdminPanel = () => {
             {activeTab === 'dashboard' && <DashboardView data={data} setActiveTab={setActiveTab} resetData={resetData} />}
             {activeTab === 'assets' && <AssetsView />}
             {activeTab === 'inquiries' && <InquiriesView />}
+            {activeTab === 'payments' && <PaymentsView />}
             {activeTab === 'offers' && (
               <OffersView
                 offers={Array.isArray(data.offers?.items) ? data.offers.items : []}

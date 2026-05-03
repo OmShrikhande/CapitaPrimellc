@@ -1,3 +1,18 @@
+/** Lat / lng / marker size for the COBE globe (admin-editable). */
+export const DEFAULT_HERO_GLOBE_MARKERS = [
+  { lat: 25.2048, lng: 55.2708, size: 0.18, name: 'Dubai Main' },
+  { lat: 25.1124, lng: 55.139, size: 0.12, name: 'Palm Jumeirah' },
+  { lat: 25.0847, lng: 55.1568, size: 0.1, name: 'Emirates Hills' },
+  { lat: 25.2045, lng: 55.3425, size: 0.1, name: 'Creek Harbour' },
+  { lat: 25.112, lng: 55.279, size: 0.1, name: 'MBR City' },
+  { lat: 25.1972, lng: 55.2744, size: 0.1, name: 'Downtown' },
+  { lat: 25.0777, lng: 55.1304, size: 0.08, name: 'Marina' },
+  { lat: 25.1314, lng: 55.1887, size: 0.07, name: 'Jumeirah' },
+  { lat: 24.4539, lng: 54.3773, size: 0.07, name: 'Abu Dhabi' },
+  { lat: 51.5074, lng: -0.1278, size: 0.04, name: 'London' },
+  { lat: 40.7128, lng: -74.006, size: 0.04, name: 'New York' },
+];
+
 export const INITIAL_DATA = {
   theme: {
     primary: '#c5a059',
@@ -24,7 +39,8 @@ export const INITIAL_DATA = {
       label: 'RERA Certified',
       subLabel: 'DLD Approved Agency',
     },
-    bottomLabel: 'Interactive Intelligence � Dubai, UAE',
+    bottomLabel: 'Interactive Intelligence · Dubai, UAE',
+    globeMarkers: DEFAULT_HERO_GLOBE_MARKERS,
   },
   stats: [
     { value: 4.2, suffix: 'B+', prefix: 'AED ', label: 'Total Transaction Volume', decimal: true },

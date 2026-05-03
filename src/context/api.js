@@ -243,6 +243,11 @@ export const adminAPI = {
     return cachedRequest(`${API_BASE_URL}/api/admin/profile`, { auth: true });
   },
 
+  /** Stripe checkout records written by webhook (payments + asset viewing unlocks). */
+  getStripeActivity: async () => {
+    return cachedRequest(`${API_BASE_URL}/api/admin/stripe-activity`, { auth: true });
+  },
+
   // Logout (client-side only)
   logout: () => {
     localStorage.removeItem('adminToken');

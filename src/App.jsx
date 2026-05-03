@@ -68,6 +68,7 @@ function AppShell() {
         setUnlockSession(us);
       }
       setRoute(newRoute);
+      document.body.style.overflow = '';
       window.scrollTo(0, 0);
     };
 

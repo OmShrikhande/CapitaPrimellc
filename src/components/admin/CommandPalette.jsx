@@ -16,6 +16,7 @@ const CommandPalette = ({ isOpen, onClose, data, setActiveTab }) => {
     })),
     { type: 'View', label: 'Go to Nexus Overview', action: () => { setActiveTab('dashboard'); onClose(); } },
     { type: 'View', label: 'Go to Site Architect', action: () => { setActiveTab('content'); onClose(); } },
+    { type: 'View', label: 'Go to Stripe activity', action: () => { setActiveTab('payments'); onClose(); } },
     { type: 'Command', label: 'Toggle Maintenance Mode', action: () => { alert('Maintenance Mode Toggled'); onClose(); } },
   ].filter(r => r.label.toLowerCase().includes(search.toLowerCase()));
 

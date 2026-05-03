@@ -1,11 +1,25 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { useCMS } from '../context/useCMS';
 import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_HERO_GLOBE_MARKERS } from '../context/initialData';
 
 const GLOBE_SIZE = 520;
 
-const CobeGlobe = () => {
+const GLOBE_FALLBACK_MARKER = [{ location: [25.2048, 55.2708], size: 0.18 }];
+
+const normalizeGlobeMarkersForCobe = (markers) => {
+  const list = Array.isArray(markers) && markers.length > 0 ? markers : DEFAULT_HERO_GLOBE_MARKERS;
+  const mapped = list
+    .map((m) => ({
+      location: [Number(m.lat), Number(m.lng)],
+      size: Number(m.size) > 0 && Number.isFinite(Number(m.size)) ? Number(m.size) : 0.08,
+    }))
+    .filter((m) => m.location.every((x) => Number.isFinite(x)));
+  return mapped.length > 0 ? mapped : GLOBE_FALLBACK_MARKER;
+};
+
+const CobeGlobe = ({ markers }) => {
   const canvasRef = useRef(null);
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
@@ -26,6 +40,8 @@ const CobeGlobe = () => {
     }
   }, []);
 
+  const markersKey = useMemo(() => JSON.stringify(markers ?? null), [markers]);
+
   useEffect(() => {
     let width = GLOBE_SIZE;
     const onResize = () => {
@@ -40,6 +56,8 @@ const CobeGlobe = () => {
     let theta = 0.42;
 
     setTimeout(() => setIsLoaded(true), 100);
+
+    const markerPayload = normalizeGlobeMarkersForCobe(markers);
 
     globeRef.current = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
@@ -56,16 +74,7 @@ const CobeGlobe = () => {
       glowColor: [0.7, 0.5, 0.15],
       scale: 1,
       offset: [0, 0],
-      markers: [
-        { location: [25.2048, 55.2708], size: 0.18 }, // Dubai Main
-        { location: [25.1124, 55.1390], size: 0.12 }, // Palm Jumeirah
-        { location: [25.1972, 55.2744], size: 0.1 },  // Downtown
-        { location: [25.0777, 55.1304], size: 0.08 }, // Marina
-        { location: [25.1314, 55.1887], size: 0.07 }, // Jumeirah
-        { location: [24.4539, 54.3773], size: 0.07 }, // Abu Dhabi
-        { location: [51.5074, -0.1278], size: 0.04 },
-        { location: [40.7128, -74.006], size: 0.04 },
-      ],
+      markers: markerPayload,
       onRender: (state) => {
         if (!pointerInteracting.current) {
           phi += 0.003;
@@ -81,7 +90,7 @@ const CobeGlobe = () => {
       globeRef.current?.destroy();
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [markersKey]);
 
   return (
     <div
@@ -306,7 +315,7 @@ const Hero = () => {
             style={{ zIndex: 5 }}
           >
             <div className="relative w-full flex items-center justify-center">
-              <CobeGlobe />
+              <CobeGlobe markers={hero.globeMarkers} />
 
               <div
                 className="hero-float-badge hidden lg:block"

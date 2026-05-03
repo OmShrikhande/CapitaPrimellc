@@ -3,6 +3,7 @@ const { login, getProfile } = require('../controllers/adminController');
 const { listInquiries } = require('../controllers/inquiryController');
 const { getTheme, updateTheme, getAllThemes, createThemePreset, activateTheme } = require('../controllers/themeController');
 const { authenticateToken } = require('../middleware/auth');
+const { listStripeActivity } = require('../controllers/paymentAdminController');
 
 const router = express.Router();
 
@@ -12,6 +13,7 @@ router.post('/login', login);
 // Protected admin routes
 router.get('/profile', authenticateToken, getProfile);
 router.get('/inquiries', authenticateToken, listInquiries);
+router.get('/stripe-activity', authenticateToken, listStripeActivity);
 
 // Theme management routes
 router.get('/theme', getTheme); // Public - anyone can get current theme

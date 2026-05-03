@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
+import { INITIAL_DATA, DEFAULT_HERO_GLOBE_MARKERS } from '../../context/initialData';
+
+const mergeHeroFromCms = (h) => ({
+  ...INITIAL_DATA.hero,
+  ...(h || {}),
+  floatBadge1: { ...INITIAL_DATA.hero.floatBadge1, ...(h?.floatBadge1 || {}) },
+  floatBadge2: { ...INITIAL_DATA.hero.floatBadge2, ...(h?.floatBadge2 || {}) },
+  locations: Array.isArray(h?.locations) && h.locations.length ? [...h.locations] : [...INITIAL_DATA.hero.locations],
+  globeMarkers:
+    Array.isArray(h?.globeMarkers) && h.globeMarkers.length ? [...h.globeMarkers] : [...DEFAULT_HERO_GLOBE_MARKERS],
+});
 
 const ContentView = ({ data, updateData }) => {
-  const [hero, setHero] = useState(data.hero || {});
+  const [hero, setHero] = useState(() => mergeHeroFromCms(data?.hero));
   const [about, setAbout] = useState(data.about || {});
   const [stats, setStats] = useState(data.stats || []);
   const [contact, setContact] = useState(data.contact || { info: [] });
@@ -53,6 +64,25 @@ const ContentView = ({ data, updateData }) => {
     setOffers({ ...offers, items: newItems });
   };
 
+  const markersList = Array.isArray(hero.globeMarkers) && hero.globeMarkers.length ? hero.globeMarkers : DEFAULT_HERO_GLOBE_MARKERS;
+
+  const updateGlobeMarker = (index, field, value) => {
+    const next = markersList.map((m, i) => (i === index ? { ...m, [field]: value } : m));
+    setHero({ ...hero, globeMarkers: next });
+  };
+
+  const addGlobeMarker = () => {
+    setHero({
+      ...hero,
+      globeMarkers: [...markersList, { lat: 25.2, lng: 55.27, size: 0.06, name: 'New marker' }],
+    });
+  };
+
+  const removeGlobeMarker = (index) => {
+    const next = markersList.filter((_, i) => i !== index);
+    setHero({ ...hero, globeMarkers: next.length ? next : [...DEFAULT_HERO_GLOBE_MARKERS] });
+  };
+
   return (
     <div className="space-y-12 w-full max-w-7xl mx-auto pb-20">
       <div className="px-2">
@@ -62,36 +92,158 @@ const ContentView = ({ data, updateData }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Hero Section */}
-        <div className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group">
+        <div className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group lg:col-span-2">
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
             <span className="text-6xl">🔭</span>
           </div>
           <h3 className="text-2xl font-serif font-bold mb-10 text-gold tracking-tight border-b border-white/5 pb-6 flex items-center gap-4">
             <span className="w-2 h-2 rounded-full bg-gold animate-pulse"></span>
-            Hero Nexus
+            Hero & globe (home)
           </h3>
+          <p className="text-[11px] text-gray-500 mb-8 leading-relaxed max-w-3xl">
+            Edit headline copy, location pills under the CTAs, the prime listing card on the globe, and map pins (latitude, longitude, size 0.04–0.2). The live site reads this from the same CMS document as the rest of Site Architect.
+          </p>
           <div className="space-y-8">
             <div>
               <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Section Label</label>
-              <input value={hero.label} onChange={e => setHero({...hero, label: e.target.value})} className="admin-input w-full" />
+              <input value={hero.label || ''} onChange={(e) => setHero({ ...hero, label: e.target.value })} className="admin-input w-full" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Title Line 1</label>
-                <input value={hero.titleLine1} onChange={e => setHero({...hero, titleLine1: e.target.value})} className="admin-input w-full" />
+                <input value={hero.titleLine1 || ''} onChange={(e) => setHero({ ...hero, titleLine1: e.target.value })} className="admin-input w-full" />
               </div>
               <div>
                 <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Title Line 2 (Shimmer)</label>
-                <input value={hero.titleLine2} onChange={e => setHero({...hero, titleLine2: e.target.value})} className="admin-input w-full text-gold" />
+                <input value={hero.titleLine2 || ''} onChange={(e) => setHero({ ...hero, titleLine2: e.target.value })} className="admin-input w-full text-gold" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Title Line 3</label>
+                <input value={hero.titleLine3 || ''} onChange={(e) => setHero({ ...hero, titleLine3: e.target.value })} className="admin-input w-full" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Title Line 4</label>
+                <input value={hero.titleLine4 || ''} onChange={(e) => setHero({ ...hero, titleLine4: e.target.value })} className="admin-input w-full" />
               </div>
             </div>
             <div>
               <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Hero Narrative</label>
-              <textarea rows="4" value={hero.description} onChange={e => setHero({...hero, description: e.target.value})} className="admin-input w-full leading-relaxed" />
+              <textarea rows="4" value={hero.description || ''} onChange={(e) => setHero({ ...hero, description: e.target.value })} className="admin-input w-full leading-relaxed" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Primary CTA</label>
+                <input value={hero.ctaPrimary || ''} onChange={(e) => setHero({ ...hero, ctaPrimary: e.target.value })} className="admin-input w-full" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Secondary CTA</label>
+                <input value={hero.ctaSecondary || ''} onChange={(e) => setHero({ ...hero, ctaSecondary: e.target.value })} className="admin-input w-full" />
+              </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Bottom Label</label>
-              <input value={hero.bottomLabel} onChange={e => setHero({...hero, bottomLabel: e.target.value})} className="admin-input w-full" />
+              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Location pills (one per line)</label>
+              <textarea
+                rows={5}
+                value={(hero.locations || []).join('\n')}
+                onChange={(e) =>
+                  setHero({
+                    ...hero,
+                    locations: e.target.value
+                      .split('\n')
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+                placeholder={'Palm Jumeirah\nEmirates Hills'}
+                className="admin-input w-full leading-relaxed font-mono text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border border-white/10 rounded-2xl p-6 bg-white/[0.02]">
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">Prime listing (globe card)</p>
+                <div>
+                  <label className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-2">Badge label</label>
+                  <input
+                    value={hero.floatBadge1?.label || ''}
+                    onChange={(e) => setHero({ ...hero, floatBadge1: { ...hero.floatBadge1, label: e.target.value } })}
+                    className="admin-input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-2">Price / value line</label>
+                  <input
+                    value={hero.floatBadge1?.value || ''}
+                    onChange={(e) => setHero({ ...hero, floatBadge1: { ...hero.floatBadge1, value: e.target.value } })}
+                    className="admin-input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-2">Sub-label (e.g. plot name)</label>
+                  <input
+                    value={hero.floatBadge1?.subLabel || ''}
+                    onChange={(e) => setHero({ ...hero, floatBadge1: { ...hero.floatBadge1, subLabel: e.target.value } })}
+                    className="admin-input w-full"
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">Second badge</p>
+                <div>
+                  <label className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-2">Label</label>
+                  <input
+                    value={hero.floatBadge2?.label || ''}
+                    onChange={(e) => setHero({ ...hero, floatBadge2: { ...hero.floatBadge2, label: e.target.value } })}
+                    className="admin-input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-2">Sub-label</label>
+                  <input
+                    value={hero.floatBadge2?.subLabel || ''}
+                    onChange={(e) => setHero({ ...hero, floatBadge2: { ...hero.floatBadge2, subLabel: e.target.value } })}
+                    className="admin-input w-full"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Bottom label (under globe)</label>
+              <input value={hero.bottomLabel || ''} onChange={(e) => setHero({ ...hero, bottomLabel: e.target.value })} className="admin-input w-full" />
+            </div>
+            <div className="border border-white/10 rounded-2xl p-6 bg-white/[0.02] space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">Globe markers (lat, lng, size)</p>
+                <button type="button" onClick={addGlobeMarker} className="text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg bg-gold/15 text-gold border border-gold/30 hover:bg-gold/25">
+                  Add pin
+                </button>
+              </div>
+              <div className="space-y-3 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+                {markersList.map((m, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-2 items-end bg-black/30 rounded-xl p-3 border border-white/5">
+                    <div className="col-span-12 sm:col-span-3">
+                      <label className="block text-[8px] text-gray-600 uppercase mb-1">Name</label>
+                      <input value={m.name || ''} onChange={(e) => updateGlobeMarker(i, 'name', e.target.value)} className="admin-input w-full py-2 text-xs" />
+                    </div>
+                    <div className="col-span-4 sm:col-span-2">
+                      <label className="block text-[8px] text-gray-600 uppercase mb-1">Lat</label>
+                      <input type="number" step="any" value={m.lat} onChange={(e) => updateGlobeMarker(i, 'lat', e.target.value)} className="admin-input w-full py-2 text-xs" />
+                    </div>
+                    <div className="col-span-4 sm:col-span-2">
+                      <label className="block text-[8px] text-gray-600 uppercase mb-1">Lng</label>
+                      <input type="number" step="any" value={m.lng} onChange={(e) => updateGlobeMarker(i, 'lng', e.target.value)} className="admin-input w-full py-2 text-xs" />
+                    </div>
+                    <div className="col-span-4 sm:col-span-2">
+                      <label className="block text-[8px] text-gray-600 uppercase mb-1">Size</label>
+                      <input type="number" step="0.01" value={m.size} onChange={(e) => updateGlobeMarker(i, 'size', e.target.value)} className="admin-input w-full py-2 text-xs" />
+                    </div>
+                    <div className="col-span-12 sm:col-span-3 flex justify-end pb-1">
+                      <button type="button" onClick={() => removeGlobeMarker(i)} className="text-[9px] font-black uppercase text-red-400/80 hover:text-red-300">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
