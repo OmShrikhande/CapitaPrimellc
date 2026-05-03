@@ -275,16 +275,6 @@ const TimedInquiryPopup = ({ enabled }) => {
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <input
-                  type="text"
-                  name="hp_field"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  className="absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0"
-                  style={{ clip: 'rect(0,0,0,0)' }}
-                  aria-hidden="true"
-                />
-
                 {formError ? (
                   <div
                     className="text-sm px-4 py-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-300/90"

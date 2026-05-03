@@ -65,11 +65,6 @@ const Contact = () => {
 
     try {
       const formData = new FormData(form);
-      const hp = formData.get('hp_field');
-      if (hp != null && String(hp).trim() !== '') {
-        setFormError('Unable to send this submission.');
-        return;
-      }
 
       const name = String(formData.get('name') ?? '').trim();
       const email = String(formData.get('email') ?? '').trim();
@@ -328,15 +323,6 @@ const Contact = () => {
                 aria-describedby={formError ? formErrorId : undefined}
               >
                 <div className="contact-form-inner flex flex-col gap-5">
-                  <input
-                    type="text"
-                    name="hp_field"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    className="sr-only"
-                    aria-hidden="true"
-                  />
-
                   {formError ? (
                     <div
                       id={formErrorId}

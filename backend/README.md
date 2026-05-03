@@ -443,10 +443,24 @@ Set these in **Render → Environment** (never commit real keys to git).
 
 | Variable | Description |
 |----------|-------------|
-| `STRIPE_SECRET_KEY` | **Secret** API key only: must start with `sk_test_` (test) or `sk_live_` (production). **Do not** put the publishable key (`pk_…`) here — Checkout will fail with `secret_key_required`. |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret from Stripe Dashboard → Webhooks (`whsec_…`). Not the API secret. |
-| `STRIPE_PRICE_ID` | Optional: `price_…` for fixed “site confirmation” checkout only. |
-| `FRONTEND_BASE_URL` | Public site origin for Checkout success/cancel URLs, e.g. `https://yourdomain.com` |
+| `STRIPE_SECRET_KEY` | **Secret** key only: `sk_test_…` or `sk_live_…` from **Developers → API keys** (Reveal). Never use `pk_…` here — Checkout will error with `secret_key_required`. |
+| `STRIPE_WEBHOOK_SECRET` | **`whsec_…` signing secret** from a **Webhook endpoint** (below). **Not** listed on the API keys page. Optional until you register a webhook URL. |
+| `STRIPE_PRICE_ID` | Optional `price_…` for fixed “site confirmation” checkout only (Products → create price). |
+| `FRONTEND_BASE_URL` | Your public site URL for Checkout return URLs, e.g. `https://yourdomain.com` |
+
+#### Where each Stripe value comes from
+
+1. **Secret key (`sk_test_…`)** — [Dashboard](https://dashboard.stripe.com) → turn **Test mode** on → **Developers** → **API keys** → **Secret key** → Reveal. This alone is enough for **Pay & unlock** and creating Checkout sessions.
+
+2. **Publishable key (`pk_test_…`)** — same **API keys** page. This app creates Checkout **on the server** with the secret key; you do **not** need `pk_` on the backend. Use `pk_` only if you add Stripe.js on the frontend later.
+
+3. **Webhook signing secret (`whsec_…`)** — **Developers** → **Webhooks** → **Add endpoint**  
+   - **URL:** `https://<your-render-service>.onrender.com/api/payments/webhook`  
+   - **Events:** `checkout.session.completed`  
+   - Save, then open that endpoint → **Signing secret** → **Reveal** → copy `whsec_…` → Render env `STRIPE_WEBHOOK_SECRET`.  
+   If you have not added a webhook yet, you can leave `STRIPE_WEBHOOK_SECRET` unset; Checkout still works. Add it when you want Stripe to POST payment events to your server (e.g. logging to Firebase).
+
+4. **Price ID (`price_…`)** — **Product catalog** → product → **Pricing** → copy the Price’s API ID. Only needed for the optional site-confirmation flow using `STRIPE_PRICE_ID`.
 
 ### Email (Gmail only — inquiry notifications)
 
@@ -474,9 +488,9 @@ This backend is configured for deployment on Render:
 ### Production checklist (Render)
 
 1. **Stripe**
-   - `STRIPE_SECRET_KEY` = key starting with **`sk_`** from [API keys](https://dashboard.stripe.com/apikeys).
-   - Test and live keys must match your mode (`sk_test_` with test prices and test webhooks; `sk_live_` for production).
-   - Webhook URL: `https://<your-render-service>/api/payments/webhook` with event `checkout.session.completed`.
+   - `STRIPE_SECRET_KEY` = **Secret** key (`sk_test_` or `sk_live_`) from [API keys](https://dashboard.stripe.com/apikeys) — not the Publishable key.
+   - Match test vs live with your Dashboard mode and prices.
+   - Webhook (optional at first): add endpoint `https://<your-render-service>/api/payments/webhook`, event `checkout.session.completed`, then copy **`whsec_…`** into `STRIPE_WEBHOOK_SECRET`.
 
 2. **Email (Gmail only)**
    - Set **`GMAIL_USER`** and **`GMAIL_APP_PASSWORD`** in the Render dashboard (not only in a local `.env`; Render often shows `injecting env (0) from .env` when no file exists on the server).
