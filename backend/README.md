@@ -448,27 +448,20 @@ Set these in **Render → Environment** (never commit real keys to git).
 | `STRIPE_PRICE_ID` | Optional: `price_…` for fixed “site confirmation” checkout only. |
 | `FRONTEND_BASE_URL` | Public site origin for Checkout success/cancel URLs, e.g. `https://yourdomain.com` |
 
-### Email (inquiry notifications)
+### Email (Gmail only — inquiry notifications)
 
-**On Render, Gmail SMTP often times out** (outbound port 587/465 blocked or flaky). Prefer **[Resend](https://resend.com)** (HTTPS only, no SMTP):
-
-| Variable | Description |
-|----------|-------------|
-| `RESEND_API_KEY` | API key `re_…` from [Resend](https://resend.com). When set, **all** outgoing mail uses Resend (recommended on Render). |
-| `RESEND_FROM` | Verified sender, e.g. `Capita Prime <notify@yourdomain.com>`. For quick tests only, Resend allows `onboarding@resend.dev` (see Resend docs for limits). |
-| `RESEND_REQUEST_TIMEOUT_MS` | Optional fetch timeout (default 25000). |
-
-**Gmail SMTP** (fallback if `RESEND_API_KEY` is unset) uses an [App Password](https://myaccount.google.com/apppasswords), not your normal login password.
+Use a Google **[App password](https://myaccount.google.com/apppasswords)** (not your normal Gmail password). The account must have 2-Step Verification enabled to create app passwords.
 
 | Variable | Description |
 |----------|-------------|
-| `GMAIL_USER` | Full Gmail address used to send mail |
-| `GMAIL_APP_PASSWORD` | 16-character app password |
-| `INQUIRY_NOTIFY_EMAIL` | Optional inbox to receive inquiry copies (defaults to a project address if unset) |
-| `SMTP_PREFER_IPV4` | Default `true`. On Render, IPv6 to Google can fail (`ENETUNREACH`); IPv4 lookup avoids that. |
-| `SMTP_CONNECTION_TIMEOUT_MS` / `SMTP_GREETING_TIMEOUT_MS` / `SMTP_SOCKET_TIMEOUT_MS` | Optional SMTP timeouts (defaults ~20–35s) |
+| `GMAIL_USER` | Full Gmail address used to send mail (e.g. `you@gmail.com`) |
+| `GMAIL_APP_PASSWORD` | 16-character app password from Google |
+| `SMTP_FROM` | Optional “From” display; defaults to `GMAIL_USER` |
+| `INQUIRY_NOTIFY_EMAIL` | Optional inbox to receive inquiry copies (defaults in code if unset) |
+| `SMTP_PREFER_IPV4` | Default `true`. Forces IPv4 for SMTP (avoids `ENETUNREACH` to Google’s IPv6 on some hosts, e.g. Render). |
+| `SMTP_CONNECTION_TIMEOUT_MS` / `SMTP_GREETING_TIMEOUT_MS` / `SMTP_SOCKET_TIMEOUT_MS` | Optional timeouts (defaults ~20–35s) |
 
-Generic SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) is also supported when not using Resend.
+**If SMTP still times out on your host:** try explicit Gmail endpoints on Render — `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_SECURE=true` (and keep `GMAIL_USER` / `GMAIL_APP_PASSWORD`). Some networks block 587 but allow 465. If both fail, the host may block outbound SMTP entirely; that is a hosting policy limit, not something this repo can bypass while staying on Gmail SMTP only.
 
 ## Deployment on Render
 This backend is configured for deployment on Render:
@@ -485,10 +478,10 @@ This backend is configured for deployment on Render:
    - Test and live keys must match your mode (`sk_test_` with test prices and test webhooks; `sk_live_` for production).
    - Webhook URL: `https://<your-render-service>/api/payments/webhook` with event `checkout.session.completed`.
 
-2. **Email**
-   - **Recommended on Render:** add **`RESEND_API_KEY`** (+ **`RESEND_FROM`** with a verified domain) so notifications use HTTPS and avoid SMTP timeouts entirely.
-   - **Alternative:** `GMAIL_USER` + `GMAIL_APP_PASSWORD` on Render (local `.env` is not uploaded; `injecting env (0) from .env` means no file on the server — use the Render dashboard).
-   - Keep **`SMTP_PREFER_IPV4` unset or `true`** if you still use Gmail SMTP (IPv4 avoids `ENETUNREACH` to Google’s IPv6).
+2. **Email (Gmail only)**
+   - Set **`GMAIL_USER`** and **`GMAIL_APP_PASSWORD`** in the Render dashboard (not only in a local `.env`; Render often shows `injecting env (0) from .env` when no file exists on the server).
+   - Keep **`SMTP_PREFER_IPV4` unset or `true`** (IPv4 avoids broken IPv6 routes to Google).
+   - If you still see connection timeouts, set **`SMTP_HOST=smtp.gmail.com`**, **`SMTP_PORT=465`**, **`SMTP_SECURE=true`**, and the same **`SMTP_USER` / `SMTP_PASS`** as your Gmail + app password (see table above).
 
 3. **CORS / frontend**
    - Point `FRONTEND_BASE_URL` at your real static site URL so Checkout redirects work when the browser does not send an `Origin` header.
