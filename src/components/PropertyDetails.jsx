@@ -1,25 +1,82 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useCMS } from '../context/useCMS';
-import { getImageURL } from '../context/api';
+import { createAssetViewingCheckout, fetchPublicAsset, getImageURL } from '../context/api';
 import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { PriceOfferDisplay } from './PriceOfferDisplay';
 
-const PropertyDetails = ({ id }) => {
+const formatAed = (n) => {
+  if (n == null || n === '') return '—';
+  const num = Number(n);
+  if (!Number.isFinite(num)) return String(n);
+  return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+};
+
+const PropertyDetails = ({ id, unlockSession }) => {
   const { data } = useCMS();
   const { theme } = useTheme();
-  const property = data?.properties?.items?.find(p => p.id === id);
+  const cmsProperty = data?.properties?.items?.find((p) => p.id === id);
 
-  const resolveImg = (src) => getImageURL(src) || src;
+  const [apiAsset, setApiAsset] = useState(null);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError, setPayError] = useState('');
 
   const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     setActiveIdx(0);
+  }, [id, unlockSession]);
+
+  useEffect(() => {
+    if (cmsProperty || !id) return;
+
+    let cancelled = false;
+    const load = async () => {
+      setApiLoading(true);
+      setApiError('');
+      try {
+        const res = await fetchPublicAsset(id, unlockSession);
+        if (cancelled) return;
+        if (res.success && res.data) {
+          setApiAsset(res.data);
+        } else {
+          setApiError('Listing not found.');
+        }
+      } catch (e) {
+        if (!cancelled) setApiError(e?.message || 'Failed to load listing.');
+      } finally {
+        if (!cancelled) setApiLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, unlockSession, cmsProperty]);
+
+  const handlePayToView = useCallback(async () => {
+    if (!id) return;
+    setPayLoading(true);
+    setPayError('');
+    try {
+      const res = await createAssetViewingCheckout(id, { source: 'property-details' });
+      const url = res?.data?.url;
+      if (!url) throw new Error('Checkout could not be started.');
+      window.location.assign(url);
+    } catch (e) {
+      setPayError(e?.message || 'Payment could not be started.');
+      setPayLoading(false);
+    }
   }, [id]);
 
-  if (!property) {
+  const resolveImg = (src) => getImageURL(src) || src;
+
+  if (!id) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
         <h2 className="text-3xl font-serif">Property Not Found</h2>
@@ -27,163 +84,358 @@ const PropertyDetails = ({ id }) => {
     );
   }
 
-  const gallery = property.gallery?.length ? property.gallery : ['/flaw.png'];
+  if (cmsProperty) {
+    const gallery = cmsProperty.gallery?.length ? cmsProperty.gallery : ['/flaw.png'];
+    const resolvedGallery = gallery.map((g) => resolveImg(g));
+    const activeImage = resolvedGallery[activeIdx] || resolvedGallery[0];
+
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: theme.secondary, color: theme.accent }}>
+        <Navbar />
+
+        <main className="pt-32 pb-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="space-y-6">
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative group">
+                <img
+                  src={activeImage}
+                  alt={cmsProperty.title}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  loading="eager"
+                  decoding="async"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                <div className="absolute top-6 left-6">
+                  <span className="px-4 py-2 bg-gold text-black text-[10px] font-black tracking-widest uppercase rounded-full">
+                    {cmsProperty.badge}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-4">
+                {gallery.map((img, idx) => (
+                  <button
+                    key={`${img}-${idx}`}
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${activeIdx === idx ? 'border-gold' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                  >
+                    <img
+                      src={resolvedGallery[idx]}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-10">
+              <div>
+                <div className="flex items-center gap-3 text-gold text-[11px] font-black tracking-[0.4em] uppercase mb-4">
+                  <span className="w-8 h-[1px] bg-gold" />
+                  {cmsProperty.category} Asset
+                </div>
+                <h1 className="text-5xl lg:text-6xl font-serif font-bold leading-tight mb-6">{cmsProperty.title}</h1>
+                <p className="text-xl text-white/60 flex items-center gap-3">
+                  <span className="text-gold">📍</span> {cmsProperty.location}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 py-10 border-y border-white/10">
+                <div className="text-left">
+                  <PriceOfferDisplay
+                    label="Asking Price"
+                    saleDisplay={cmsProperty.price}
+                    compareAtNumeric={cmsProperty.compareAtPrice}
+                    variant="hero"
+                    align="left"
+                  />
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/30 font-black tracking-widest uppercase mb-2">Total Area</p>
+                  <p className="text-3xl font-serif font-bold">
+                    {cmsProperty.area} <span className="text-sm font-sans text-white/40">SQ.FT</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <h3 className="text-xl font-bold tracking-tight">Technical Specifications</h3>
+                <div className="grid grid-cols-2 gap-y-6">
+                  {[
+                    ['Zoning', cmsProperty.specs?.zoning],
+                    ['Permit', cmsProperty.specs?.permit],
+                    ['Coverage', cmsProperty.specs?.coverage],
+                    ['Ownership', cmsProperty.specs?.ownership],
+                  ].map(([label, val]) => (
+                    <div key={label} className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gold">🏗️</div>
+                      <div>
+                        <p className="text-[9px] text-white/30 font-black tracking-widest uppercase">{label}</p>
+                        <p className="text-sm font-bold">{val || 'N/A'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-10">
+                <a
+                  href="#contact"
+                  className="flex-1 bg-gold text-black font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs shadow-2xl shadow-gold/20 text-center"
+                >
+                  Book Consultation
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-32 grid grid-cols-1 lg:grid-cols-3 gap-16">
+            <div className="lg:col-span-2 space-y-10">
+              <h2 className="text-3xl font-serif font-bold">Investment Narrative</h2>
+              <p className="text-white/60 leading-relaxed text-lg">
+                This exceptional {cmsProperty.category.toLowerCase()} plot in {cmsProperty.location} offers a rare
+                opportunity for discerning investors.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {cmsProperty.features.map((f, i) => (
+                  <div key={i} className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-gold">✦</span>
+                    <span className="text-sm font-bold tracking-tight text-white/80">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-gold/5 border border-gold/10 p-10 rounded-[3rem] space-y-8">
+              <h3 className="text-xl font-bold tracking-tight text-gold">Ready for Next Steps?</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Our consultants are ready to provide detailed feasibility studies and site visits for this asset.
+              </p>
+              <a
+                href="#contact"
+                className="block w-full bg-white text-black font-black py-4 rounded-xl hover:bg-gold transition-all tracking-widest uppercase text-[10px] text-center"
+              >
+                Enquire for Asset
+              </a>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
+
+  if (apiLoading && !apiAsset) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <p className="font-serif text-xl text-white/70">Loading listing…</p>
+      </div>
+    );
+  }
+
+  if (apiError && !apiAsset) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white gap-4">
+        <h2 className="text-3xl font-serif">Listing Not Found</h2>
+        <p className="text-white/50">{apiError}</p>
+        <a href="#listings" className="text-gold underline">
+          Back to listings
+        </a>
+      </div>
+    );
+  }
+
+  if (!apiAsset) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <h2 className="text-3xl font-serif">Property Not Found</h2>
+      </div>
+    );
+  }
+
+  const locked = apiAsset.locked === true;
+  const gallery = apiAsset.imageUrls?.length ? apiAsset.imageUrls : ['/flaw.png'];
   const resolvedGallery = gallery.map((g) => resolveImg(g));
   const activeImage = resolvedGallery[activeIdx] || resolvedGallery[0];
+  const category = apiAsset.propertyType || apiAsset.type || 'Property';
+  const featureList = Array.isArray(apiAsset.features) ? apiAsset.features : [];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: theme.secondary, color: theme.accent }}>
       <Navbar />
-      
+
       <main className="pt-32 pb-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Gallery Section */}
-          <div className="space-y-6">
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative group">
-              <img
-                src={activeImage}
-                alt={property.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                loading="eager"
-                decoding="async"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-              <div className="absolute top-6 left-6">
-                <span className="px-4 py-2 bg-gold text-black text-[10px] font-black tracking-widest uppercase rounded-full">
-                  {property.badge}
-                </span>
-              </div>
+        {locked ? (
+          <div className="max-w-2xl mx-auto text-center space-y-8 py-12">
+            <p className="text-gold text-[11px] font-black tracking-[0.35em] uppercase">Premium listing</p>
+            <h1 className="text-4xl lg:text-5xl font-serif font-bold text-white">{apiAsset.name}</h1>
+            <p className="text-white/60 flex items-center justify-center gap-2">
+              <span className="text-gold">📍</span> {apiAsset.location || 'Dubai, UAE'}
+            </p>
+            <div className="rounded-3xl border border-gold/25 bg-gold/5 p-10 space-y-4">
+              {apiAsset.price != null || apiAsset.compareAtPrice != null ? (
+                <div className="pb-2 border-b border-white/10 mb-2 text-left">
+                  <PriceOfferDisplay
+                    label="Indicative pricing"
+                    saleDisplay={
+                      apiAsset.price != null && apiAsset.price !== ''
+                        ? formatAed(apiAsset.price)
+                        : 'Contact'
+                    }
+                    compareAtNumeric={apiAsset.compareAtPrice}
+                    variant="modal"
+                    align="left"
+                  />
+                </div>
+              ) : null}
+              <p className="text-white/70 text-sm leading-relaxed">
+                Full specifications and media for this listing are available after a one-time access payment. The amount
+                is set by your administrator and charged securely through Stripe on our server.
+              </p>
+              <p className="text-2xl font-serif text-gold">
+                AED {formatAed(apiAsset.viewingFeeAed)}{' '}
+                <span className="text-xs font-sans text-white/40 uppercase tracking-widest">access fee</span>
+              </p>
+              {payError ? (
+                <p className="text-sm text-red-300" role="alert">
+                  {payError}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={handlePayToView}
+                disabled={payLoading}
+                className="w-full bg-gold text-black font-black py-5 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs disabled:opacity-70"
+              >
+                {payLoading ? 'Redirecting to secure checkout…' : 'Pay & unlock full details'}
+              </button>
             </div>
-            
-            <div className="grid grid-cols-4 gap-4">
-              {gallery.map((img, idx) => (
-                <button
-                  key={`${img}-${idx}`}
-                  type="button"
-                  onClick={() => setActiveIdx(idx)}
-                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${activeIdx === idx ? 'border-gold' : 'border-transparent opacity-50 hover:opacity-100'}`}
-                >
+            <a href="#listings" className="inline-block text-white/45 hover:text-gold text-sm">
+              ← Back to all listings
+            </a>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+              <div className="space-y-6">
+                <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative group">
                   <img
-                    src={resolvedGallery[idx]}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    loading="lazy"
+                    src={activeImage}
+                    alt={apiAsset.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="eager"
                     decoding="async"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Details Section */}
-          <div className="space-y-10">
-            <div>
-              <div className="flex items-center gap-3 text-gold text-[11px] font-black tracking-[0.4em] uppercase mb-4">
-                <span className="w-8 h-[1px] bg-gold" />
-                {property.category} Asset
-              </div>
-              <h1 className="text-5xl lg:text-6xl font-serif font-bold leading-tight mb-6">
-                {property.title}
-              </h1>
-              <p className="text-xl text-white/60 flex items-center gap-3">
-                <span className="text-gold">📍</span> {property.location}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-8 py-10 border-y border-white/10">
-              <div>
-                <p className="text-[10px] text-white/30 font-black tracking-widest uppercase mb-2">Asking Price</p>
-                <p className="text-3xl font-serif font-bold text-gold">
-                  <span className="text-sm font-sans mr-2">AED</span>
-                  {property.price}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-white/30 font-black tracking-widest uppercase mb-2">Total Area</p>
-                <p className="text-3xl font-serif font-bold">
-                  {property.area} <span className="text-sm font-sans text-white/40">SQ.FT</span>
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              <h3 className="text-xl font-bold tracking-tight">Technical Specifications</h3>
-              <div className="grid grid-cols-2 gap-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gold">🏗️</div>
-                  <div>
-                    <p className="text-[9px] text-white/30 font-black tracking-widest uppercase">Zoning</p>
-                    <p className="text-sm font-bold">{property.specs?.zoning || 'N/A'}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                  <div className="absolute top-6 left-6 flex gap-2 flex-wrap">
+                    <span className="px-4 py-2 bg-gold text-black text-[10px] font-black tracking-widest uppercase rounded-full">
+                      {apiAsset.listingType || 'LISTING'}
+                    </span>
+                    {apiAsset.isSpecial ? (
+                      <span className="px-4 py-2 bg-white/10 text-gold text-[10px] font-black tracking-widest uppercase rounded-full border border-gold/40">
+                        Special
+                      </span>
+                    ) : null}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gold">📜</div>
+
+                <div className="grid grid-cols-4 gap-4">
+                  {gallery.map((img, idx) => (
+                    <button
+                      key={`${img}-${idx}`}
+                      type="button"
+                      onClick={() => setActiveIdx(idx)}
+                      className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${activeIdx === idx ? 'border-gold' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                    >
+                      <img
+                        src={resolvedGallery[idx]}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-10">
+                <div>
+                  <div className="flex items-center gap-3 text-gold text-[11px] font-black tracking-[0.4em] uppercase mb-4">
+                    <span className="w-8 h-[1px] bg-gold" />
+                    {category} Asset
+                  </div>
+                  <h1 className="text-5xl lg:text-6xl font-serif font-bold leading-tight mb-6">{apiAsset.name}</h1>
+                  <p className="text-xl text-white/60 flex items-center gap-3">
+                    <span className="text-gold">📍</span> {apiAsset.location || 'Dubai, UAE'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8 py-10 border-y border-white/10">
+                  <div className="text-left">
+                    <PriceOfferDisplay
+                      label="Asking Price"
+                      saleDisplay={
+                        apiAsset.price != null && apiAsset.price !== ''
+                          ? formatAed(apiAsset.price)
+                          : 'Contact'
+                      }
+                      compareAtNumeric={apiAsset.compareAtPrice}
+                      variant="hero"
+                      align="left"
+                    />
+                  </div>
                   <div>
-                    <p className="text-[9px] text-white/30 font-black tracking-widest uppercase">Permit</p>
-                    <p className="text-sm font-bold">{property.specs?.permit || 'N/A'}</p>
+                    <p className="text-[10px] text-white/30 font-black tracking-widest uppercase mb-2">Total Area</p>
+                    <p className="text-3xl font-serif font-bold">
+                      {apiAsset.area != null ? apiAsset.area : '—'}{' '}
+                      <span className="text-sm font-sans text-white/40">SQ.FT</span>
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gold">📐</div>
-                  <div>
-                    <p className="text-[9px] text-white/30 font-black tracking-widest uppercase">Coverage</p>
-                    <p className="text-sm font-bold">{property.specs?.coverage || 'N/A'}</p>
+
+                {apiAsset.description ? (
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-bold tracking-tight">Description</h3>
+                    <p className="text-white/60 leading-relaxed">{apiAsset.description}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gold">🤝</div>
-                  <div>
-                    <p className="text-[9px] text-white/30 font-black tracking-widest uppercase">Ownership</p>
-                    <p className="text-sm font-bold">{property.specs?.ownership || 'N/A'}</p>
-                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap gap-4 pt-6">
+                  <a
+                    href="#contact"
+                    className="flex-1 min-w-[200px] bg-gold text-black font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs text-center"
+                  >
+                    Book Consultation
+                  </a>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-4 pt-10">
-              <button className="flex-1 bg-gold text-black font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs shadow-2xl shadow-gold/20">
-                Book Consultation
-              </button>
-              <button className="flex-1 bg-white/5 text-white font-black py-6 rounded-2xl hover:bg-white/10 transition-all tracking-[0.2em] uppercase text-xs border border-white/10">
-                Download PDF
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Features & Narrative */}
-        <div className="mt-32 grid grid-cols-1 lg:grid-cols-3 gap-16">
-          <div className="lg:col-span-2 space-y-10">
-            <h2 className="text-3xl font-serif font-bold">Investment Narrative</h2>
-            <p className="text-white/60 leading-relaxed text-lg">
-              This exceptional {property.category.toLowerCase()} plot in {property.location} offers a rare opportunity for discerning investors. With a total area of {property.area} sq.ft and prime positioning, it represents the pinnacle of Dubai's real estate potential. The site is fully serviced and ready for immediate development, supported by all necessary NOCs and approvals.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {property.features.map((f, i) => (
-                <div key={i} className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
-                  <span className="text-gold">✦</span>
-                  <span className="text-sm font-bold tracking-tight text-white/80">{f}</span>
+            {featureList.length > 0 ? (
+              <div className="mt-24">
+                <h2 className="text-3xl font-serif font-bold mb-8">Highlights</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {featureList.map((f, i) => (
+                    <div key={i} className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                      <span className="text-gold">✦</span>
+                      <span className="text-sm font-bold tracking-tight text-white/80">{f}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-gold/5 border border-gold/10 p-10 rounded-[3rem] space-y-8">
-            <h3 className="text-xl font-bold tracking-tight text-gold">Ready for Next Steps?</h3>
-            <p className="text-sm text-white/50 leading-relaxed">
-              Our consultants are ready to provide detailed feasibility studies and site visits for this asset.
-            </p>
-            <div className="space-y-4">
-              <input type="text" placeholder="Full Name" className="w-full bg-black/40 border border-white/10 rounded-xl px-6 py-4 outline-none focus:border-gold/40 text-sm" />
-              <input type="email" placeholder="Email Address" className="w-full bg-black/40 border border-white/10 rounded-xl px-6 py-4 outline-none focus:border-gold/40 text-sm" />
-              <button className="w-full bg-white text-black font-black py-4 rounded-xl hover:bg-gold transition-all tracking-widest uppercase text-[10px]">
-                Enquire for Asset
-              </button>
-            </div>
-          </div>
-        </div>
+              </div>
+            ) : null}
+          </>
+        )}
       </main>
 
       <Footer />

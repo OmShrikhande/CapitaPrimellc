@@ -5,7 +5,7 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
   const [scrollProgress, setScrollProgress] = useState(0);
   const scrollContainerRef = useRef(null);
   const [formData, setFormData] = useState({
-    title: '', location: '', area: '', price: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '', specs: { zoning: '', permit: '', coverage: '', ownership: '' }
+    title: '', location: '', area: '', price: '', compareAtPrice: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '', specs: { zoning: '', permit: '', coverage: '', ownership: '' }
   });
 
   // Handle scroll detection for border animation
@@ -19,7 +19,7 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
 
   const resetFormData = () => {
     setFormData({
-      title: '', location: '', area: '', price: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '',
+      title: '', location: '', area: '', price: '', compareAtPrice: '', category: 'Residential', badge: 'NEW', features: '', isVisible: true, gallery: '',
       specs: { zoning: '', permit: '', coverage: '', ownership: '' }
     });
   };
@@ -162,8 +162,12 @@ const PropertyForm = ({ isOpen, onClose, editingIndex, property, onSubmit, onCan
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 opacity-60">Valuation (AED)</label>
+            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 opacity-60">Offer price (AED)</label>
             <input required value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-8 py-5 focus:border-gold/50 outline-none text-white font-bold transition-all font-mono" placeholder="2,500,000" />
+          </div>
+          <div>
+            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 opacity-60">List price (AED) — optional</label>
+            <input value={formData.compareAtPrice} onChange={e => setFormData({...formData, compareAtPrice: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-8 py-5 focus:border-gold/50 outline-none text-white font-bold transition-all font-mono" placeholder="Higher price (strikethrough)" />
           </div>
           <div>
             <label className="block text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3 opacity-60">Spatial Area (SQ.FT)</label>

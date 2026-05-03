@@ -159,7 +159,6 @@ const TimedInquiryPopup = ({ enabled }) => {
         budget: formData.get('budget'),
         message: formData.get('message'),
         source: 'popup',
-        hp_field: formData.get('hp_field'),
       };
       await submitInquiry(payload);
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import useReveal from '../hooks/useReveal';
 import { useCMS } from '../context/useCMS';
 import { adminAPI, getImageURL } from '../context/api';
+import { PriceOfferDisplay, getOfferMeta } from './PriceOfferDisplay';
 
 const CATEGORY_COLORS = {
   Residential: '#4ade80',
@@ -11,6 +12,12 @@ const CATEGORY_COLORS = {
 
 const PropertyCard = ({ property, index }) => {
   const cardRef = useRef(null);
+  const { hasOffer, pct } = getOfferMeta(property.price, property.compareAtPrice);
+  const unlockFee =
+    property.viewingFeeAed != null && property.viewingFeeAed !== ''
+      ? Number(property.viewingFeeAed)
+      : 0;
+  const paidUnlock = !!property.isSpecial && Number.isFinite(unlockFee) && unlockFee > 0;
 
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -128,6 +135,30 @@ const PropertyCard = ({ property, index }) => {
           {property.badge}
         </div>
 
+        {hasOffer ? (
+          <div
+            style={{
+              position: 'absolute',
+              top: 52,
+              left: 16,
+              zIndex: 10,
+              padding: '5px 11px',
+              borderRadius: 6,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '8px',
+              fontWeight: 800,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              background: 'linear-gradient(135deg, rgba(185, 28, 28, 0.55) 0%, rgba(201, 168, 76, 0.25) 100%)',
+              border: '1px solid rgba(248, 113, 113, 0.65)',
+              color: '#fecaca',
+              boxShadow: '0 6px 28px rgba(0,0,0,0.35)',
+            }}
+          >
+            {pct}% off
+          </div>
+        ) : null}
+
         <div
           style={{
             position: 'absolute',
@@ -148,6 +179,39 @@ const PropertyCard = ({ property, index }) => {
           {property.category}
         </div>
 
+        {property.fromInventory ? (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 52,
+              left: 16,
+              zIndex: 10,
+              maxWidth: 'calc(100% - 32px)',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '8px',
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                padding: '5px 10px',
+                borderRadius: 4,
+                border: paidUnlock ? '1px solid rgba(248, 113, 113, 0.5)' : '1px solid rgba(74, 222, 128, 0.45)',
+                background: paidUnlock ? 'rgba(127, 29, 29, 0.55)' : 'rgba(22, 101, 52, 0.45)',
+                color: paidUnlock ? '#fecaca' : '#bbf7d0',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              }}
+            >
+              {paidUnlock
+                ? `Paid unlock · AED ${unlockFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                : 'Free to view'}
+            </span>
+          </div>
+        ) : null}
+
         <div
           style={{
             position: 'absolute',
@@ -160,7 +224,7 @@ const PropertyCard = ({ property, index }) => {
             flexWrap: 'wrap',
           }}
         >
-          {property.features.map(f => (
+          {(property.features || []).map(f => (
             <span
               key={f}
               style={{
@@ -223,15 +287,13 @@ const PropertyCard = ({ property, index }) => {
               {property.area} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
             </p>
           </div>
-          <div className="text-right">
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
-              Asking Price
-            </p>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '20px', fontWeight: 600, color: '#C9A84C' }}>
-              <span style={{ fontSize: '11px', fontFamily: "'Inter', sans-serif", fontWeight: 500, color: 'rgba(201,168,76,0.7)', marginRight: 3 }}>AED</span>
-              {property.price}
-            </p>
-          </div>
+          <PriceOfferDisplay
+            label="Asking Price"
+            saleDisplay={property.price}
+            compareAtNumeric={property.compareAtPrice}
+            variant="card"
+            align="right"
+          />
         </div>
 
         <a
@@ -277,6 +339,9 @@ const Properties = () => {
   const propertiesData = data.properties || {};
   const cmsProperties = (propertiesData.items || []).filter((p) => p.isVisible);
   const [apiProperties, setApiProperties] = useState([]);
+  /** pending | cms | api | api-empty — API returned rows but none are published (visible) on site. */
+  const [homeSource, setHomeSource] = useState('pending');
+  const HOME_FEATURED_MAX = 12;
 
   useEffect(() => {
     // Only load API assets after CMS data has loaded to avoid conflicts
@@ -289,11 +354,18 @@ const Properties = () => {
         const response = await adminAPI.assets.getAll();
 
         if (!response?.success || !Array.isArray(response.data) || response.data.length === 0) {
+          setHomeSource('cms');
           setApiProperties([]);
           return;
         }
 
         const filtered = response.data.filter((asset) => asset?.isVisible !== false);
+
+        if (filtered.length === 0) {
+          setHomeSource('api-empty');
+          setApiProperties([]);
+          return;
+        }
 
         const mapped = filtered
           .map((asset) => ({
@@ -305,8 +377,12 @@ const Properties = () => {
               asset.price != null && asset.price !== ''
                 ? Number(asset.price).toLocaleString(undefined, { maximumFractionDigits: 0 })
                 : 'Contact',
+            compareAtPrice:
+              asset.compareAtPrice != null && asset.compareAtPrice !== ''
+                ? Number(asset.compareAtPrice)
+                : null,
             category: asset.propertyType || asset.type || 'Property',
-            badge: asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK'),
+            badge: asset.isSpecial ? 'SPECIAL' : (asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK')),
             gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
             accent: '#1a4d1a',
             features: asset.features?.length
@@ -318,11 +394,21 @@ const Properties = () => {
                 ].filter(Boolean),
             gallery: Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls : ['/flaw.png'],
             isVisible: asset.isVisible !== false,
+            isSpecial: !!asset.isSpecial,
+            viewingFeeAed: asset.viewingFeeAed,
+            fromInventory: true,
           }));
 
-        setApiProperties(mapped);
+        mapped.sort((a, b) => {
+          if (a.isSpecial !== b.isSpecial) return a.isSpecial ? -1 : 1;
+          return 0;
+        });
+
+        setHomeSource('api');
+        setApiProperties(mapped.slice(0, HOME_FEATURED_MAX));
       } catch (error) {
         console.error('Failed to load home assets from API:', error);
+        setHomeSource('cms');
         setApiProperties([]);
       }
     };
@@ -330,7 +416,23 @@ const Properties = () => {
     loadAssetsForHome();
   }, [cmsLoading]);
 
-  const properties = apiProperties.length > 0 ? apiProperties : cmsProperties;
+  const mapCmsForOffers = (items) =>
+    items.map((p) => ({
+      ...p,
+      compareAtPrice:
+        p.compareAtPrice != null && p.compareAtPrice !== ''
+          ? parseFloat(String(p.compareAtPrice).replace(/,/g, '')) || null
+          : null,
+    }));
+
+  const cmsWithOffers = mapCmsForOffers(cmsProperties);
+
+  const properties =
+    homeSource === 'api-empty'
+      ? []
+      : homeSource === 'api'
+        ? apiProperties
+        : cmsWithOffers;
 
   // Setup intersection observer for animations
   useEffect(() => {
@@ -395,11 +497,27 @@ const Properties = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {properties.map((property, i) => (
-            <PropertyCard key={property.id || i} property={property} index={i} />
-          ))}
-        </div>
+        {properties.length === 0 ? (
+          <div
+            className="rounded-sm border border-white/10 px-8 py-16 text-center max-w-xl mx-auto"
+            style={{ background: 'rgba(255,255,255,0.02)' }}
+          >
+            <p className="text-gold text-[10px] font-bold tracking-[0.3em] uppercase mb-3">Featured inventory</p>
+            <p className="text-white/70 font-serif text-xl mb-2">No published inventory on the home page right now.</p>
+            <p className="text-white/45 text-sm mb-6">
+              In Asset Inventory, turn on <strong className="text-white/70">Show on website</strong> for listings you want public. Special listings can also charge a one-time unlock fee.
+            </p>
+            <a href="#listings" className="btn-outline inline-flex py-3 px-6">
+              <span>View all listings</span>
+            </a>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {properties.map((property, i) => (
+              <PropertyCard key={property.id || i} property={property} index={i} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -30,7 +30,8 @@ const createInquiry = async (req, res) => {
     }
 
     const body = req.body && typeof req.body === 'object' ? req.body : {};
-    if (body.hp_field) {
+    // Honeypot must stay empty; trim so whitespace-only counts as empty (avoids false positives from autofill).
+    if (body.hp_field != null && String(body.hp_field).trim() !== '') {
       return res.status(400).json({ success: false, message: 'Invalid request' });
     }
 

@@ -4,6 +4,7 @@ import Offers from './Offers';
 import Footer from './Footer';
 import { adminAPI } from '../context/api';
 import ImagePreview from './admin/ImagePreview';
+import { PriceOfferDisplay, getOfferMeta } from './PriceOfferDisplay';
 
 const ALL_PROPERTIES = [
   {
@@ -364,30 +365,14 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                     {property.area} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>sq.ft</span>
                   </p>
                 </div>
-                <div>
-                  <p
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '12px',
-                      color: 'rgba(255,255,255,0.4)',
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      marginBottom: 8,
-                    }}
-                  >
-                    Asking Price
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: '28px',
-                      fontWeight: 600,
-                      color: '#C9A84C',
-                    }}
-                  >
-                    <span style={{ fontSize: '14px', fontFamily: "'Inter', sans-serif", fontWeight: 500, color: 'rgba(201,168,76,0.7)', marginRight: 6 }}>AED</span>
-                    {property.price}
-                  </p>
+                <div className="text-right">
+                  <PriceOfferDisplay
+                    label="Asking Price"
+                    saleDisplay={property.price}
+                    compareAtNumeric={property.compareAtPrice}
+                    variant="modal"
+                    align="right"
+                  />
                 </div>
               </div>
 
@@ -406,7 +391,7 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                   Key Features
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {property.features.map(feature => (
+                  {(property.features || []).map(feature => (
                     <span
                       key={feature}
                       style={{
@@ -426,8 +411,19 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                 </div>
               </div>
 
+              {property.isSpecial && property.viewingFeeAed != null && Number(property.viewingFeeAed) > 0 ? (
+                <p
+                  className="text-sm text-white/50 leading-relaxed"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  Full listing page may require a one-time access fee (AED{' '}
+                  {Number(property.viewingFeeAed).toLocaleString(undefined, { maximumFractionDigits: 2 })}) processed
+                  securely on our server via Stripe.
+                </p>
+              ) : null}
+
               {/* CTA Button */}
-              <div className="pt-4">
+              <div className="pt-4 space-y-3">
                 <a
                   href="#contact"
                   onClick={onClose}
@@ -466,6 +462,35 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </a>
+                {property.id ? (
+                  <a
+                    href={`#property/${property.id}`}
+                    onClick={onClose}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      padding: '14px 24px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'rgba(255,255,255,0.75)',
+                      textDecoration: 'none',
+                      borderRadius: '8px',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Open full listing page</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>
@@ -477,6 +502,13 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
 
 const PropertyCard = ({ property, index, onClick }) => {
   const cardRef = useRef(null);
+  const { hasOffer, pct } = getOfferMeta(property.price, property.compareAtPrice);
+  const unlockFee =
+    property.viewingFeeAed != null && property.viewingFeeAed !== ''
+      ? Number(property.viewingFeeAed)
+      : 0;
+  const paidUnlock = !!property.isSpecial && Number.isFinite(unlockFee) && unlockFee > 0;
+  const fromApi = property.id != null && Object.prototype.hasOwnProperty.call(property, 'isSpecial');
 
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -608,25 +640,82 @@ const PropertyCard = ({ property, index, onClick }) => {
           {property.badge}
         </div>
 
+        {hasOffer ? (
+          <div
+            style={{
+              position: 'absolute',
+              top: 52,
+              left: 16,
+              zIndex: 10,
+              padding: '5px 11px',
+              borderRadius: 6,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '8px',
+              fontWeight: 800,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              background: 'linear-gradient(135deg, rgba(185, 28, 28, 0.55) 0%, rgba(201, 168, 76, 0.25) 100%)',
+              border: '1px solid rgba(248, 113, 113, 0.65)',
+              color: '#fecaca',
+              boxShadow: '0 6px 28px rgba(0,0,0,0.35)',
+            }}
+          >
+            {pct}% off
+          </div>
+        ) : null}
+
         <div
           style={{
             position: 'absolute',
             top: 16,
             right: 16,
             zIndex: 10,
-            background: `${CATEGORY_COLORS[property.category]}18`,
-            border: `1px solid ${CATEGORY_COLORS[property.category]}55`,
+            background: `${CATEGORY_COLORS[property.category] || CATEGORY_COLORS.Residential}18`,
+            border: `1px solid ${CATEGORY_COLORS[property.category] || CATEGORY_COLORS.Residential}55`,
             backdropFilter: 'blur(12px)',
             padding: '4px 12px',
             fontFamily: "'Inter', sans-serif",
             fontSize: '9px',
             fontWeight: 600,
             letterSpacing: '0.12em',
-            color: CATEGORY_COLORS[property.category],
+            color: CATEGORY_COLORS[property.category] || '#94a3b8',
           }}
         >
           {property.category}
         </div>
+
+        {fromApi ? (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 52,
+              left: 16,
+              zIndex: 10,
+              maxWidth: 'calc(100% - 32px)',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '8px',
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                padding: '5px 10px',
+                borderRadius: 4,
+                border: paidUnlock ? '1px solid rgba(248, 113, 113, 0.5)' : '1px solid rgba(74, 222, 128, 0.45)',
+                background: paidUnlock ? 'rgba(127, 29, 29, 0.55)' : 'rgba(22, 101, 52, 0.45)',
+                color: paidUnlock ? '#fecaca' : '#bbf7d0',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              }}
+            >
+              {paidUnlock
+                ? `Paid unlock · AED ${unlockFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                : 'Free to view'}
+            </span>
+          </div>
+        ) : null}
 
         <div
           style={{
@@ -640,7 +729,7 @@ const PropertyCard = ({ property, index, onClick }) => {
             flexWrap: 'wrap',
           }}
         >
-          {property.features.map(f => (
+          {(property.features || []).map(f => (
             <span
               key={f}
               style={{
@@ -703,15 +792,13 @@ const PropertyCard = ({ property, index, onClick }) => {
               {property.area} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
             </p>
           </div>
-          <div className="text-right">
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
-              Asking Price
-            </p>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '20px', fontWeight: 600, color: '#C9A84C' }}>
-              <span style={{ fontSize: '11px', fontFamily: "'Inter', sans-serif", fontWeight: 500, color: 'rgba(201,168,76,0.7)', marginRight: 3 }}>AED</span>
-              {property.price}
-            </p>
-          </div>
+          <PriceOfferDisplay
+            label="Asking Price"
+            saleDisplay={property.price}
+            compareAtNumeric={property.compareAtPrice}
+            variant="card"
+            align="right"
+          />
         </div>
 
         <a
@@ -764,14 +851,9 @@ const ListingsPage = () => {
         setLoading(true);
         setError('');
 
-        console.log('📦 Fetching assets from API...');
         const response = await adminAPI.assets.getAll();
 
-        console.log('📋 API Response:', response);
-
         if (response.success && response.data && response.data.length > 0) {
-          console.log(`✅ Loaded ${response.data.length} assets from API`);
-
           // Transform assets to match the expected property format for the UI
           const transformedAssets = response.data.map(asset => ({
             id: asset.id,
@@ -783,7 +865,13 @@ const ListingsPage = () => {
                 ? Number(asset.price).toLocaleString(undefined, { maximumFractionDigits: 0 })
                 : 'Contact for Price',
             category: asset.propertyType || asset.type || 'Property',
-            badge: asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK'),
+            badge: asset.isSpecial ? 'SPECIAL' : (asset.listingType || (asset.quantity > 0 ? 'AVAILABLE' : 'OUT OF STOCK')),
+            isSpecial: !!asset.isSpecial,
+            viewingFeeAed: asset.viewingFeeAed,
+            compareAtPrice:
+              asset.compareAtPrice != null && asset.compareAtPrice !== ''
+                ? Number(asset.compareAtPrice)
+                : null,
             gradient: 'linear-gradient(135deg, #0a1f0a 0%, #0d2b12 40%, #091a09 100%)',
             accent: '#1a4d1a',
             features: asset.features?.length
@@ -810,21 +898,31 @@ const ListingsPage = () => {
             paymentPlan: asset.paymentPlan
           }));
           const visibleAssets = transformedAssets.filter((a) => a.isVisible !== false);
-          setAssets(visibleAssets.length > 0 ? visibleAssets : ALL_PROPERTIES);
+          if (visibleAssets.length > 0) {
+            visibleAssets.sort((a, b) => {
+              if (a.isSpecial !== b.isSpecial) return a.isSpecial ? -1 : 1;
+              return 0;
+            });
+            setAssets(visibleAssets);
+            setError('');
+          } else if (transformedAssets.length > 0) {
+            setAssets([]);
+            setError('All listings are hidden. Enable “Show on website” in Asset Inventory.');
+          } else {
+            setAssets(ALL_PROPERTIES);
+            setError('');
+          }
         } else if (response.success && (!response.data || response.data.length === 0)) {
-          console.log('⚠️ No assets found in API, using fallback properties');
           setAssets(ALL_PROPERTIES);
+          setError('');
         } else {
-          console.warn('⚠️ API call failed or returned unexpected data, using fallback properties');
           setAssets(ALL_PROPERTIES);
+          setError('');
         }
       } catch (err) {
-        console.error('❌ Error loading assets:', err);
-        console.log('📌 Using fallback properties due to error');
-
-        // Always fallback to hardcoded properties if API fails
+        console.error('Error loading assets:', err);
         setAssets(ALL_PROPERTIES);
-        setError(''); // Clear error since we have fallback
+        setError('');
       } finally {
         setLoading(false);
       }
@@ -883,6 +981,25 @@ const ListingsPage = () => {
       
       <main className="pb-20" style={{ zIndex: 0, padding: '48px 60px 80px' }}>
         <div className="px-16 lg:px-24">
+          <nav
+            className="text-[11px] font-semibold tracking-[0.2em] uppercase mb-8 text-white/45"
+            aria-label="Breadcrumb"
+          >
+            <a
+              href="#"
+              className="text-gold/90 hover:text-gold transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.hash = '';
+              }}
+            >
+              Home
+            </a>
+            <span className="mx-2 text-white/35" aria-hidden="true">
+              /
+            </span>
+            <span className="text-white/55">Listings</span>
+          </nav>
           <div className="mb-20 animate-on-scroll">
             <div className="flex items-center gap-4 mb-6" >
               <div className="gold-line-h w-12" />
@@ -919,7 +1036,6 @@ const ListingsPage = () => {
               <div className="text-center space-y-4 max-w-md">
                 <div className="text-yellow-400 text-2xl">⚠️</div>
                 <p className="text-white/60">{error}</p>
-                <p className="text-white/40 text-sm">Showing fallback listings instead</p>
               </div>
             </div>
           ) : assets.length === 0 ? (

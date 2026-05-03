@@ -847,3 +847,16 @@ img {
     display: none;
   }
 }
+
+/* Admin / asset form: native <select> + options readable on dark UI (Windows often defaults to white option panes). */
+.capita-admin-select {
+  color-scheme: dark;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+.capita-admin-select option,
+.capita-admin-select optgroup {
+  background-color: #141414;
+  color: #f5f5f5;
+}

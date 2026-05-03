@@ -3,10 +3,12 @@ import { adminAPI, getImageURL } from '../../context/api';
 import Sparkline from './Sparkline';
 import ImagePreview from './ImagePreview';
 
+const ASSET_CATEGORY_OPTIONS = ['Property', 'Land', 'Commercial', 'Plot', 'Industrial', 'Other'];
+
 const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
-    type: '',
+    type: 'Property',
     quantity: '',
     location: '',
     description: '',
@@ -34,7 +36,10 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     // Contact info
     agentName: '',
     agentPhone: '',
-    agentEmail: ''
+    agentEmail: '',
+    isSpecial: false,
+    viewingFeeAed: '',
+    compareAtPrice: '',
   });
   const [loading, setLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -43,7 +48,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     if (editingAsset) {
       setFormData({
         name: editingAsset.name || '',
-        type: editingAsset.type || '',
+        type: editingAsset.type || 'Property',
         quantity: editingAsset.quantity || '',
         location: editingAsset.location || '',
         description: editingAsset.description || '',
@@ -71,13 +76,19 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         // Contact info
         agentName: editingAsset.agentName || '',
         agentPhone: editingAsset.agentPhone || '',
-        agentEmail: editingAsset.agentEmail || ''
+        agentEmail: editingAsset.agentEmail || '',
+        isSpecial: !!editingAsset.isSpecial,
+        viewingFeeAed: editingAsset.viewingFeeAed != null && editingAsset.viewingFeeAed !== '' ? String(editingAsset.viewingFeeAed) : '',
+        compareAtPrice:
+          editingAsset.compareAtPrice != null && editingAsset.compareAtPrice !== ''
+            ? String(editingAsset.compareAtPrice)
+            : '',
       });
       setImagePreviews(editingAsset.imageUrls || []);
     } else {
       setFormData({
         name: '',
-        type: '',
+        type: 'Property',
         quantity: '',
         location: '',
         description: '',
@@ -105,7 +116,10 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         // Contact info
         agentName: '',
         agentPhone: '',
-        agentEmail: ''
+        agentEmail: '',
+        isSpecial: false,
+        viewingFeeAed: '',
+        compareAtPrice: '',
       });
       setImagePreviews([]);
     }
@@ -177,7 +191,12 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     setLoading(true);
 
     try {
-      await onSubmit(formData);
+      const typeTrim = formData.type != null ? String(formData.type).trim() : '';
+      const payload = {
+        ...formData,
+        type: typeTrim || 'Property',
+      };
+      await onSubmit(payload);
       onClose();
     } catch (error) {
       console.error('Error submitting asset:', error);
@@ -222,22 +241,24 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
 
             <div>
               <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
-                Asset Type *
+                Listing category
               </label>
               <select
                 name="type"
-                value={formData.type}
+                value={formData.type || 'Property'}
                 onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
-                required
+                className="capita-admin-select w-full border border-white/10 rounded-xl px-4 py-3 focus:border-gold/50 focus:outline-none transition-all"
               >
-                <option value="">Select type</option>
-                <option value="Equipment">Equipment</option>
-                <option value="Furniture">Furniture</option>
-                <option value="Vehicle">Vehicle</option>
-                <option value="Property">Property</option>
-                <option value="Other">Other</option>
+                {ASSET_CATEGORY_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+                {formData.type && !ASSET_CATEGORY_OPTIONS.includes(formData.type) ? (
+                  <option value={formData.type}>{formData.type} (saved)</option>
+                ) : null}
               </select>
+              <p className="text-xs text-gray-500 mt-1">Defaults to Property — real estate inventory only.</p>
             </div>
 
             <div>
@@ -272,7 +293,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
             {/* Property-specific fields */}
             <div>
               <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
-                Price (AED)
+                Offer price (AED)
               </label>
               <input
                 type="number"
@@ -280,10 +301,27 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 value={formData.price}
                 onChange={handleInputChange}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
-                placeholder="Enter price"
+                placeholder="Current / promotional price"
                 min="0"
                 step="0.01"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                List price (AED) — optional
+              </label>
+              <input
+                type="number"
+                name="compareAtPrice"
+                value={formData.compareAtPrice}
+                onChange={handleInputChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Higher amount shown struck through"
+                min="0"
+                step="0.01"
+              />
+              <p className="text-xs text-gray-500 mt-1">If higher than offer price, the site shows a discount style (red strikethrough).</p>
             </div>
 
             <div>
@@ -371,7 +409,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 name="propertyType"
                 value={formData.propertyType}
                 onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
+                className="capita-admin-select w-full border border-white/10 rounded-xl px-4 py-3 focus:border-gold/50 focus:outline-none transition-all"
               >
                 <option value="">Select property type</option>
                 <option value="Apartment">Apartment</option>
@@ -394,7 +432,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 name="listingType"
                 value={formData.listingType}
                 onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
+                className="capita-admin-select w-full border border-white/10 rounded-xl px-4 py-3 focus:border-gold/50 focus:outline-none transition-all"
               >
                 <option value="">Select listing type</option>
                 <option value="Sale">For Sale</option>
@@ -412,11 +450,59 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 className="w-6 h-6 rounded bg-white/5 border-white/10 text-gold focus:ring-gold"
               />
               <label htmlFor="isVisible" className="text-sm font-bold text-gray-400 uppercase tracking-widest opacity-70">
-                Show on Dashboard
+                Show on website (home & listings)
               </label>
             </div>
 
-            {/* Coordinates */}
+            <div className="md:col-span-2 rounded-xl border border-gold/20 bg-gold/5 p-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isSpecial"
+                  checked={!!formData.isSpecial}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      isSpecial: e.target.checked,
+                      viewingFeeAed: e.target.checked ? prev.viewingFeeAed : '',
+                    }))
+                  }
+                  className="w-6 h-6 rounded bg-white/5 border-white/10 text-gold focus:ring-gold"
+                />
+                <label htmlFor="isSpecial" className="text-sm font-bold text-gray-400 uppercase tracking-widest opacity-90">
+                  Paid unlock — fee via Stripe to view full details; sorted first when featured on the home page
+                </label>
+              </div>
+              {formData.isSpecial ? (
+                <div>
+                  <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Viewing access fee (AED) *
+                  </label>
+                  <input
+                    type="number"
+                    name="viewingFeeAed"
+                    value={formData.viewingFeeAed}
+                    onChange={handleInputChange}
+                    min="0"
+                    step="0.01"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                    placeholder="e.g. 99.00"
+                    required={formData.isSpecial}
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Charged via Stripe; the amount is stored on the server and is not accepted from the browser at checkout.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <details className="group rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 open:pb-5 open:pt-4">
+            <summary className="cursor-pointer list-none text-sm font-bold text-gold/90 uppercase tracking-widest flex items-center gap-2">
+              <span className="opacity-70 group-open:rotate-90 transition-transform inline-block">▸</span>
+              Optional details (map, developer, amenities…)
+            </summary>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div>
               <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
                 Latitude
@@ -446,10 +532,6 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 step="0.000001"
               />
             </div>
-          </div>
-
-          {/* Additional Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
                 Neighborhood
@@ -486,7 +568,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 name="completionStatus"
                 value={formData.completionStatus}
                 onChange={handleInputChange}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none transition-all"
+                className="capita-admin-select w-full border border-white/10 rounded-xl px-4 py-3 focus:border-gold/50 focus:outline-none transition-all"
               >
                 <option value="">Select status</option>
                 <option value="Ready">Ready</option>
@@ -508,7 +590,66 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 placeholder="e.g., 20% down payment"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Amenities (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={formData.amenities.join(', ')}
+                onChange={(e) => handleArrayInput('amenities', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Pool, gym, parking"
+              />
+              {formData.amenities.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.amenities.map((amenity, index) => (
+                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
+                      {amenity}
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('amenities', index)}
+                        className="text-gold hover:text-red-400"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Features (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={formData.features.join(', ')}
+                onChange={(e) => handleArrayInput('features', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                placeholder="Sea view, corner unit"
+              />
+              {formData.features.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.features.map((feature, index) => (
+                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
+                      {feature}
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('features', index)}
+                        className="text-gold hover:text-red-400"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+          </details>
 
           {/* Agent Contact Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -552,67 +693,6 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
                 placeholder="agent@company.com"
               />
-            </div>
-          </div>
-
-          {/* Amenities and Features */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
-                Amenities (comma-separated)
-              </label>
-              <input
-                type="text"
-                value={formData.amenities.join(', ')}
-                onChange={(e) => handleArrayInput('amenities', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
-                placeholder="Swimming pool, gym, parking"
-              />
-              {formData.amenities.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.amenities.map((amenity, index) => (
-                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
-                      {amenity}
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('amenities', index)}
-                        className="text-gold hover:text-red-400"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
-                Features (comma-separated)
-              </label>
-              <input
-                type="text"
-                value={formData.features.join(', ')}
-                onChange={(e) => handleArrayInput('features', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
-                placeholder="Balcony, sea view, furnished"
-              />
-              {formData.features.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.features.map((feature, index) => (
-                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
-                      {feature}
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('features', index)}
-                        className="text-gold hover:text-red-400"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -712,7 +792,7 @@ const AssetsView = () => {
   const loadAssets = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.assets.getAll();
+      const response = await adminAPI.assets.getAllAuthenticated();
       if (response.success) {
         setAssets(response.data);
       }
@@ -726,24 +806,36 @@ const AssetsView = () => {
 
   const handleAddAsset = async (assetData) => {
     try {
+      setError('');
       const response = await adminAPI.assets.create(assetData);
       if (response.success) {
-        await loadAssets(); // Reload assets
+        await loadAssets();
+      } else {
+        const msg = response.message || 'Failed to add asset';
+        setError(msg);
+        throw new Error(msg);
       }
     } catch (err) {
-      setError('Failed to add asset');
+      const msg = err?.message || 'Failed to add asset';
+      setError(msg);
       throw err;
     }
   };
 
   const handleUpdateAsset = async (assetData) => {
     try {
+      setError('');
       const response = await adminAPI.assets.update(editingAsset.id, assetData);
       if (response.success) {
-        await loadAssets(); // Reload assets
+        await loadAssets();
+      } else {
+        const msg = response.message || 'Failed to update asset';
+        setError(msg);
+        throw new Error(msg);
       }
     } catch (err) {
-      setError('Failed to update asset');
+      const msg = err?.message || 'Failed to update asset';
+      setError(msg);
       throw err;
     }
   };
@@ -796,7 +888,7 @@ const AssetsView = () => {
           <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.3em] opacity-60">Managing {assets.length} Active Assets</p>
         </div>
         <button
-          onClick={() => { setIsAdding(true); setEditingAsset(null); }}
+          onClick={() => { setError(''); setIsAdding(true); setEditingAsset(null); }}
           className="bg-gold text-yellow-500 px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.3em] uppercase hover:bg-white transition-all shadow-2xl scale-105 active:scale-95 shrink-0"
         >
           + Add New Asset
@@ -851,6 +943,11 @@ const AssetsView = () => {
                   }`}>
                     {asset.quantity > 0 ? 'In Stock' : 'Out of Stock'}
                   </span>
+                  {asset.isSpecial ? (
+                    <span className="text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border bg-gold/15 text-gold border-gold/35">
+                      Special
+                    </span>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-[10px] lg:text-[11px] text-gray-500 font-black uppercase tracking-[0.2em]">
                   <span className="flex items-center gap-2 group-hover:text-gold transition-colors whitespace-nowrap">🏷️ {asset.type}</span>

@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const Stripe = require('stripe');
 const { db, isFirebaseConfigured } = require('../config/firebase');
 
-const REQUIRED_CREATE_ENV_VARS = ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID'];
+const REQUIRED_SITE_CONFIRMATION_ENV = ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID'];
 const REQUIRED_WEBHOOK_ENV_VARS = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
 const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 120;
@@ -45,17 +45,99 @@ const ensureRequiredEnv = (keys) => {
   }
 };
 
+const parseBoolean = (value, defaultValue = false) => {
+  if (value === undefined || value === null || value === '') return defaultValue;
+  if (typeof value === 'boolean') return value;
+  const normalized = String(value).toLowerCase().trim();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  return defaultValue;
+};
+
 const createCheckoutSession = async (req, res) => {
   try {
-    ensureRequiredEnv(REQUIRED_CREATE_ENV_VARS);
+    if (!process.env.STRIPE_SECRET_KEY) {
+      const err = new Error('Stripe is not configured');
+      err.statusCode = 500;
+      throw err;
+    }
     const stripe = getStripeClient();
 
     const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const checkoutKind = sanitize(body.checkoutKind || 'site-confirmation', 48);
     const customerEmail = sanitize(body.email, MAX_EMAIL_LENGTH);
     const customerName = sanitize(body.name, MAX_NAME_LENGTH);
     const source = sanitize(body.source || 'site-confirmation', 64);
     const referenceId = crypto.randomUUID();
     const appBaseUrl = getFrontendBaseUrl(req);
+
+    if (checkoutKind === 'asset-viewing') {
+      if (!isFirebaseConfigured()) {
+        return res.status(503).json({ success: false, message: 'Database is not configured' });
+      }
+      const assetId = sanitize(body.assetId, 128);
+      if (!assetId) {
+        return res.status(400).json({ success: false, message: 'assetId is required' });
+      }
+
+      const assetSnap = await db.collection('assets').doc(assetId).get();
+      if (!assetSnap.exists) {
+        return res.status(404).json({ success: false, message: 'Asset not found' });
+      }
+      const asset = assetSnap.data();
+      if (!parseBoolean(asset.isSpecial, false)) {
+        return res.status(400).json({ success: false, message: 'This listing does not require a viewing fee' });
+      }
+      const fee = Number(asset.viewingFeeAed);
+      if (!Number.isFinite(fee) || fee <= 0) {
+        return res.status(400).json({ success: false, message: 'Viewing fee is not set for this listing' });
+      }
+      const unitAmount = Math.round(fee * 100);
+      if (!Number.isFinite(unitAmount) || unitAmount < 1) {
+        return res.status(400).json({ success: false, message: 'Invalid viewing fee amount' });
+      }
+
+      const label = sanitize(asset.name || 'Property', 120);
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        line_items: [
+          {
+            price_data: {
+              currency: 'aed',
+              unit_amount: unitAmount,
+              product_data: {
+                name: `Listing access: ${label}`,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${appBaseUrl}/#property/${encodeURIComponent(assetId)}?unlock_session={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${appBaseUrl}/#property/${encodeURIComponent(assetId)}`,
+        customer_email: customerEmail || undefined,
+        billing_address_collection: 'required',
+        client_reference_id: referenceId,
+        metadata: {
+          checkoutKind: 'asset-viewing',
+          assetId,
+          source: sanitize(body.source || 'asset-viewing', 64),
+          customer_name: customerName || '',
+        },
+        allow_promotion_codes: false,
+        submit_type: 'pay',
+        payment_method_types: ['card'],
+      });
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          url: session.url,
+          sessionId: session.id,
+        },
+      });
+    }
+
+    ensureRequiredEnv(REQUIRED_SITE_CONFIRMATION_ENV);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -71,6 +153,7 @@ const createCheckoutSession = async (req, res) => {
       billing_address_collection: 'required',
       client_reference_id: referenceId,
       metadata: {
+        checkoutKind: 'site-confirmation',
         source,
         customer_name: customerName || '',
       },
@@ -97,7 +180,9 @@ const createCheckoutSession = async (req, res) => {
 
 const getCheckoutSession = async (req, res) => {
   try {
-    ensureRequiredEnv(REQUIRED_CREATE_ENV_VARS);
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(500).json({ success: false, message: 'Stripe is not configured' });
+    }
     const stripe = getStripeClient();
 
     const sessionId = sanitize(req.params.sessionId, 255);
@@ -118,6 +203,8 @@ const getCheckoutSession = async (req, res) => {
         amountTotal: session.amount_total,
         currency: session.currency,
         customerEmail: session.customer_details?.email || session.customer_email || null,
+        checkoutKind: session.metadata?.checkoutKind || null,
+        assetId: session.metadata?.assetId || null,
       },
     });
   } catch (error) {
@@ -157,6 +244,8 @@ const handleWebhook = async (req, res) => {
           {
             id: session.id,
             eventId: event.id,
+            checkoutKind: session.metadata?.checkoutKind || null,
+            assetId: session.metadata?.assetId || null,
             source: session.metadata?.source || 'site-confirmation',
             status: session.status,
             paymentStatus: session.payment_status,
@@ -168,6 +257,19 @@ const handleWebhook = async (req, res) => {
           },
           { merge: true }
         );
+
+        if (session.metadata?.checkoutKind === 'asset-viewing' && session.metadata?.assetId) {
+          await db.collection('assetUnlocks').doc(session.id).set(
+            {
+              sessionId: session.id,
+              assetId: session.metadata.assetId,
+              paymentStatus: session.payment_status,
+              customerEmail: session.customer_details?.email || session.customer_email || null,
+              createdAt: new Date(),
+            },
+            { merge: true }
+          );
+        }
       }
     }
 

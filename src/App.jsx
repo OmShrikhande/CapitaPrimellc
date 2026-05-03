@@ -23,6 +23,21 @@ import { CMSProvider } from './context/CMSContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { useCMS } from './context/useCMS';
 
+function parsePropertyHash(hash) {
+  if (!hash.startsWith('#property/')) {
+    return { propertyId: null, unlockSession: null };
+  }
+  const rest = hash.slice('#property/'.length);
+  const [idPart, queryPart] = rest.split('?');
+  const propertyId = idPart ? decodeURIComponent(idPart) : null;
+  let unlockSession = null;
+  if (queryPart) {
+    const params = new URLSearchParams(queryPart);
+    unlockSession = params.get('unlock_session') || params.get('session_id');
+  }
+  return { propertyId, unlockSession };
+}
+
 function AppShell() {
   const [loaded, setLoaded] = useState(false);
   const { loading: cmsLoading } = useCMS();
@@ -35,10 +50,8 @@ function AppShell() {
     if (hash.startsWith('#property/')) return 'property';
     return 'home';
   });
-  const [propertyId, setPropertyId] = useState(() => {
-    const hash = window.location.hash;
-    return hash.startsWith('#property/') ? hash.split('/')[1] : null;
-  });
+  const [propertyId, setPropertyId] = useState(() => parsePropertyHash(window.location.hash).propertyId);
+  const [unlockSession, setUnlockSession] = useState(() => parsePropertyHash(window.location.hash).unlockSession);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -50,7 +63,9 @@ function AppShell() {
       if (hash.startsWith('#payment-cancelled')) newRoute = 'payment-cancelled';
       if (hash.startsWith('#property/')) {
         newRoute = 'property';
-        setPropertyId(hash.split('/')[1]);
+        const { propertyId: pid, unlockSession: us } = parsePropertyHash(hash);
+        setPropertyId(pid);
+        setUnlockSession(us);
       }
       setRoute(newRoute);
       window.scrollTo(0, 0);
@@ -105,7 +120,7 @@ function AppShell() {
         ) : route === 'admin' ? (
           <AdminPanel />
         ) : route === 'property' ? (
-          <PropertyDetails key={propertyId} id={propertyId} />
+          <PropertyDetails key={`${propertyId}:${unlockSession || ''}`} id={propertyId} unlockSession={unlockSession} />
         ) : route === 'payment-confirmation' ? (
           <PaymentConfirmation />
         ) : route === 'payment-cancelled' ? (

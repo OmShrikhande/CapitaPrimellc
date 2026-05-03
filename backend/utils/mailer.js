@@ -2,11 +2,17 @@ const nodemailer = require('nodemailer');
 
 let transporter;
 
+/**
+ * Gmail: use GMAIL_USER + GMAIL_APP_PASSWORD (Google Account → Security → App passwords).
+ * SMTP_* vars still work for other providers.
+ */
 const getTransporter = () => {
   if (transporter) return transporter;
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+
+  const user = process.env.GMAIL_USER || process.env.SMTP_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
+  const host = process.env.SMTP_HOST || (user && pass ? 'smtp.gmail.com' : null);
+
   if (!host || !user || !pass) return null;
 
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
@@ -21,7 +27,12 @@ const getTransporter = () => {
   return transporter;
 };
 
-const isMailConfigured = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const isMailConfigured = () => {
+  const gmailOk = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+  const genericOk = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  const implicitGmailOk = !!(process.env.SMTP_USER && process.env.SMTP_PASS && !process.env.SMTP_HOST);
+  return gmailOk || genericOk || implicitGmailOk;
+};
 
 /**
  * @param {{ to: string, subject: string, text: string, html?: string }} opts
@@ -29,10 +40,10 @@ const isMailConfigured = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER
 const sendMail = async (opts) => {
   const tx = getTransporter();
   if (!tx) {
-    console.warn('📧 SMTP not configured; skipping email send');
-    return { sent: false, reason: 'smtp_not_configured' };
+    console.warn('📧 Mail not configured; skipping email send');
+    return { sent: false, reason: 'mail_not_configured' };
   }
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const from = process.env.SMTP_FROM || process.env.GMAIL_USER || process.env.SMTP_USER;
   await tx.sendMail({
     from,
     to: opts.to,

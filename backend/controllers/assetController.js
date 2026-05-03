@@ -2,6 +2,41 @@ const { db } = require('../config/firebase');
 const fs = require('fs');
 const path = require('path');
 const { deleteFromCloudinary, extractPublicId, isCloudinaryConfigured } = require('../utils/cloudinary');
+const { verifyAssetViewingUnlock } = require('../utils/assetUnlock');
+
+const sanitizeQuery = (value, max) => {
+  if (value == null) return '';
+  const s = String(value).trim();
+  return s.length > max ? s.slice(0, max) : s;
+};
+
+/** Public list: hide rich details for special listings unless caller is admin. */
+const redactSpecialForPublic = (id, data) => {
+  const images = Array.isArray(data.imageUrls) ? data.imageUrls : [];
+  return {
+    id,
+    name: data.name,
+    type: data.type,
+    quantity: data.quantity,
+    location: data.location,
+    price: data.price,
+    compareAtPrice: data.compareAtPrice,
+    area: data.area,
+    propertyType: data.propertyType,
+    listingType: data.listingType,
+    yearBuilt: data.yearBuilt,
+    bedrooms: data.bedrooms,
+    bathrooms: data.bathrooms,
+    parking: data.parking,
+    imageUrls: images.length > 0 ? [images[0]] : [],
+    features: Array.isArray(data.features) ? data.features.slice(0, 3) : [],
+    isVisible: data.isVisible,
+    isSpecial: true,
+    viewingFeeAed: data.viewingFeeAed,
+    createdAt: data.createdAt,
+    updatedAt: data.updatedAt,
+  };
+};
 
 const parseBoolean = (value, defaultValue = false) => {
   if (value === undefined || value === null || value === '') return defaultValue;
@@ -57,6 +92,8 @@ const normalizeStringArray = (value) => {
 // @access  Public
 const getAssets = async (req, res) => {
   try {
+    const isAdmin = req.user && req.user.role === 'admin';
+
     let assetsSnapshot;
     try {
       assetsSnapshot = await db.collection('assets').orderBy('createdAt', 'desc').get();
@@ -66,8 +103,14 @@ const getAssets = async (req, res) => {
     }
 
     const assets = [];
-    assetsSnapshot.forEach(doc => {
-      assets.push({ id: doc.id, ...doc.data() });
+    assetsSnapshot.forEach((doc) => {
+      const row = { id: doc.id, ...doc.data() };
+      const isSpecial = parseBoolean(row.isSpecial, false);
+      if (!isAdmin && isSpecial) {
+        assets.push(redactSpecialForPublic(doc.id, row));
+      } else {
+        assets.push(row);
+      }
     });
 
     const time = (row) => {
@@ -98,8 +141,9 @@ const getAssets = async (req, res) => {
 // @access  Public
 const getAsset = async (req, res) => {
   try {
+    const isAdmin = req.user && req.user.role === 'admin';
     const assetDoc = await db.collection('assets').doc(req.params.id).get();
-    
+
     if (!assetDoc.exists) {
       return res.status(404).json({
         success: false,
@@ -107,9 +151,55 @@ const getAsset = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    const raw = { id: assetDoc.id, ...assetDoc.data() };
+    const isSpecial = parseBoolean(raw.isSpecial, false);
+    const fee = Number(raw.viewingFeeAed);
+    const hasViewingFee = Number.isFinite(fee) && fee > 0;
+
+    if (isAdmin) {
+      return res.status(200).json({
+        success: true,
+        data: { ...raw, locked: false },
+      });
+    }
+
+    const unlockSession = sanitizeQuery(
+      req.query.unlockSession || req.query.unlock_session || req.query.session_id,
+      260
+    );
+
+    if (!isSpecial || !hasViewingFee) {
+      return res.status(200).json({
+        success: true,
+        data: { ...raw, locked: false },
+      });
+    }
+
+    const unlocked = unlockSession && (await verifyAssetViewingUnlock(unlockSession, raw.id));
+    if (unlocked) {
+      return res.status(200).json({
+        success: true,
+        data: { ...raw, locked: false, unlockSessionId: unlockSession },
+      });
+    }
+
+    return res.status(200).json({
       success: true,
-      data: { id: assetDoc.id, ...assetDoc.data() }
+      data: {
+        id: raw.id,
+        name: raw.name,
+        location: raw.location,
+        type: raw.type,
+        propertyType: raw.propertyType,
+        listingType: raw.listingType,
+        price: raw.price,
+        compareAtPrice: raw.compareAtPrice,
+        area: raw.area,
+        imageUrls: Array.isArray(raw.imageUrls) && raw.imageUrls.length > 0 ? [raw.imageUrls[0]] : [],
+        isSpecial: true,
+        viewingFeeAed: raw.viewingFeeAed,
+        locked: true,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -133,6 +223,7 @@ const createAsset = async (req, res) => {
       description,
       // Property-specific fields
       price,
+      compareAtPrice,
       area,
       bedrooms,
       bathrooms,
@@ -159,6 +250,20 @@ const createAsset = async (req, res) => {
     let imageUrls = [];
 
     const isVisible = parseBoolean(req.body.isVisible, true);
+    const isSpecial = parseBoolean(req.body.isSpecial, false);
+    const viewingFeeRaw = req.body.viewingFeeAed;
+    const hasFee =
+      viewingFeeRaw !== undefined && viewingFeeRaw !== null && String(viewingFeeRaw).trim() !== '';
+    const viewingFeeAed = hasFee
+      ? parseFloat(String(viewingFeeRaw).replace(/,/g, ''))
+      : null;
+
+    if (isSpecial && (!Number.isFinite(viewingFeeAed) || viewingFeeAed <= 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Special listings require a viewing fee greater than zero (AED).',
+      });
+    }
 
     if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
       // Use Cloudinary URLs (or fallback local URLs)
@@ -173,8 +278,15 @@ const createAsset = async (req, res) => {
       description,
       imageUrls,
       isVisible,
+      isSpecial,
+      viewingFeeAed: isSpecial ? viewingFeeAed : null,
       // Property details
       price: price ? parseFloat(price) : null,
+      compareAtPrice: (() => {
+        if (compareAtPrice === undefined || compareAtPrice === '' || compareAtPrice === null) return null;
+        const p = parseFloat(compareAtPrice);
+        return Number.isFinite(p) ? p : null;
+      })(),
       area: area ? parseFloat(area) : null,
       bedrooms: bedrooms ? parseInt(bedrooms) : null,
       bathrooms: bathrooms ? parseInt(bathrooms) : null,
@@ -239,6 +351,7 @@ const updateAsset = async (req, res) => {
       description,
       // Property-specific fields
       price,
+      compareAtPrice,
       area,
       bedrooms,
       bathrooms,
@@ -265,6 +378,12 @@ const updateAsset = async (req, res) => {
     // If `isVisible` was provided, normalize it; otherwise keep current value.
     const hasIsVisible = bodyData.isVisible !== undefined;
     const isVisible = parseBoolean(bodyData.isVisible, true);
+    const hasIsSpecial = bodyData.isSpecial !== undefined;
+    const isSpecialBody = parseBoolean(bodyData.isSpecial, false);
+    const rawFee = bodyData.viewingFeeAed;
+    const hasViewingFee =
+      rawFee !== undefined && rawFee !== null && String(rawFee).trim() !== '';
+    const viewingFeeParsed = hasViewingFee ? parseFloat(String(rawFee).replace(/,/g, '')) : null;
 
     const assetRef = db.collection('assets').doc(req.params.id);
     const assetDoc = await assetRef.get();
@@ -282,6 +401,14 @@ const updateAsset = async (req, res) => {
       });
     }
 
+    const existing = assetDoc.data();
+    const finalIsSpecial = hasIsSpecial ? isSpecialBody : parseBoolean(existing.isSpecial, false);
+    let finalViewingFeeAed = existing.viewingFeeAed;
+    if (hasViewingFee && Number.isFinite(viewingFeeParsed)) {
+      finalViewingFeeAed = viewingFeeParsed;
+    }
+    if (hasIsSpecial && !isSpecialBody) finalViewingFeeAed = null;
+
     const updateData = {
       updatedAt: new Date()
     };
@@ -295,6 +422,14 @@ const updateAsset = async (req, res) => {
 
     // Property details
     if (price !== undefined) updateData.price = price ? parseFloat(price) : null;
+    if (compareAtPrice !== undefined) {
+      if (compareAtPrice === '' || compareAtPrice === null) {
+        updateData.compareAtPrice = null;
+      } else {
+        const p = parseFloat(compareAtPrice);
+        updateData.compareAtPrice = Number.isFinite(p) ? p : null;
+      }
+    }
     if (area !== undefined) updateData.area = area ? parseFloat(area) : null;
     if (bedrooms !== undefined) updateData.bedrooms = bedrooms ? parseInt(bedrooms) : null;
     if (bathrooms !== undefined) updateData.bathrooms = bathrooms ? parseInt(bathrooms) : null;
@@ -325,6 +460,21 @@ const updateAsset = async (req, res) => {
     if (agentEmail !== undefined) updateData.agentEmail = agentEmail;
 
     if (hasIsVisible) updateData.isVisible = isVisible;
+
+    if (hasIsSpecial) updateData.isSpecial = finalIsSpecial;
+
+    if (finalIsSpecial) {
+      const feeNum = Number(finalViewingFeeAed);
+      if (!Number.isFinite(feeNum) || feeNum <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Special listings require a viewing fee greater than zero (AED).',
+        });
+      }
+      updateData.viewingFeeAed = feeNum;
+    } else if (hasIsSpecial || hasViewingFee) {
+      updateData.viewingFeeAed = null;
+    }
 
     // Handle new images if uploaded
     if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {

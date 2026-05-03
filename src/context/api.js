@@ -52,6 +52,35 @@ const getAuthHeaders = () => {
 const requestCache = new Map();
 const REQUEST_CACHE_TIME = 5000; // 5 seconds
 
+/** After admin mutates assets, drop cached GET /api/assets (and per-id) so the public site sees updates immediately. */
+export const invalidatePublicAssetCaches = () => {
+  for (const key of [...requestCache.keys()]) {
+    if (key.includes('/api/assets')) {
+      requestCache.delete(key);
+    }
+  }
+};
+
+/** Append asset fields to FormData; booleans as "true"/"false" for reliable multipart parsing. */
+const appendAssetFormFields = (formData, assetData) => {
+  Object.keys(assetData).forEach((key) => {
+    if (key === 'images') return;
+    const v = assetData[key];
+    if (v === undefined || v === null) return;
+    if (Array.isArray(v)) {
+      if (key === 'amenities' || key === 'features') {
+        formData.append(key, JSON.stringify(v));
+      } else {
+        v.forEach((item) => formData.append(key, item));
+      }
+    } else if (typeof v === 'boolean') {
+      formData.append(key, v ? 'true' : 'false');
+    } else {
+      formData.append(key, v);
+    }
+  });
+};
+
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   let data;
@@ -126,7 +155,20 @@ const cachedRequest = async (url, options = {}, cacheKey = null) => {
 };
 
 export const submitInquiry = async (payload) => {
+  const body = { ...(payload && typeof payload === 'object' ? payload : {}) };
+  if (body.hp_field == null || String(body.hp_field).trim() === '') {
+    delete body.hp_field;
+  }
   const response = await fetch(`${API_BASE_URL}/api/inquiries`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return handleResponse(response);
+};
+
+export const createPaymentCheckoutSession = async (payload = {}) => {
+  const response = await fetch(`${API_BASE_URL}/api/payments/checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -134,12 +176,23 @@ export const submitInquiry = async (payload) => {
   return handleResponse(response);
 };
 
-export const createSiteConfirmationCheckout = async (payload = {}) => {
-  const response = await fetch(`${API_BASE_URL}/api/payments/checkout-session`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+/** Site confirmation fee — amount comes from STRIPE_PRICE_ID on the server. */
+export const createSiteConfirmationCheckout = async (extra = {}) => {
+  return createPaymentCheckoutSession({ checkoutKind: 'site-confirmation', ...extra });
+};
+
+/** Special listing unlock — amount is read from the asset record on the server (not from the client). */
+export const createAssetViewingCheckout = async (assetId, extra = {}) => {
+  return createPaymentCheckoutSession({ checkoutKind: 'asset-viewing', assetId, ...extra });
+};
+
+export const fetchPublicAsset = async (assetId, unlockSession) => {
+  const base = `${API_BASE_URL}/api/assets/${encodeURIComponent(String(assetId || ''))}`;
+  const url =
+    unlockSession != null && String(unlockSession).trim() !== ''
+      ? `${base}?unlockSession=${encodeURIComponent(String(unlockSession).trim())}`
+      : base;
+  const response = await fetch(url);
   return handleResponse(response);
 };
 
@@ -342,36 +395,27 @@ export const adminAPI = {
 
   // Asset API functions
   assets: {
-    // Get all assets (public)
+    /** Public index (redacts rich fields for special listings). */
     getAll: async () => {
       return cachedRequest(`${API_BASE_URL}/api/assets`);
     },
 
-    // Get single asset (public)
+    /** Admin inventory: sends Bearer token; not cached together with public responses. */
+    getAllAuthenticated: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/assets`, {
+        headers: { ...getAuthHeaders() },
+      });
+      return handleResponse(response);
+    },
+
     get: async (id) => {
-      return cachedRequest(`${API_BASE_URL}/api/assets/${id}`);
+      return cachedRequest(`${API_BASE_URL}/api/assets/${encodeURIComponent(id)}`);
     },
 
     // Create new asset (admin only)
     create: async (assetData) => {
       const formData = new FormData();
-
-      // Add text fields
-      Object.keys(assetData).forEach(key => {
-        if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
-          if (Array.isArray(assetData[key])) {
-            // Multi-value fields like amenities/features tend to get collapsed by multipart parsing.
-            // Send them as JSON arrays to keep every entry intact.
-            if (key === 'amenities' || key === 'features') {
-              formData.append(key, JSON.stringify(assetData[key]));
-            } else {
-              assetData[key].forEach(item => formData.append(key, item));
-            }
-          } else {
-            formData.append(key, assetData[key]);
-          }
-        }
-      });
+      appendAssetFormFields(formData, assetData);
 
       // Add image files if provided (up to 7)
       if (assetData.images && Array.isArray(assetData.images)) {
@@ -388,63 +432,32 @@ export const adminAPI = {
         body: formData,
       });
 
-      return handleResponse(response);
+      const result = await handleResponse(response);
+      invalidatePublicAssetCaches();
+      return result;
     },
 
-    // Update asset (admin only)
+    // Update asset (admin only) — always multipart like POST so isSpecial / fees / compareAtPrice persist reliably.
     update: async (id, assetData) => {
-      // Check if there are new images to upload
-      const hasImages = assetData.images && Array.isArray(assetData.images) && assetData.images.length > 0;
-
-      if (hasImages) {
-        // Use FormData for file uploads
-        const formData = new FormData();
-
-        // Add text fields
-        Object.keys(assetData).forEach(key => {
-          if (key !== 'images' && assetData[key] !== undefined && assetData[key] !== null) {
-            if (Array.isArray(assetData[key])) {
-              if (key === 'amenities' || key === 'features') {
-                formData.append(key, JSON.stringify(assetData[key]));
-              } else {
-                assetData[key].forEach(item => formData.append(key, item));
-              }
-            } else {
-              formData.append(key, assetData[key]);
-            }
-          }
-        });
-
-        // Add image files (up to 7)
+      const formData = new FormData();
+      appendAssetFormFields(formData, assetData);
+      if (assetData.images && Array.isArray(assetData.images)) {
         assetData.images.slice(0, 7).forEach((image) => {
           formData.append('images', image);
         });
-
-        const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
-          method: 'PUT',
-          headers: {
-            ...getAuthHeaders(),
-          },
-          body: formData,
-        });
-
-        return handleResponse(response);
-      } else {
-        // Use JSON for updates without images
-        const updateData = { ...assetData };
-        delete updateData.images; // Remove empty images array
-
-        const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders(),
-          },
-          body: JSON.stringify(updateData),
-        });
-
-        return handleResponse(response);
       }
+
+      const response = await fetch(`${API_BASE_URL}/api/assets/${id}`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+        },
+        body: formData,
+      });
+
+      const result = await handleResponse(response);
+      invalidatePublicAssetCaches();
+      return result;
     },
 
     // Delete asset (admin only)
@@ -456,7 +469,9 @@ export const adminAPI = {
         },
       });
 
-      return handleResponse(response);
+      const result = await handleResponse(response);
+      invalidatePublicAssetCaches();
+      return result;
     },
   },
 
