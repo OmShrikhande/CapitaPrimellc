@@ -73,10 +73,13 @@ const OwnerSection = () => {
             </div>
 
             <div
-              className="space-y-6 text-[15px] leading-relaxed"
+              className="space-y-6 text-[15px] leading-relaxed "
               style={{
                 fontFamily: "'Inter', sans-serif",
                 color: 'rgba(255,255,255,0.52)',
+                textAlign: 'justify',
+                textJustify: 'inter-word',
+              
               }}
             >
               <p>

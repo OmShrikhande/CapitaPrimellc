@@ -761,12 +761,22 @@ img {
   will-change: transform;
 }
 
+/* Reverse animation = text appears to scroll left-to-right (default is right-to-left). */
+.ticker-wrap.ticker-wrap--reverse {
+  animation-direction: reverse;
+}
+
 .marquee-container:hover .ticker-wrap {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ticker-wrap {
+    animation: none;
+    transform: none;
+  }
+
+  .ticker-wrap.ticker-wrap--reverse {
     animation: none;
     transform: none;
   }

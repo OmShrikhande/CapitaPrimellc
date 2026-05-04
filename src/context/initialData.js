@@ -102,6 +102,8 @@ export const INITIAL_DATA = {
   },
   offers: {
     label: 'Special Offer',
+    /** 'default' = right-to-left scroll; 'reverse' = left-to-right */
+    marqueeScroll: 'default',
     items: [
       {
         id: 'o1',

@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useCMS } from '../context/useCMS';
 import { createAssetViewingCheckout, fetchPublicAsset, getImageURL } from '../context/api';
 import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { PriceOfferDisplay } from './PriceOfferDisplay';
+import { getStoredUnlockSession, rememberUnlockSession } from '../utils/assetUnlockStorage';
 
 const formatAed = (n) => {
   if (n == null || n === '') return '—';
@@ -12,6 +13,28 @@ const formatAed = (n) => {
   if (!Number.isFinite(num)) return String(n);
   return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
 };
+
+const LISTING_DETAIL_ROWS = [
+  ['marketingHeadline', 'Headline'],
+  ['grossFloorAreaSqFt', 'GFA (SQ.FT.)'],
+  ['floorAreaRatio', 'FAR'],
+  ['totalBuiltUpAreaSqFt', 'Total built-up (SQ.FT.)'],
+  ['buildingHeightDescription', 'Building height'],
+  ['totalUnitsApproved', 'Units approved'],
+  ['usageType', 'Usage'],
+  ['jvInventorySplit', 'JV split'],
+  ['jvUpfrontNote', 'Contribution / upfront'],
+  ['commissionPercent', 'Commission'],
+];
+
+const LISTING_LONG_BLOCKS = [
+  ['drawingsStatusNotes', 'Design & drawings'],
+  ['titleDeedsFeesNotes', 'Title deed & fees'],
+  ['paymentTermsNotes', 'Payment terms'],
+  ['advantagesNotes', 'Advantages'],
+  ['investmentNarrative', 'Investment narrative'],
+  ['jvTermsRich', 'JV terms & full brief'],
+];
 
 const PropertyDetails = ({ id, unlockSession }) => {
   const { data } = useCMS();
@@ -26,10 +49,15 @@ const PropertyDetails = ({ id, unlockSession }) => {
 
   const [activeIdx, setActiveIdx] = useState(0);
 
+  const effectiveUnlock = useMemo(() => {
+    const fromProp = unlockSession != null && String(unlockSession).trim() !== '' ? String(unlockSession).trim() : null;
+    return fromProp || getStoredUnlockSession(id);
+  }, [id, unlockSession]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     setActiveIdx(0);
-  }, [id, unlockSession]);
+  }, [id, effectiveUnlock]);
 
   useEffect(() => {
     if (cmsProperty || !id) return;
@@ -39,10 +67,14 @@ const PropertyDetails = ({ id, unlockSession }) => {
       setApiLoading(true);
       setApiError('');
       try {
-        const res = await fetchPublicAsset(id, unlockSession);
+        const res = await fetchPublicAsset(id, effectiveUnlock);
         if (cancelled) return;
         if (res.success && res.data) {
           setApiAsset(res.data);
+          if (res.data.locked === false) {
+            const sid = res.data.unlockSessionId || effectiveUnlock;
+            if (sid) rememberUnlockSession(id, sid);
+          }
         } else {
           setApiError('Listing not found.');
         }
@@ -57,7 +89,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
     return () => {
       cancelled = true;
     };
-  }, [id, unlockSession, cmsProperty]);
+  }, [id, effectiveUnlock, cmsProperty]);
 
   const handlePayToView = useCallback(async () => {
     if (!id) return;
@@ -107,7 +139,10 @@ const PropertyDetails = ({ id, unlockSession }) => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                 <div className="absolute top-6 left-6">
-                  <span className="px-4 py-2 bg-gold text-black text-[10px] font-black tracking-widest uppercase rounded-full">
+                  <span
+                    className="px-4 py-2 bg-gold text-[10px] font-black tracking-widest uppercase rounded-full"
+                    style={{ color: theme.secondary }}
+                  >
                     {cmsProperty.badge}
                   </span>
                 </div>
@@ -165,7 +200,9 @@ const PropertyDetails = ({ id, unlockSession }) => {
               </div>
 
               <div className="space-y-8">
-                <h3 className="text-xl font-bold tracking-tight">Technical Specifications</h3>
+                <h3 className="text-xl font-bold tracking-tight" style={{ color: theme.primary }}>
+                  Technical Specifications
+                </h3>
                 <div className="grid grid-cols-2 gap-y-6">
                   {[
                     ['Zoning', cmsProperty.specs?.zoning],
@@ -187,7 +224,8 @@ const PropertyDetails = ({ id, unlockSession }) => {
               <div className="flex gap-4 pt-10">
                 <a
                   href="#contact"
-                  className="flex-1 bg-gold text-black font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs shadow-2xl shadow-gold/20 text-center"
+                  className="flex-1 bg-gold font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs shadow-2xl shadow-gold/20 text-center"
+                  style={{ color: theme.secondary }}
                 >
                   Book Consultation
                 </a>
@@ -197,7 +235,9 @@ const PropertyDetails = ({ id, unlockSession }) => {
 
           <div className="mt-32 grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2 space-y-10">
-              <h2 className="text-3xl font-serif font-bold">Investment Narrative</h2>
+              <h2 className="text-3xl font-serif font-bold" style={{ color: theme.primary }}>
+                Investment Narrative
+              </h2>
               <p className="text-white/60 leading-relaxed text-lg">
                 This exceptional {cmsProperty.category.toLowerCase()} plot in {cmsProperty.location} offers a rare
                 opportunity for discerning investors.
@@ -312,7 +352,8 @@ const PropertyDetails = ({ id, unlockSession }) => {
                 type="button"
                 onClick={handlePayToView}
                 disabled={payLoading}
-                className="w-full bg-gold text-black font-black py-5 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs disabled:opacity-70"
+                className="w-full bg-gold font-black py-5 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs disabled:opacity-70"
+                style={{ color: theme.secondary }}
               >
                 {payLoading ? 'Redirecting to secure checkout…' : 'Pay & unlock full details'}
               </button>
@@ -336,7 +377,10 @@ const PropertyDetails = ({ id, unlockSession }) => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                   <div className="absolute top-6 left-6 flex gap-2 flex-wrap">
-                    <span className="px-4 py-2 bg-gold text-black text-[10px] font-black tracking-widest uppercase rounded-full">
+                    <span
+                      className="px-4 py-2 bg-gold text-[10px] font-black tracking-widest uppercase rounded-full"
+                      style={{ color: theme.secondary }}
+                    >
                       {apiAsset.listingType || 'LISTING'}
                     </span>
                     {apiAsset.isSpecial ? (
@@ -405,15 +449,74 @@ const PropertyDetails = ({ id, unlockSession }) => {
 
                 {apiAsset.description ? (
                   <div className="space-y-4">
-                    <h3 className="text-xl font-bold tracking-tight">Description</h3>
-                    <p className="text-white/60 leading-relaxed">{apiAsset.description}</p>
+                    <h3 className="text-xl font-bold tracking-tight" style={{ color: theme.primary }}>
+                      Description
+                    </h3>
+                    <p className="text-white/60 leading-relaxed whitespace-pre-wrap">{apiAsset.description}</p>
+                  </div>
+                ) : null}
+
+                {LISTING_DETAIL_ROWS.some(([k]) => apiAsset[k]) ? (
+                  <div className="space-y-4 pt-4 border-t border-white/10">
+                    <h3 className="text-xl font-bold tracking-tight" style={{ color: theme.primary }}>
+                      Listing brief
+                    </h3>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                      {LISTING_DETAIL_ROWS.map(([key, label]) => {
+                        const v = apiAsset[key];
+                        if (v == null || String(v).trim() === '') return null;
+                        return (
+                          <div key={key}>
+                            <dt className="text-[10px] text-white/35 font-black uppercase tracking-widest mb-1">{label}</dt>
+                            <dd className="text-white/80 font-medium">{String(v)}</dd>
+                          </div>
+                        );
+                      })}
+                    </dl>
+                    {apiAsset.mapsUrl ? (
+                      <a
+                        href={apiAsset.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-gold text-sm font-bold hover:underline"
+                      >
+                        Open map ↗
+                      </a>
+                    ) : null}
+                  </div>
+                ) : apiAsset.mapsUrl ? (
+                  <div className="pt-4 border-t border-white/10">
+                    <a
+                      href={apiAsset.mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-gold text-sm font-bold hover:underline"
+                    >
+                      Open map ↗
+                    </a>
+                  </div>
+                ) : null}
+
+                {LISTING_LONG_BLOCKS.some(([k]) => apiAsset[k]) ? (
+                  <div className="space-y-6 pt-4 border-t border-white/10">
+                    {LISTING_LONG_BLOCKS.map(([key, title]) => {
+                      const v = apiAsset[key];
+                      if (v == null || String(v).trim() === '') return null;
+                      return (
+                        <div key={key}>
+                          <h4 className="text-sm font-black text-gold/90 uppercase tracking-widest mb-2">{title}</h4>
+                          <p className="text-white/65 leading-relaxed whitespace-pre-wrap text-sm">{String(v)}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : null}
 
                 <div className="flex flex-wrap gap-4 pt-6">
                   <a
                     href="#contact"
-                    className="flex-1 min-w-[200px] bg-gold text-black font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs text-center"
+                    className="flex-1 min-w-[200px] bg-gold font-black py-6 rounded-2xl hover:bg-white transition-all tracking-[0.2em] uppercase text-xs text-center"
+                    style={{ color: theme.secondary }}
                   >
                     Book Consultation
                   </a>
@@ -423,7 +526,9 @@ const PropertyDetails = ({ id, unlockSession }) => {
 
             {featureList.length > 0 ? (
               <div className="mt-24">
-                <h2 className="text-3xl font-serif font-bold mb-8">Highlights</h2>
+                <h2 className="text-3xl font-serif font-bold mb-8" style={{ color: theme.primary }}>
+                  Highlights
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {featureList.map((f, i) => (
                     <div key={i} className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">

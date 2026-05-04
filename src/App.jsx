@@ -22,6 +22,23 @@ import PaymentConfirmation from './components/PaymentConfirmation';
 import { CMSProvider } from './context/CMSContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { useCMS } from './context/useCMS';
+import { getStoredUnlockSession } from './utils/assetUnlockStorage';
+
+function scrollHomeToHash(hash) {
+  const raw = String(hash || '').replace(/^#/, '').split('?')[0];
+  if (!raw || raw === 'hero') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  const el = document.getElementById(raw);
+  if (el) {
+    const navOffset = 96;
+    const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
 
 function parsePropertyHash(hash) {
   if (!hash.startsWith('#property/')) {
@@ -50,8 +67,16 @@ function AppShell() {
     if (hash.startsWith('#property/')) return 'property';
     return 'home';
   });
-  const [propertyId, setPropertyId] = useState(() => parsePropertyHash(window.location.hash).propertyId);
-  const [unlockSession, setUnlockSession] = useState(() => parsePropertyHash(window.location.hash).unlockSession);
+  const [propertyId, setPropertyId] = useState(() => {
+    const p = parsePropertyHash(window.location.hash);
+    return p.propertyId;
+  });
+  const [unlockSession, setUnlockSession] = useState(() => {
+    const p = parsePropertyHash(window.location.hash);
+    const fromUrl = p.unlockSession;
+    const fromStore = p.propertyId ? getStoredUnlockSession(p.propertyId) : null;
+    return fromUrl || fromStore || null;
+  });
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -64,12 +89,23 @@ function AppShell() {
       if (hash.startsWith('#property/')) {
         newRoute = 'property';
         const { propertyId: pid, unlockSession: us } = parsePropertyHash(hash);
+        const stored = pid ? getStoredUnlockSession(pid) : null;
         setPropertyId(pid);
-        setUnlockSession(us);
+        setUnlockSession(us || stored || null);
+      } else {
+        setPropertyId(null);
+        setUnlockSession(null);
       }
       setRoute(newRoute);
       document.body.style.overflow = '';
-      window.scrollTo(0, 0);
+
+      if (newRoute === 'home') {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => scrollHomeToHash(hash));
+        });
+      } else {
+        window.scrollTo(0, 0);
+      }
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -87,6 +123,13 @@ function AppShell() {
   }, []);
 
   const isFullyLoaded = loaded && !cmsLoading;
+
+  useEffect(() => {
+    if (!isFullyLoaded || route !== 'home') return;
+    const hash = window.location.hash;
+    const t = window.setTimeout(() => scrollHomeToHash(hash), 400);
+    return () => window.clearTimeout(t);
+  }, [isFullyLoaded, route]);
 
   return (
     <div className="bg-void" style={{ minHeight: '100vh' }}>

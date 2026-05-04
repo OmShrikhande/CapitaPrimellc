@@ -87,6 +87,53 @@ const normalizeStringArray = (value) => {
   return [String(value).trim()].filter(Boolean);
 };
 
+/** Rich broker / JV fields (optional strings on inventory assets). */
+const LISTING_EXTENSION_FIELDS = [
+  'marketingHeadline',
+  'grossFloorAreaSqFt',
+  'floorAreaRatio',
+  'totalBuiltUpAreaSqFt',
+  'buildingHeightDescription',
+  'totalUnitsApproved',
+  'usageType',
+  'jvInventorySplit',
+  'jvUpfrontNote',
+  'mapsUrl',
+  'advantagesNotes',
+  'commissionPercent',
+  'drawingsStatusNotes',
+  'titleDeedsFeesNotes',
+  'paymentTermsNotes',
+  'investmentNarrative',
+  'jvTermsRich',
+];
+
+const pickListingExtensionsForCreate = (body) => {
+  const o = {};
+  if (!body || typeof body !== 'object') return o;
+  for (const key of LISTING_EXTENSION_FIELDS) {
+    const v = body[key];
+    if (v === undefined || v === null) continue;
+    const s = String(v).trim();
+    if (s) o[key] = s.slice(0, 12000);
+  }
+  return o;
+};
+
+const assignListingExtensionsForUpdate = (updateData, body) => {
+  if (!body || typeof body !== 'object') return;
+  for (const key of LISTING_EXTENSION_FIELDS) {
+    if (body[key] === undefined) continue;
+    const v = body[key];
+    if (v === null || v === '') {
+      updateData[key] = null;
+      continue;
+    }
+    const s = String(v).trim();
+    updateData[key] = s ? s.slice(0, 12000) : null;
+  }
+};
+
 // @desc    Get all assets
 // @route   GET /api/assets
 // @access  Public
@@ -314,6 +361,8 @@ const createAsset = async (req, res) => {
       updatedAt: new Date()
     };
 
+    Object.assign(newAsset, pickListingExtensionsForCreate(req.body));
+
     const docRef = await db.collection('assets').add(newAsset);
 
     res.status(201).json({
@@ -458,6 +507,8 @@ const updateAsset = async (req, res) => {
     if (agentName !== undefined) updateData.agentName = agentName;
     if (agentPhone !== undefined) updateData.agentPhone = agentPhone;
     if (agentEmail !== undefined) updateData.agentEmail = agentEmail;
+
+    assignListingExtensionsForUpdate(updateData, bodyData);
 
     if (hasIsVisible) updateData.isVisible = isVisible;
 

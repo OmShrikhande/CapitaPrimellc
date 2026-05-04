@@ -24,6 +24,7 @@ const Offers = () => {
   const activeOffers = sourceOffers.filter((offer) => offer.isVisible);
   const offersToRender = activeOffers.length > 0 ? activeOffers : (Array.isArray(offersData.items) ? [] : INITIAL_DATA.offers.items.filter((offer) => offer.isVisible));
   const repeatedOffers = Array.from({ length: REPEAT_COUNT }, () => offersToRender).flat();
+  const tickerReverse = offersData.marqueeScroll === 'reverse';
 
   if (loading || offersToRender.length === 0) return null;
 
@@ -34,7 +35,7 @@ const Offers = () => {
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.09),transparent_70%)]" />
       <div className="marquee-container relative flex w-full overflow-hidden">
-        <div className="ticker-wrap flex items-center">
+        <div className={`ticker-wrap flex items-center${tickerReverse ? ' ticker-wrap--reverse' : ''}`}>
           <OfferItems offers={repeatedOffers} groupId="primary" label={offersData.label || 'Special Offer'} />
           <OfferItems offers={repeatedOffers} hidden groupId="secondary" label={offersData.label || 'Special Offer'} />
         </div>

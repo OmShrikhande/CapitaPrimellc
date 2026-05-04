@@ -5,6 +5,44 @@ import ImagePreview from './ImagePreview';
 
 const ASSET_CATEGORY_OPTIONS = ['Property', 'Land', 'Commercial', 'Plot', 'Industrial', 'Other'];
 
+/** Parse comma-separated list for submit; keeps spaces inside each segment. */
+const parseCommaList = (text) =>
+  String(text || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+/** Non-empty segments for chip preview (typing "a, b" works; comma stays in the field). */
+const commaListChips = (text) => parseCommaList(text);
+
+/** Remove the Nth completed segment; rejoins with ", " so indices stay aligned with chips. */
+const removeCommaListChipAt = (raw, chipIndex) => {
+  const segments = parseCommaList(raw);
+  if (chipIndex < 0 || chipIndex >= segments.length) return raw;
+  segments.splice(chipIndex, 1);
+  return segments.join(', ');
+};
+
+const emptyListingExtensions = () => ({
+  marketingHeadline: '',
+  grossFloorAreaSqFt: '',
+  floorAreaRatio: '',
+  totalBuiltUpAreaSqFt: '',
+  buildingHeightDescription: '',
+  totalUnitsApproved: '',
+  usageType: '',
+  jvInventorySplit: '',
+  jvUpfrontNote: '',
+  mapsUrl: '',
+  advantagesNotes: '',
+  commissionPercent: '',
+  drawingsStatusNotes: '',
+  titleDeedsFeesNotes: '',
+  paymentTermsNotes: '',
+  investmentNarrative: '',
+  jvTermsRich: '',
+});
+
 const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -26,9 +64,9 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     // Coordinates
     latitude: '',
     longitude: '',
-    // Additional details
-    amenities: [],
-    features: [],
+    // Additional details (free-text in form; arrays built on submit)
+    amenitiesText: '',
+    featuresText: '',
     neighborhood: '',
     developer: '',
     completionStatus: '',
@@ -40,6 +78,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     isSpecial: false,
     viewingFeeAed: '',
     compareAtPrice: '',
+    ...emptyListingExtensions(),
   });
   const [loading, setLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -67,8 +106,12 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         latitude: editingAsset.coordinates?.latitude || '',
         longitude: editingAsset.coordinates?.longitude || '',
         // Additional details
-        amenities: editingAsset.amenities || [],
-        features: editingAsset.features || [],
+        amenitiesText: Array.isArray(editingAsset.amenities) && editingAsset.amenities.length
+          ? editingAsset.amenities.join(', ')
+          : '',
+        featuresText: Array.isArray(editingAsset.features) && editingAsset.features.length
+          ? editingAsset.features.join(', ')
+          : '',
         neighborhood: editingAsset.neighborhood || '',
         developer: editingAsset.developer || '',
         completionStatus: editingAsset.completionStatus || '',
@@ -83,6 +126,24 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
           editingAsset.compareAtPrice != null && editingAsset.compareAtPrice !== ''
             ? String(editingAsset.compareAtPrice)
             : '',
+        ...emptyListingExtensions(),
+        marketingHeadline: editingAsset.marketingHeadline || '',
+        grossFloorAreaSqFt: editingAsset.grossFloorAreaSqFt || '',
+        floorAreaRatio: editingAsset.floorAreaRatio || '',
+        totalBuiltUpAreaSqFt: editingAsset.totalBuiltUpAreaSqFt || '',
+        buildingHeightDescription: editingAsset.buildingHeightDescription || '',
+        totalUnitsApproved: editingAsset.totalUnitsApproved || '',
+        usageType: editingAsset.usageType || '',
+        jvInventorySplit: editingAsset.jvInventorySplit || '',
+        jvUpfrontNote: editingAsset.jvUpfrontNote || '',
+        mapsUrl: editingAsset.mapsUrl || '',
+        advantagesNotes: editingAsset.advantagesNotes || '',
+        commissionPercent: editingAsset.commissionPercent || '',
+        drawingsStatusNotes: editingAsset.drawingsStatusNotes || '',
+        titleDeedsFeesNotes: editingAsset.titleDeedsFeesNotes || '',
+        paymentTermsNotes: editingAsset.paymentTermsNotes || '',
+        investmentNarrative: editingAsset.investmentNarrative || '',
+        jvTermsRich: editingAsset.jvTermsRich || '',
       });
       setImagePreviews(editingAsset.imageUrls || []);
     } else {
@@ -107,8 +168,8 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         latitude: '',
         longitude: '',
         // Additional details
-        amenities: [],
-        features: [],
+        amenitiesText: '',
+        featuresText: '',
         neighborhood: '',
         developer: '',
         completionStatus: '',
@@ -120,6 +181,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         isSpecial: false,
         viewingFeeAed: '',
         compareAtPrice: '',
+        ...emptyListingExtensions(),
       });
       setImagePreviews([]);
     }
@@ -165,36 +227,18 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     }));
   };
 
-  const handleArrayInput = (field, value) => {
-    const items = value.split(',').map(item => item.trim()).filter(item => item);
-    setFormData(prev => ({ ...prev, [field]: items }));
-  };
-
-  const addArrayItem = (field, item) => {
-    if (item.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: [...(prev[field] || []), item.trim()]
-      }));
-    }
-  };
-
-  const removeArrayItem = (field, index) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const typeTrim = formData.type != null ? String(formData.type).trim() : '';
+      const { amenitiesText, featuresText, ...rest } = formData;
       const payload = {
-        ...formData,
+        ...rest,
         type: typeTrim || 'Property',
+        amenities: parseCommaList(amenitiesText),
+        features: parseCommaList(featuresText),
       };
       await onSubmit(payload);
       onClose();
@@ -209,7 +253,7 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-serif font-bold text-white">
             {editingAsset ? 'Edit Asset' : 'Add New Asset'}
@@ -597,19 +641,24 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
               </label>
               <input
                 type="text"
-                value={formData.amenities.join(', ')}
-                onChange={(e) => handleArrayInput('amenities', e.target.value)}
+                value={formData.amenitiesText}
+                onChange={(e) => setFormData((prev) => ({ ...prev, amenitiesText: e.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
                 placeholder="Pool, gym, parking"
               />
-              {formData.amenities.length > 0 && (
+              {commaListChips(formData.amenitiesText).length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.amenities.map((amenity, index) => (
-                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
+                  {commaListChips(formData.amenitiesText).map((amenity, index) => (
+                    <span key={`${amenity}-${index}`} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
                       {amenity}
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('amenities', index)}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            amenitiesText: removeCommaListChipAt(prev.amenitiesText, index),
+                          }))
+                        }
                         className="text-gold hover:text-red-400"
                       >
                         ×
@@ -626,19 +675,24 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
               </label>
               <input
                 type="text"
-                value={formData.features.join(', ')}
-                onChange={(e) => handleArrayInput('features', e.target.value)}
+                value={formData.featuresText}
+                onChange={(e) => setFormData((prev) => ({ ...prev, featuresText: e.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
                 placeholder="Sea view, corner unit"
               />
-              {formData.features.length > 0 && (
+              {commaListChips(formData.featuresText).length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.features.map((feature, index) => (
-                    <span key={index} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
+                  {commaListChips(formData.featuresText).map((feature, index) => (
+                    <span key={`${feature}-${index}`} className="bg-gold/20 text-gold px-2 py-1 rounded text-xs flex items-center gap-1">
                       {feature}
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('features', index)}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            featuresText: removeCommaListChipAt(prev.featuresText, index),
+                          }))
+                        }
                         className="text-gold hover:text-red-400"
                       >
                         ×
@@ -649,6 +703,93 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
               )}
             </div>
           </div>
+          </details>
+
+          <details className="group rounded-2xl border border-gold/25 bg-gold/[0.04] px-4 py-3 open:pb-5 open:pt-4">
+            <summary className="cursor-pointer list-none text-sm font-bold text-gold uppercase tracking-widest flex items-center gap-2">
+              <span className="opacity-70 group-open:rotate-90 transition-transform inline-block">▸</span>
+              JV / development brief (WhatsApp-style listings)
+            </summary>
+            <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+              Paste client copy into the large fields or fill the structured lines for the public listing page. Plot size stays in “Area (sq ft)” above; use GFA / FAR here when the client sends them separately.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Marketing headline</label>
+                <input
+                  type="text"
+                  name="marketingHeadline"
+                  value={formData.marketingHeadline}
+                  onChange={handleInputChange}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-all"
+                  placeholder="e.g. Joint Venture Dubai South – Residential Development"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">GFA (SQ.FT.)</label>
+                <input type="text" name="grossFloorAreaSqFt" value={formData.grossFloorAreaSqFt} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="41,483" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">FAR</label>
+                <input type="text" name="floorAreaRatio" value={formData.floorAreaRatio} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="1.80" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total built-up (SQ.FT.)</label>
+                <input type="text" name="totalBuiltUpAreaSqFt" value={formData.totalBuiltUpAreaSqFt} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Building / height</label>
+                <input type="text" name="buildingHeightDescription" value={formData.buildingHeightDescription} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="G+4 + Roof" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Units approved</label>
+                <input type="text" name="totalUnitsApproved" value={formData.totalUnitsApproved} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="48" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Usage type</label>
+                <input type="text" name="usageType" value={formData.usageType} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="Residential + Hotel" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">JV inventory split</label>
+                <input type="text" name="jvInventorySplit" value={formData.jvInventorySplit} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="40/60 or 50/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Upfront / contribution</label>
+                <input type="text" name="jvUpfrontNote" value={formData.jvUpfrontNote} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="7M upfront (deductible…)" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Commission %</label>
+                <input type="text" name="commissionPercent" value={formData.commissionPercent} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="3%" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Google Maps URL</label>
+                <input type="url" name="mapsUrl" value={formData.mapsUrl} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none" placeholder="https://maps.app.goo.gl/..." />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Design / drawing status</label>
+                <textarea name="drawingsStatusNotes" value={formData.drawingsStatusNotes} onChange={handleInputChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none resize-none" placeholder="Preliminary design approved…" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Title deed / DLD fees note</label>
+                <textarea name="titleDeedsFeesNotes" value={formData.titleDeedsFeesNotes} onChange={handleInputChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none resize-none" placeholder="AED 12M fees paid…" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Payment terms note</label>
+                <textarea name="paymentTermsNotes" value={formData.paymentTermsNotes} onChange={handleInputChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none resize-none" placeholder="Payment over 5 years…" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Advantages / bullets</label>
+                <textarea name="advantagesNotes" value={formData.advantagesNotes} onChange={handleInputChange} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none resize-none" placeholder="One point per line or paste as received" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Investment narrative</label>
+                <textarea name="investmentNarrative" value={formData.investmentNarrative} onChange={handleInputChange} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none resize-none" placeholder="Ideal for… proximity to Expo, airport…" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Full JV terms (paste entire message)</label>
+                <textarea name="jvTermsRich" value={formData.jvTermsRich} onChange={handleInputChange} rows={8} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:outline-none resize-y min-h-[160px] font-mono text-sm" placeholder="Paste WhatsApp / email body; appears on listing with line breaks preserved" />
+              </div>
+            </div>
           </details>
 
           {/* Agent Contact Information */}

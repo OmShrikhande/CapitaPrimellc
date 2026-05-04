@@ -84,7 +84,7 @@ const ContentView = ({ data, updateData }) => {
   };
 
   return (
-    <div className="space-y-12 w-full max-w-7xl mx-auto pb-20">
+    <div className="space-y-12 w-full max-w-7xl mx-auto pb-36">
       <div className="px-2">
         <h3 className="text-4xl font-serif font-bold tracking-tight mb-2">Core Content Architect</h3>
         <p className="text-[11px] text-gray-500 font-black uppercase tracking-[0.4em] opacity-60">Global Synchronization Hub</p>
@@ -496,6 +496,20 @@ const ContentView = ({ data, updateData }) => {
               <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Offers Label</label>
               <input value={offers.label} onChange={e => setOffers({...offers, label: e.target.value})} className="admin-input w-full" />
             </div>
+            <div>
+              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-3">Ticker direction (main site banner)</label>
+              <select
+                value={offers.marqueeScroll || 'default'}
+                onChange={(e) => setOffers({ ...offers, marqueeScroll: e.target.value })}
+                className="admin-input w-full py-3"
+              >
+                <option value="default">Right → Left (standard)</option>
+                <option value="reverse">Left → Right</option>
+              </select>
+              <p className="text-[10px] text-gray-500 mt-2 leading-relaxed">
+                Controls the horizontal scroll direction of the special-offers strip under the navigation.
+              </p>
+            </div>
             {offers.items.map((offer, i) => (
               <div key={i} className="p-6 bg-white/5 rounded-2xl border border-white/5 space-y-4">
                 <div className="flex items-center justify-between">
@@ -513,14 +527,20 @@ const ContentView = ({ data, updateData }) => {
         </div>
       </div>
 
-      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100]">
-        <button 
-          onClick={handleSave} 
-          className="group relative bg-gold text-black font-black py-6 px-24 rounded-2xl overflow-hidden transition-all shadow-[0_20px_50px_rgba(201,168,76,0.3)] hover:shadow-[0_25px_60px_rgba(201,168,76,0.5)] hover:scale-105 active:scale-95"
-        >
-          <span className="relative z-10 tracking-[0.5em] uppercase text-[11px]">Deploy Global Update</span>
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-        </button>
+      <div className="fixed inset-x-0 bottom-0 z-[100] pointer-events-none pb-[max(1rem,env(safe-area-inset-bottom))] pt-10 px-4 bg-gradient-to-t from-black via-black/95 to-transparent border-t border-white/[0.06]">
+        <div className="pointer-events-auto max-w-7xl mx-auto flex justify-center">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="group relative flex flex-col items-center gap-1 bg-gradient-to-b from-gold to-[#a88430] text-black font-black py-5 px-16 sm:px-24 rounded-2xl overflow-hidden transition-all shadow-[0_-4px_40px_rgba(201,168,76,0.35),0_12px_40px_rgba(0,0,0,0.5)] ring-1 ring-gold/40 hover:ring-gold/70 hover:shadow-[0_-6px_48px_rgba(201,168,76,0.45)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]"
+          >
+            <span className="relative z-10 tracking-[0.45em] uppercase text-[11px]">Deploy global update</span>
+            <span className="relative z-10 text-[9px] font-bold tracking-[0.2em] uppercase text-black/60 group-hover:text-black/75">
+              Publish all changes on this page to the live site
+            </span>
+            <div className="absolute inset-0 bg-white/25 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+          </button>
+        </div>
       </div>
     </div>
   );

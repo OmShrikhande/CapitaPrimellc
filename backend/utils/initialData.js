@@ -58,6 +58,7 @@ const INITIAL_DATA = {
   },
   offers: {
     label: 'Special Offer',
+    marqueeScroll: 'default',
     items: [
       { id: 'o1', title: 'Ramadan Special: Zero DLD Fees', description: 'Book any prime plot this month and we cover 100% of your DLD registration fees.', expiry: '2024-04-30', isVisible: false },
       { id: 'o2', title: 'Bulk Investment Discount', description: 'Get up to 15% discount on purchasing 3 or more plots in MBR City.', expiry: '2024-12-31', isVisible: true },

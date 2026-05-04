@@ -245,7 +245,20 @@ export const adminAPI = {
 
   /** Stripe checkout records written by webhook (payments + asset viewing unlocks). */
   getStripeActivity: async () => {
-    return cachedRequest(`${API_BASE_URL}/api/admin/stripe-activity`, { auth: true });
+    const headers = { ...getAuthHeaders() };
+    const fetchJson = async (path) => {
+      const response = await fetch(`${API_BASE_URL}${path}`, { headers });
+      return handleResponse(response);
+    };
+    try {
+      return await fetchJson('/api/admin/stripe-activity');
+    } catch (err) {
+      const msg = err?.message || '';
+      if (msg.includes('Route not found') || msg.includes('404')) {
+        return fetchJson('/api/payments/admin/stripe-activity');
+      }
+      throw err;
+    }
   },
 
   // Logout (client-side only)
