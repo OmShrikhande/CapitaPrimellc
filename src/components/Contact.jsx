@@ -358,7 +358,7 @@ const Contact = () => {
                         type="tel"
                         name="phone"
                         autoComplete="tel"
-                        placeholder="+971 XX XXX XXXX"
+                        placeholder="+971 56 902 7445"
                         className="form-input transition-[border-color,background,box-shadow] duration-300"
                       />
                     </div>

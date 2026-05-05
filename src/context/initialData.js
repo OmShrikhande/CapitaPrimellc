@@ -164,8 +164,8 @@ export const INITIAL_DATA = {
     description: 'Our advisory team is available for confidential consultations. Whether you are buying, selling, or evaluating - we provide unparalleled insight.',
     info: [
       { label: 'Office', value: 'Burj Khalifa District, Downtown Dubai, UAE', icon: 'location' },
-      { label: 'Phone', value: '+971 4 XXX XXXX', icon: 'phone' },
-      { label: 'Email', value: 'invest@capitaprimellc.com', icon: 'mail' },
+      { label: 'Phone', value: '+971 56 902 7445', icon: 'phone' },
+      { label: 'Email', value: 'capitaprimellc@gmail.com', icon: 'mail' },
       { label: 'Hours', value: 'Sun - Thu: 9:00 AM - 6:00 PM GST', icon: 'clock' },
     ],
   },
