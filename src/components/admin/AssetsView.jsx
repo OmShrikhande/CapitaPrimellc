@@ -305,12 +305,19 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
       const { amenitiesText, featuresText, ...rest } = formData;
       const coverIdx = Number(formData.coverImageIndex) || 0;
       const coverItem = previewItems[coverIdx] || previewItems[0] || null;
+      const coverSrc = coverItem?.src ? String(coverItem.src) : '';
+      const safeCoverImageUrl =
+        coverSrc && !coverSrc.startsWith('data:') && !coverSrc.startsWith('blob:')
+          ? coverSrc
+          : '';
+
       const payload = {
         ...rest,
         type: typeTrim || 'Property',
         amenities: parseCommaList(amenitiesText),
         features: parseCommaList(featuresText),
-        coverImageUrl: coverItem?.src || '',
+        // Never send base64/blob preview strings in form fields; Multer rejects large field values.
+        coverImageUrl: safeCoverImageUrl,
       };
       await onSubmit(payload);
       onClose();

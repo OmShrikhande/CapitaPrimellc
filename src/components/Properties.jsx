@@ -63,7 +63,7 @@ const PropertyCard = ({ property, index }) => {
         className="property-card-img group"
         style={{
           background: property.gradient,
-          aspectRatio: '16 / 9',
+          aspectRatio: '9 / 16',
           minHeight: 'auto',
           height: 'auto',
         }}
