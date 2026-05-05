@@ -36,6 +36,15 @@ const LISTING_LONG_BLOCKS = [
   ['jvTermsRich', 'JV terms & full brief'],
 ];
 
+const readAssetLongField = (asset, key) => {
+  const chunks = asset?.[`${key}Chunks`];
+  if (Array.isArray(chunks) && chunks.length > 0) {
+    return chunks.map((part) => String(part || '')).join('');
+  }
+  const raw = asset?.[key];
+  return raw == null ? '' : String(raw);
+};
+
 const PropertyDetails = ({ id, unlockSession }) => {
   const { data } = useCMS();
   const { theme } = useTheme();
@@ -71,6 +80,9 @@ const PropertyDetails = ({ id, unlockSession }) => {
         if (cancelled) return;
         if (res.success && res.data) {
           setApiAsset(res.data);
+          if (res.data.coverImageIndex != null) {
+            setActiveIdx(Number(res.data.coverImageIndex) || 0);
+          }
           if (res.data.locked === false) {
             const sid = res.data.unlockSessionId || effectiveUnlock;
             if (sid) rememberUnlockSession(id, sid);
@@ -456,19 +468,19 @@ const PropertyDetails = ({ id, unlockSession }) => {
                   </div>
                 ) : null}
 
-                {LISTING_DETAIL_ROWS.some(([k]) => apiAsset[k]) ? (
+                {LISTING_DETAIL_ROWS.some(([k]) => readAssetLongField(apiAsset, k).trim()) ? (
                   <div className="space-y-4 pt-4 border-t border-white/10">
                     <h3 className="text-xl font-bold tracking-tight" style={{ color: theme.primary }}>
                       Listing brief
                     </h3>
                     <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                       {LISTING_DETAIL_ROWS.map(([key, label]) => {
-                        const v = apiAsset[key];
-                        if (v == null || String(v).trim() === '') return null;
+                        const v = readAssetLongField(apiAsset, key);
+                        if (String(v).trim() === '') return null;
                         return (
                           <div key={key}>
                             <dt className="text-[10px] text-white/35 font-black uppercase tracking-widest mb-1">{label}</dt>
-                            <dd className="text-white/80 font-medium">{String(v)}</dd>
+                            <dd className="text-white/80 font-medium whitespace-pre-wrap">{String(v)}</dd>
                           </div>
                         );
                       })}
@@ -497,11 +509,11 @@ const PropertyDetails = ({ id, unlockSession }) => {
                   </div>
                 ) : null}
 
-                {LISTING_LONG_BLOCKS.some(([k]) => apiAsset[k]) ? (
+                {LISTING_LONG_BLOCKS.some(([k]) => readAssetLongField(apiAsset, k).trim()) ? (
                   <div className="space-y-6 pt-4 border-t border-white/10">
                     {LISTING_LONG_BLOCKS.map(([key, title]) => {
-                      const v = apiAsset[key];
-                      if (v == null || String(v).trim() === '') return null;
+                      const v = readAssetLongField(apiAsset, key);
+                      if (String(v).trim() === '') return null;
                       return (
                         <div key={key}>
                           <h4 className="text-sm font-black text-gold/90 uppercase tracking-widest mb-2">{title}</h4>

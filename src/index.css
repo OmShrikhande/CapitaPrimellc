@@ -544,7 +544,8 @@ img {
 }
 
 .property-card-img {
-  height: 240px;
+  aspect-ratio: 16 / 9;
+  min-height: 200px;
   position: relative;
   overflow: hidden;
 }

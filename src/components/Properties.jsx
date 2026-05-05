@@ -12,12 +12,23 @@ const CATEGORY_COLORS = {
 
 const PropertyCard = ({ property, index }) => {
   const cardRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
   const { hasOffer, pct } = getOfferMeta(property.price, property.compareAtPrice);
   const unlockFee =
     property.viewingFeeAed != null && property.viewingFeeAed !== ''
       ? Number(property.viewingFeeAed)
       : 0;
   const paidUnlock = !!property.isSpecial && Number.isFinite(unlockFee) && unlockFee > 0;
+  const coverIndex =
+    Number.isInteger(property.coverImageIndex) && property.coverImageIndex >= 0
+      ? property.coverImageIndex
+      : 0;
+  const coverImage =
+    property.coverImageUrl
+      ? property.coverImageUrl
+      : Array.isArray(property.gallery) && property.gallery.length > 0
+      ? property.gallery[Math.min(coverIndex, property.gallery.length - 1)] || property.gallery[0]
+      : null;
 
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -39,15 +50,27 @@ const PropertyCard = ({ property, index }) => {
   return (
     <div
       ref={cardRef}
-      className="property-card animate-on-scroll"
+      className="property-card animate-on-scroll group"
+      onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={(e) => {
+        setIsHovered(false);
+        handleMouseLeave(e);
+      }}
       style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
     >
-      <div className="property-card-img" style={{ background: property.gradient }}>
-        {property.gallery && property.gallery.length > 0 ? (
+      <div
+        className="property-card-img group"
+        style={{
+          background: property.gradient,
+          aspectRatio: '16 / 9',
+          minHeight: 'auto',
+          height: 'auto',
+        }}
+      >
+        {coverImage ? (
           <img
-            src={getImageURL(property.gallery[0]) || property.gallery[0]}
+            src={getImageURL(coverImage) || coverImage}
             alt={property.title}
             className="absolute inset-0 z-[1] w-full h-full object-cover opacity-90"
             loading="lazy"
@@ -130,6 +153,8 @@ const PropertyCard = ({ property, index }) => {
             fontWeight: 700,
             letterSpacing: '0.22em',
             color: '#C9A84C',
+            opacity: isHovered ? 1 : 0,
+            transition: 'opacity 0.25s ease',
           }}
         >
           {property.badge}
@@ -153,6 +178,8 @@ const PropertyCard = ({ property, index }) => {
               border: '1px solid rgba(248, 113, 113, 0.65)',
               color: '#fecaca',
               boxShadow: '0 6px 28px rgba(0,0,0,0.35)',
+              opacity: isHovered ? 1 : 0,
+              transition: 'opacity 0.25s ease',
             }}
           >
             {pct}% off
@@ -174,19 +201,45 @@ const PropertyCard = ({ property, index }) => {
             fontWeight: 600,
             letterSpacing: '0.12em',
             color: CATEGORY_COLORS[property.category],
+            opacity: isHovered ? 1 : 0,
+            transition: 'opacity 0.25s ease',
           }}
         >
           {property.category}
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            top: 48,
+            right: 16,
+            zIndex: 10,
+            background: paidUnlock ? 'rgba(127, 29, 29, 0.7)' : 'rgba(22, 101, 52, 0.55)',
+            border: paidUnlock ? '1px solid rgba(248, 113, 113, 0.65)' : '1px solid rgba(74, 222, 128, 0.55)',
+            backdropFilter: 'blur(12px)',
+            padding: '4px 10px',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '8px',
+            fontWeight: 800,
+            letterSpacing: '0.18em',
+            color: paidUnlock ? '#fecaca' : '#bbf7d0',
+            textTransform: 'uppercase',
+            opacity: isHovered ? 1 : 0,
+            transition: 'opacity 0.25s ease',
+          }}
+        >
+          {paidUnlock ? 'Paid' : 'Free'}
         </div>
 
         {property.fromInventory ? (
           <div
             style={{
               position: 'absolute',
-              bottom: 52,
+              bottom: 66,
               left: 16,
               zIndex: 10,
               maxWidth: 'calc(100% - 32px)',
+              opacity: isHovered ? 1 : 0,
+              transition: 'opacity 0.25s ease',
             }}
           >
             <span
@@ -213,15 +266,10 @@ const PropertyCard = ({ property, index }) => {
         ) : null}
 
         <div
+          className="absolute bottom-4 left-4 right-4 z-10 flex gap-2 flex-wrap transition-all duration-300"
           style={{
-            position: 'absolute',
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 10,
-            display: 'flex',
-            gap: 6,
-            flexWrap: 'wrap',
+            opacity: isHovered ? 1 : 0,
+            transform: isHovered ? 'translateY(0px)' : 'translateY(8px)',
           }}
         >
           {(property.features || []).map(f => (
@@ -243,7 +291,19 @@ const PropertyCard = ({ property, index }) => {
         </div>
       </div>
 
-      <div className="property-card-content">
+      <div
+        className="property-card-content absolute left-0 right-0 bottom-0 z-20 transition-all duration-500 ease-out"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          transform: isHovered ? 'translateY(0%)' : 'translateY(104%)',
+          visibility: isHovered ? 'visible' : 'hidden',
+          pointerEvents: isHovered ? 'auto' : 'none',
+          background: 'rgba(6, 6, 6, 0.92)',
+          borderTop: '1px solid rgba(201,168,76,0.2)',
+          backdropFilter: 'blur(8px)',
+          padding: '1.75rem',
+        }}
+      >
         <div>
           <h3
             style={{
@@ -393,6 +453,11 @@ const Properties = () => {
                   asset.parking ? `${asset.parking} Parking` : null,
                 ].filter(Boolean),
             gallery: Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls : ['/flaw.png'],
+            coverImageUrl: asset.coverImageUrl || null,
+            coverImageIndex:
+              Number.isInteger(asset.coverImageIndex) && asset.coverImageIndex >= 0
+                ? asset.coverImageIndex
+                : 0,
             isVisible: asset.isVisible !== false,
             isSpecial: !!asset.isSpecial,
             viewingFeeAed: asset.viewingFeeAed,

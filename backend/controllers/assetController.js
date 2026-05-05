@@ -10,9 +10,28 @@ const sanitizeQuery = (value, max) => {
   return s.length > max ? s.slice(0, max) : s;
 };
 
+const getSafeCoverIndex = (coverImageIndex, imagesLength) => {
+  const parsed = Number(coverImageIndex);
+  if (!Number.isInteger(parsed) || parsed < 0) return 0;
+  if (!Number.isInteger(imagesLength) || imagesLength <= 0) return 0;
+  return Math.min(parsed, imagesLength - 1);
+};
+
+const normalizeImageListWithCoverFirst = (images, coverImageIndex) => {
+  const list = Array.isArray(images) ? images.filter(Boolean) : [];
+  if (list.length === 0) {
+    return { imageUrls: [], coverImageIndex: 0, coverImageUrl: null };
+  }
+  const safeCoverIndex = getSafeCoverIndex(coverImageIndex, list.length);
+  const cover = list[safeCoverIndex] || list[0];
+  return { imageUrls: list, coverImageIndex: safeCoverIndex, coverImageUrl: cover || null };
+};
+
 /** Public list: hide rich details for special listings unless caller is admin. */
 const redactSpecialForPublic = (id, data) => {
   const images = Array.isArray(data.imageUrls) ? data.imageUrls : [];
+  const safeCoverIndex = getSafeCoverIndex(data.coverImageIndex, images.length);
+  const coverImage = images.length > 0 ? (images[safeCoverIndex] || images[0]) : null;
   return {
     id,
     name: data.name,
@@ -28,7 +47,9 @@ const redactSpecialForPublic = (id, data) => {
     bedrooms: data.bedrooms,
     bathrooms: data.bathrooms,
     parking: data.parking,
-    imageUrls: images.length > 0 ? [images[0]] : [],
+    coverImageIndex: 0,
+    coverImageUrl: coverImage || null,
+    imageUrls: coverImage ? [coverImage] : [],
     features: Array.isArray(data.features) ? data.features.slice(0, 3) : [],
     isVisible: data.isVisible,
     isSpecial: true,
@@ -87,6 +108,26 @@ const normalizeStringArray = (value) => {
   return [String(value).trim()].filter(Boolean);
 };
 
+const normalizeImagePath = (value) => String(value || '').trim().replace(/\\/g, '/');
+const normalizeImageCompareKey = (value) => {
+  const raw = normalizeImagePath(value);
+  if (!raw) return '';
+  try {
+    return decodeURI(raw);
+  } catch {
+    return raw;
+  }
+};
+const findCoverIndexByUrl = (images, candidateUrl) => {
+  const list = Array.isArray(images) ? images : [];
+  const key = normalizeImageCompareKey(candidateUrl);
+  if (!key) return -1;
+  for (let i = 0; i < list.length; i += 1) {
+    if (normalizeImageCompareKey(list[i]) === key) return i;
+  }
+  return -1;
+};
+
 /** Rich broker / JV fields (optional strings on inventory assets). */
 const LISTING_EXTENSION_FIELDS = [
   'marketingHeadline',
@@ -108,14 +149,45 @@ const LISTING_EXTENSION_FIELDS = [
   'jvTermsRich',
 ];
 
+const MAX_INDEXED_TEXT_LENGTH = 1400;
+const LONG_TEXT_CHUNK_SIZE = 1200;
+
+const chunkText = (value, chunkSize = LONG_TEXT_CHUNK_SIZE) => {
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  const out = [];
+  for (let i = 0; i < raw.length; i += chunkSize) {
+    out.push(raw.slice(i, i + chunkSize));
+  }
+  return out;
+};
+
+const normalizeListingTextField = (value) => {
+  const s = String(value || '').trim();
+  if (!s) return { shortValue: null, chunks: [] };
+  if (s.length <= MAX_INDEXED_TEXT_LENGTH) {
+    return { shortValue: s, chunks: [] };
+  }
+  // Firestore can reject very long indexed string values. Keep a short indexed preview
+  // and persist the full content in chunk fields so no text is lost.
+  return {
+    shortValue: s.slice(0, MAX_INDEXED_TEXT_LENGTH),
+    chunks: chunkText(s),
+  };
+};
+
 const pickListingExtensionsForCreate = (body) => {
   const o = {};
   if (!body || typeof body !== 'object') return o;
   for (const key of LISTING_EXTENSION_FIELDS) {
     const v = body[key];
     if (v === undefined || v === null) continue;
-    const s = String(v).trim();
-    if (s) o[key] = s.slice(0, 12000);
+    const { shortValue, chunks } = normalizeListingTextField(v);
+    if (!shortValue) continue;
+    o[key] = shortValue;
+    if (chunks.length > 1) {
+      o[`${key}Chunks`] = chunks;
+    }
   }
   return o;
 };
@@ -127,10 +199,12 @@ const assignListingExtensionsForUpdate = (updateData, body) => {
     const v = body[key];
     if (v === null || v === '') {
       updateData[key] = null;
+      updateData[`${key}Chunks`] = null;
       continue;
     }
-    const s = String(v).trim();
-    updateData[key] = s ? s.slice(0, 12000) : null;
+    const { shortValue, chunks } = normalizeListingTextField(v);
+    updateData[key] = shortValue;
+    updateData[`${key}Chunks`] = chunks.length > 1 ? chunks : null;
   }
 };
 
@@ -242,7 +316,14 @@ const getAsset = async (req, res) => {
         price: raw.price,
         compareAtPrice: raw.compareAtPrice,
         area: raw.area,
-        imageUrls: Array.isArray(raw.imageUrls) && raw.imageUrls.length > 0 ? [raw.imageUrls[0]] : [],
+        imageUrls: (() => {
+          const imgs = Array.isArray(raw.imageUrls) ? raw.imageUrls : [];
+          if (imgs.length === 0) return [];
+          const safeCoverIndex = getSafeCoverIndex(raw.coverImageIndex, imgs.length);
+          const cover = imgs[safeCoverIndex] || imgs[0];
+          return cover ? [cover] : [];
+        })(),
+        coverImageIndex: 0,
         isSpecial: true,
         viewingFeeAed: raw.viewingFeeAed,
         locked: true,
@@ -304,6 +385,15 @@ const createAsset = async (req, res) => {
     const viewingFeeAed = hasFee
       ? parseFloat(String(viewingFeeRaw).replace(/,/g, ''))
       : null;
+    const coverImageIndexRaw = req.body.coverImageIndex;
+    const coverImageIndexParsed =
+      coverImageIndexRaw !== undefined && coverImageIndexRaw !== null && String(coverImageIndexRaw).trim() !== ''
+        ? parseInt(String(coverImageIndexRaw), 10)
+        : null;
+    const coverImageUrlRaw =
+      req.body.coverImageUrl !== undefined && req.body.coverImageUrl !== null
+        ? String(req.body.coverImageUrl).trim()
+        : '';
 
     if (isSpecial && (!Number.isFinite(viewingFeeAed) || viewingFeeAed <= 0)) {
       return res.status(400).json({
@@ -317,16 +407,30 @@ const createAsset = async (req, res) => {
       imageUrls = req.cloudinaryUrls.slice(0, 7);
     }
 
+    const desiredCoverIndex =
+      (() => {
+        const byUrl = findCoverIndexByUrl(imageUrls, coverImageUrlRaw);
+        if (byUrl >= 0) return byUrl;
+        if (Number.isInteger(coverImageIndexParsed) && coverImageIndexParsed >= 0) return coverImageIndexParsed;
+        return 0;
+      })();
+    const normalizedImages = normalizeImageListWithCoverFirst(
+      imageUrls,
+      desiredCoverIndex
+    );
+
     const newAsset = {
       name,
       type,
       quantity: parseInt(quantity) || 0,
       location,
       description,
-      imageUrls,
+      imageUrls: normalizedImages.imageUrls,
       isVisible,
       isSpecial,
       viewingFeeAed: isSpecial ? viewingFeeAed : null,
+      coverImageIndex: normalizedImages.coverImageIndex,
+      coverImageUrl: normalizedImages.coverImageUrl,
       // Property details
       price: price ? parseFloat(price) : null,
       compareAtPrice: (() => {
@@ -513,6 +617,10 @@ const updateAsset = async (req, res) => {
     if (hasIsVisible) updateData.isVisible = isVisible;
 
     if (hasIsSpecial) updateData.isSpecial = finalIsSpecial;
+    if (bodyData.coverImageIndex !== undefined) {
+      const c = parseInt(String(bodyData.coverImageIndex), 10);
+      updateData.coverImageIndex = Number.isInteger(c) && c >= 0 ? c : 0;
+    }
 
     if (finalIsSpecial) {
       const feeNum = Number(finalViewingFeeAed);
@@ -527,13 +635,59 @@ const updateAsset = async (req, res) => {
       updateData.viewingFeeAed = null;
     }
 
-    // Handle new images if uploaded
-    if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
-      const oldAsset = assetDoc.data();
-      const existingImages = oldAsset.imageUrls || [];
-      const newImages = req.cloudinaryUrls.slice(0, 7 - existingImages.length);
+    const currentImages = Array.isArray(existing.imageUrls) ? existing.imageUrls.map(normalizeImagePath) : [];
+    const hasRetainedImageUrls = bodyData.retainedImageUrls !== undefined;
+    const retainedImageUrls = hasRetainedImageUrls
+      ? normalizeStringArray(bodyData.retainedImageUrls).map(normalizeImagePath)
+      : currentImages;
+    const retainedSet = new Set(retainedImageUrls);
+    const orderedRetained = currentImages.filter((img) => retainedSet.has(img));
 
-      updateData.imageUrls = [...existingImages, ...newImages];
+    if (hasRetainedImageUrls || (req.cloudinaryUrls && req.cloudinaryUrls.length > 0)) {
+      const newImages = req.cloudinaryUrls && req.cloudinaryUrls.length > 0 ? req.cloudinaryUrls : [];
+      updateData.imageUrls = [...orderedRetained, ...newImages].slice(0, 7);
+
+      const removedImages = currentImages.filter((img) => !updateData.imageUrls.includes(img));
+      for (const imageUrl of removedImages) {
+        if (!imageUrl) continue;
+        if (imageUrl.includes('cloudinary.com') && isCloudinaryConfigured()) {
+          const publicId = extractPublicId(imageUrl);
+          if (publicId) {
+            try {
+              await deleteFromCloudinary(publicId);
+            } catch (deleteError) {
+              console.error(`❌ Failed to delete image from Cloudinary: ${publicId}`, deleteError);
+            }
+          }
+        } else if (imageUrl.startsWith('/uploads/')) {
+          const imagePath = path.join(__dirname, '../../public', imageUrl);
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+          }
+        }
+      }
+    }
+
+    if (updateData.imageUrls) {
+      const byUrl = findCoverIndexByUrl(updateData.imageUrls, bodyData.coverImageUrl);
+      const c = byUrl >= 0
+        ? byUrl
+        : Number.isInteger(updateData.coverImageIndex)
+          ? updateData.coverImageIndex
+          : Number.isInteger(existing.coverImageIndex)
+            ? existing.coverImageIndex
+            : 0;
+      const normalized = normalizeImageListWithCoverFirst(updateData.imageUrls, c);
+      updateData.imageUrls = normalized.imageUrls;
+      updateData.coverImageIndex = normalized.coverImageIndex;
+      updateData.coverImageUrl = normalized.coverImageUrl;
+    } else if (bodyData.coverImageIndex !== undefined && Array.isArray(existing.imageUrls)) {
+      const byUrl = findCoverIndexByUrl(existing.imageUrls, bodyData.coverImageUrl);
+      const desired = byUrl >= 0 ? byUrl : updateData.coverImageIndex;
+      const normalized = normalizeImageListWithCoverFirst(existing.imageUrls, desired);
+      updateData.imageUrls = normalized.imageUrls;
+      updateData.coverImageIndex = normalized.coverImageIndex;
+      updateData.coverImageUrl = normalized.coverImageUrl;
     }
 
     await assetRef.update(updateData);

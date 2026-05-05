@@ -43,6 +43,35 @@ const emptyListingExtensions = () => ({
   jvTermsRich: '',
 });
 
+const LISTING_EXTENSION_FIELDS = [
+  'marketingHeadline',
+  'grossFloorAreaSqFt',
+  'floorAreaRatio',
+  'totalBuiltUpAreaSqFt',
+  'buildingHeightDescription',
+  'totalUnitsApproved',
+  'usageType',
+  'jvInventorySplit',
+  'jvUpfrontNote',
+  'mapsUrl',
+  'advantagesNotes',
+  'commissionPercent',
+  'drawingsStatusNotes',
+  'titleDeedsFeesNotes',
+  'paymentTermsNotes',
+  'investmentNarrative',
+  'jvTermsRich',
+];
+
+const readLongField = (source, key) => {
+  const chunks = source?.[`${key}Chunks`];
+  if (Array.isArray(chunks) && chunks.length > 0) {
+    return chunks.map((item) => String(item || '')).join('');
+  }
+  const raw = source?.[key];
+  return raw == null ? '' : String(raw);
+};
+
 const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -78,10 +107,11 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     isSpecial: false,
     viewingFeeAed: '',
     compareAtPrice: '',
+    coverImageIndex: 0,
     ...emptyListingExtensions(),
   });
   const [loading, setLoading] = useState(false);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [previewItems, setPreviewItems] = useState([]);
 
   useEffect(() => {
     if (editingAsset) {
@@ -126,26 +156,19 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
           editingAsset.compareAtPrice != null && editingAsset.compareAtPrice !== ''
             ? String(editingAsset.compareAtPrice)
             : '',
+        coverImageIndex:
+          Number.isInteger(editingAsset.coverImageIndex) && editingAsset.coverImageIndex >= 0
+            ? editingAsset.coverImageIndex
+            : 0,
         ...emptyListingExtensions(),
-        marketingHeadline: editingAsset.marketingHeadline || '',
-        grossFloorAreaSqFt: editingAsset.grossFloorAreaSqFt || '',
-        floorAreaRatio: editingAsset.floorAreaRatio || '',
-        totalBuiltUpAreaSqFt: editingAsset.totalBuiltUpAreaSqFt || '',
-        buildingHeightDescription: editingAsset.buildingHeightDescription || '',
-        totalUnitsApproved: editingAsset.totalUnitsApproved || '',
-        usageType: editingAsset.usageType || '',
-        jvInventorySplit: editingAsset.jvInventorySplit || '',
-        jvUpfrontNote: editingAsset.jvUpfrontNote || '',
-        mapsUrl: editingAsset.mapsUrl || '',
-        advantagesNotes: editingAsset.advantagesNotes || '',
-        commissionPercent: editingAsset.commissionPercent || '',
-        drawingsStatusNotes: editingAsset.drawingsStatusNotes || '',
-        titleDeedsFeesNotes: editingAsset.titleDeedsFeesNotes || '',
-        paymentTermsNotes: editingAsset.paymentTermsNotes || '',
-        investmentNarrative: editingAsset.investmentNarrative || '',
-        jvTermsRich: editingAsset.jvTermsRich || '',
+        ...Object.fromEntries(
+          LISTING_EXTENSION_FIELDS.map((key) => [key, readLongField(editingAsset, key)])
+        ),
       });
-      setImagePreviews(editingAsset.imageUrls || []);
+      const existing = Array.isArray(editingAsset.imageUrls)
+        ? editingAsset.imageUrls.map((url) => ({ kind: 'existing', src: url }))
+        : [];
+      setPreviewItems(existing);
     } else {
       setFormData({
         name: '',
@@ -181,9 +204,10 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
         isSpecial: false,
         viewingFeeAed: '',
         compareAtPrice: '',
+        coverImageIndex: 0,
         ...emptyListingExtensions(),
       });
-      setImagePreviews([]);
+      setPreviewItems([]);
     }
   }, [editingAsset, isOpen]);
 
@@ -196,36 +220,81 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       // Limit to 7 images total
-      const totalImages = imagePreviews.length + files.length;
-      const allowedFiles = files.slice(0, 7 - imagePreviews.length);
-
-      setFormData(prev => ({
-        ...prev,
-        images: [...(prev.images || []), ...allowedFiles]
-      }));
+      const allowedFiles = files.slice(0, Math.max(0, 7 - previewItems.length));
 
       // Create previews for new files
       const newPreviews = allowedFiles.map(file => {
         return new Promise((resolve) => {
           const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
+          reader.onload = (ev) => resolve({ kind: 'new', src: ev.target.result, file });
           reader.readAsDataURL(file);
         });
       });
 
       Promise.all(newPreviews).then(previews => {
-        setImagePreviews(prev => [...prev, ...previews]);
+        setPreviewItems(prev => [...prev, ...previews]);
+        setFormData((prev) => ({
+          ...prev,
+          coverImageIndex:
+            Number.isInteger(prev.coverImageIndex) && prev.coverImageIndex >= 0
+              ? prev.coverImageIndex
+              : 0,
+        }));
       });
     }
   };
 
   const removeImage = (index) => {
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-    setFormData(prev => ({
+    setPreviewItems((prev) => {
+      const nextItems = prev.filter((_, i) => i !== index);
+      setFormData((prevForm) => {
+        const nextNewFiles = nextItems
+          .filter((item) => item.kind === 'new' && item.file)
+          .map((item) => item.file);
+        const retainedImageUrls = nextItems
+          .filter((item) => item.kind === 'existing')
+          .map((item) => item.src);
+
+        let nextCover = Number.isInteger(prevForm.coverImageIndex) ? prevForm.coverImageIndex : 0;
+        if (nextItems.length === 0) {
+          nextCover = 0;
+        } else if (index < nextCover) {
+          nextCover -= 1;
+        } else if (index === nextCover) {
+          nextCover = 0;
+        } else if (nextCover >= nextItems.length) {
+          nextCover = nextItems.length - 1;
+        }
+
+        return {
+          ...prevForm,
+          images: nextNewFiles,
+          retainedImageUrls,
+          coverImageIndex: Math.max(0, nextCover),
+        };
+      });
+      return nextItems;
+    });
+  };
+
+  const refreshDerivedImageFields = (items) => {
+    const nextNewFiles = items
+      .filter((item) => item.kind === 'new' && item.file)
+      .map((item) => item.file);
+    const retainedImageUrls = items
+      .filter((item) => item.kind === 'existing')
+      .map((item) => item.src);
+    setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index)
+      images: nextNewFiles,
+      retainedImageUrls,
+      coverImageIndex: Math.min(Math.max(0, Number(prev.coverImageIndex) || 0), Math.max(0, items.length - 1)),
     }));
   };
+
+  useEffect(() => {
+    refreshDerivedImageFields(previewItems);
+  }, [previewItems]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -234,11 +303,14 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
     try {
       const typeTrim = formData.type != null ? String(formData.type).trim() : '';
       const { amenitiesText, featuresText, ...rest } = formData;
+      const coverIdx = Number(formData.coverImageIndex) || 0;
+      const coverItem = previewItems[coverIdx] || previewItems[0] || null;
       const payload = {
         ...rest,
         type: typeTrim || 'Property',
         amenities: parseCommaList(amenitiesText),
         features: parseCommaList(featuresText),
+        coverImageUrl: coverItem?.src || '',
       };
       await onSubmit(payload);
       onClose();
@@ -304,7 +376,6 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
               </select>
               <p className="text-xs text-gray-500 mt-1">Defaults to Property — real estate inventory only.</p>
             </div>
-
             <div>
               <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">
                 Quantity
@@ -861,20 +932,20 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                 accept="image/*"
                 multiple
                 onChange={handleImageChange}
-                disabled={imagePreviews.length >= 7}
+                disabled={previewItems.length >= 7}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gold file:text-black hover:file:bg-gold/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               />
-              {imagePreviews.length > 0 && (
+              {previewItems.length > 0 && (
                 <div className="grid grid-cols-4 gap-3">
-                  {imagePreviews.map((preview, index) => (
+                  {previewItems.map((preview, index) => (
                     <div key={index} className="relative group">
                       <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-black/20 relative">
                         {/* Handle both data URLs (new uploads) and backend URLs (existing images) */}
-                        {preview.startsWith('data:') || preview.startsWith('blob:') ? (
-                          <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        {preview.src.startsWith('data:') || preview.src.startsWith('blob:') ? (
+                          <img src={preview.src} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
                         ) : (
                           <ImagePreview
-                            imagePath={preview}
+                            imagePath={preview.src}
                             alt={`Preview ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
@@ -887,12 +958,32 @@ const AssetForm = ({ isOpen, onClose, editingAsset, onSubmit, onCancel }) => {
                       >
                         ×
                       </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            coverImageIndex: index,
+                          }))
+                        }
+                        className={`absolute left-1/2 -translate-x-1/2 -bottom-2 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border transition-all ${
+                          Number(formData.coverImageIndex || 0) === index
+                            ? 'bg-gold text-black border-gold'
+                            : 'bg-black/80 text-white/70 border-white/20 hover:border-gold/50 hover:text-gold'
+                        }`}
+                        title="Use this image as homepage cover"
+                      >
+                        Cover
+                      </button>
                     </div>
                   ))}
                 </div>
               )}
               <p className="text-xs text-gray-500">
-                {imagePreviews.length}/7 images uploaded
+                Cover photo is used on homepage cards only (not inside listing details).
+              </p>
+              <p className="text-xs text-gray-500">
+                {previewItems.length}/7 images uploaded
               </p>
             </div>
           </div>
@@ -1013,6 +1104,49 @@ const AssetsView = () => {
     setEditingAsset(null);
   };
 
+  const toPrettyText = (value) => {
+    if (value == null) return '';
+    if (Array.isArray(value)) {
+      const trimmed = value.map((v) => String(v || '').trim()).filter(Boolean);
+      return trimmed.length ? trimmed.join(', ') : '';
+    }
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+    return String(value).trim();
+  };
+
+  const getFullAssetText = (asset) => {
+    const ignore = new Set(['id', 'imageUrls', 'createdAt', 'updatedAt']);
+    const rows = [];
+    const consumedChunkKeys = new Set();
+
+    LISTING_EXTENSION_FIELDS.forEach((key) => {
+      const full = readLongField(asset, key).trim();
+      if (!full) return;
+      rows.push(`${key}: ${full}`);
+      consumedChunkKeys.add(`${key}Chunks`);
+    });
+
+    Object.keys(asset || {}).forEach((key) => {
+      if (ignore.has(key)) return;
+      if (LISTING_EXTENSION_FIELDS.includes(key)) return;
+      if (consumedChunkKeys.has(key)) return;
+      const raw = asset[key];
+      const asText = toPrettyText(raw);
+      if (!asText) return;
+      rows.push(`${key}: ${asText}`);
+    });
+    if (Array.isArray(asset?.imageUrls) && asset.imageUrls.length > 0) {
+      rows.push(`imageUrls: ${asset.imageUrls.join(', ')}`);
+    }
+    return rows.join('\n');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -1052,14 +1186,14 @@ const AssetsView = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-10">
         {assets.map((asset) => (
-          <div key={asset.id} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 lg:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center hover:border-gold/40 transition-all group relative overflow-hidden shadow-2xl">
+          <div key={asset.id} className="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 lg:p-8 hover:border-gold/40 transition-all group relative overflow-hidden shadow-2xl">
             <div className="absolute -right-16 -top-16 w-48 h-48 bg-gold/5 blur-[80px] group-hover:bg-gold/10 transition-all rounded-full" />
 
-            <div className="flex gap-6 lg:gap-8 items-center relative flex-1">
+            <div className="flex gap-4 lg:gap-6 items-start relative">
               <div className="w-20 h-20 lg:w-24 lg:h-24 bg-black/40 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-700 border border-white/10 shadow-inner overflow-hidden flex-shrink-0 relative">
                 {asset.imageUrls && asset.imageUrls.length > 0 ? (
                   <ImagePreview
-                    imagePath={asset.imageUrls[0]}
+                    imagePath={asset.coverImageUrl || asset.imageUrls[asset.coverImageIndex || 0] || asset.imageUrls[0]}
                     alt={asset.name}
                     className="w-full h-full object-cover"
                     fallbackEmoji={
@@ -1076,7 +1210,7 @@ const AssetsView = () => {
                   asset.type === 'Property' ? '🏢' : '📦')
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-0 lg:pr-2">
                 <div className="flex flex-wrap items-center gap-3 mb-2">
                   <h4 className="font-bold text-xl lg:text-2xl tracking-tight text-white/90 truncate">{asset.name}</h4>
                   <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border ${
@@ -1096,16 +1230,42 @@ const AssetsView = () => {
                   {asset.location && <span className="flex items-center gap-2 whitespace-nowrap">📍 {asset.location}</span>}
                   <span className="flex items-center gap-2 whitespace-nowrap">🖼️ {asset.imageUrls ? asset.imageUrls.length : 0} Images</span>
                 </div>
-                {asset.description && (
-                  <p className="text-sm text-gray-400 mt-2 line-clamp-2">{asset.description}</p>
-                )}
+                {asset.description && <p className="text-sm text-gray-400 mt-2 break-words">{asset.description}</p>}
+                <div className="mt-3 rounded-xl border border-white/10 bg-black/35 p-3 max-h-72 overflow-auto custom-scrollbar">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 mb-2">
+                    Full filled data
+                  </p>
+                  <div className="space-y-2">
+                    {getFullAssetText(asset)
+                      .split('\n')
+                      .filter(Boolean)
+                      .map((row) => {
+                        const separatorIndex = row.indexOf(':');
+                        if (separatorIndex === -1) {
+                          return (
+                            <div key={row} className="text-[11px] leading-relaxed text-white/70 break-words">
+                              {row}
+                            </div>
+                          );
+                        }
+                        const key = row.slice(0, separatorIndex);
+                        const value = row.slice(separatorIndex + 1).trim();
+                        return (
+                          <div key={row} className="grid grid-cols-[130px_1fr] gap-3 text-[11px] leading-relaxed">
+                            <span className="text-gold/85 font-bold uppercase tracking-wider break-words">{key}</span>
+                            <span className="text-white/75 whitespace-pre-wrap break-words">{value}</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap lg:flex-nowrap gap-3 lg:gap-4 mt-8 lg:mt-0 relative shrink-0 w-full lg:w-auto justify-end">
+            <div className="flex gap-3 mt-5 relative z-10 justify-end">
               <button
                 onClick={() => handleEdit(asset)}
-                className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-4 py-3 lg:px-6 lg:py-4 bg-white/5 hover:bg-gold hover:text-black rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase transition-all border border-white/10"
+                className="flex items-center justify-center gap-3 px-4 py-3 lg:px-6 lg:py-3 bg-white/5 hover:bg-gold hover:text-black rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase transition-all border border-white/10"
               >
                 Edit
               </button>

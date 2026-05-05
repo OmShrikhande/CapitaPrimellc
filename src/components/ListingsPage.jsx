@@ -123,8 +123,21 @@ const CATEGORY_COLORS = {
   'Mixed Use': '#c084fc',
 };
 
+const getCoverImageFromProperty = (property) => {
+  if (property?.coverImageUrl) return property.coverImageUrl;
+  const imageUrls = Array.isArray(property?.imageUrls) ? property.imageUrls : [];
+  if (imageUrls.length === 0) return null;
+  const rawIndex = Number(property?.coverImageIndex);
+  const safeIndex =
+    Number.isInteger(rawIndex) && rawIndex >= 0
+      ? Math.min(rawIndex, imageUrls.length - 1)
+      : 0;
+  return imageUrls[safeIndex] || imageUrls[0];
+};
+
 const PropertyModal = ({ property, isOpen, onClose }) => {
   if (!isOpen || !property) return null;
+  const coverImage = getCoverImageFromProperty(property);
 
   return (
     <div
@@ -170,10 +183,10 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
               style={{ background: property.gradient }}
             >
               {/* Show image if available */}
-              {property.imageUrls && property.imageUrls.length > 0 ? (
+              {coverImage ? (
                 <div className="w-full h-full overflow-hidden relative">
                   <ImagePreview
-                    imagePath={property.imageUrls[0]}
+                    imagePath={coverImage}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -502,6 +515,7 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
 
 const PropertyCard = ({ property, index, onClick }) => {
   const cardRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
   const { hasOffer, pct } = getOfferMeta(property.price, property.compareAtPrice);
   const unlockFee =
     property.viewingFeeAed != null && property.viewingFeeAed !== ''
@@ -528,23 +542,34 @@ const PropertyCard = ({ property, index, onClick }) => {
   };
 
   // Check if we have images from the asset
-  const hasImages = property.imageUrls && property.imageUrls.length > 0;
+  const coverImage = getCoverImageFromProperty(property);
+  const hasImages = !!coverImage;
 
   return (
     <div
       ref={cardRef}
-      className="property-card animate-on-scroll cursor-pointer"
+      className="property-card animate-on-scroll cursor-pointer group"
+      onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={(e) => {
+        setIsHovered(false);
+        handleMouseLeave(e);
+      }}
       onClick={onClick}
       style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
     >
-      <div className="property-card-img" style={{ background: property.gradient }}>
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: property.gradient,
+          minHeight: 470,
+        }}
+      >
         {/* Show image if available, otherwise show pattern background */}
         {hasImages ? (
-          <div className="w-full h-full overflow-hidden relative">
+          <div className="w-full h-full overflow-hidden absolute inset-0">
             <ImagePreview
-              imagePath={property.imageUrls[0]}
+              imagePath={coverImage}
               alt={property.title}
               className="w-full h-full object-cover"
               fallbackEmoji="🏘️"
@@ -621,218 +646,240 @@ const PropertyCard = ({ property, index, onClick }) => {
         )}
 
         <div
-          style={{
-            position: 'absolute',
-            top: 16,
-            left: 16,
-            zIndex: 10,
-            background: 'rgba(6,6,6,0.8)',
-            border: '1px solid rgba(201,168,76,0.4)',
-            backdropFilter: 'blur(12px)',
-            padding: '4px 12px',
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '9px',
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            color: '#C9A84C',
-          }}
+          className="absolute inset-0 z-10 transition-opacity duration-300"
+          style={{ opacity: isHovered ? 1 : 0 }}
         >
-          {property.badge}
-        </div>
-
-        {hasOffer ? (
           <div
             style={{
               position: 'absolute',
-              top: 52,
+              top: 16,
               left: 16,
               zIndex: 10,
-              padding: '5px 11px',
-              borderRadius: 6,
+              background: 'rgba(6,6,6,0.8)',
+              border: '1px solid rgba(201,168,76,0.4)',
+              backdropFilter: 'blur(12px)',
+              padding: '4px 12px',
               fontFamily: "'Inter', sans-serif",
-              fontSize: '8px',
-              fontWeight: 800,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              background: 'linear-gradient(135deg, rgba(185, 28, 28, 0.55) 0%, rgba(201, 168, 76, 0.25) 100%)',
-              border: '1px solid rgba(248, 113, 113, 0.65)',
-              color: '#fecaca',
-              boxShadow: '0 6px 28px rgba(0,0,0,0.35)',
+              fontSize: '9px',
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              color: '#C9A84C',
             }}
           >
-            {pct}% off
+            {property.badge}
           </div>
-        ) : null}
 
-        <div
-          style={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            zIndex: 10,
-            background: `${CATEGORY_COLORS[property.category] || CATEGORY_COLORS.Residential}18`,
-            border: `1px solid ${CATEGORY_COLORS[property.category] || CATEGORY_COLORS.Residential}55`,
-            backdropFilter: 'blur(12px)',
-            padding: '4px 12px',
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '9px',
-            fontWeight: 600,
-            letterSpacing: '0.12em',
-            color: CATEGORY_COLORS[property.category] || '#94a3b8',
-          }}
-        >
-          {property.category}
-        </div>
-
-        {fromApi ? (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 52,
-              left: 16,
-              zIndex: 10,
-              maxWidth: 'calc(100% - 32px)',
-            }}
-          >
-            <span
+          {hasOffer ? (
+            <div
               style={{
-                display: 'inline-block',
+                position: 'absolute',
+                top: 52,
+                left: 16,
+                zIndex: 10,
+                padding: '5px 11px',
+                borderRadius: 6,
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '8px',
-                fontWeight: 700,
-                letterSpacing: '0.18em',
+                fontWeight: 800,
+                letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                padding: '5px 10px',
-                borderRadius: 4,
-                border: paidUnlock ? '1px solid rgba(248, 113, 113, 0.5)' : '1px solid rgba(74, 222, 128, 0.45)',
-                background: paidUnlock ? 'rgba(127, 29, 29, 0.55)' : 'rgba(22, 101, 52, 0.45)',
-                color: paidUnlock ? '#fecaca' : '#bbf7d0',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                background: 'linear-gradient(135deg, rgba(185, 28, 28, 0.55) 0%, rgba(201, 168, 76, 0.25) 100%)',
+                border: '1px solid rgba(248, 113, 113, 0.65)',
+                color: '#fecaca',
+                boxShadow: '0 6px 28px rgba(0,0,0,0.35)',
               }}
             >
-              {paidUnlock
-                ? `Paid unlock · AED ${unlockFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-                : 'Free to view'}
-            </span>
+              {pct}% off
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              zIndex: 10,
+              background: `${CATEGORY_COLORS[property.category] || CATEGORY_COLORS.Residential}18`,
+              border: `1px solid ${CATEGORY_COLORS[property.category] || CATEGORY_COLORS.Residential}55`,
+              backdropFilter: 'blur(12px)',
+              padding: '4px 12px',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '9px',
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              color: CATEGORY_COLORS[property.category] || '#94a3b8',
+            }}
+          >
+            {property.category}
           </div>
-        ) : null}
+
+          {fromApi ? (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 52,
+                left: 16,
+                zIndex: 10,
+                maxWidth: 'calc(100% - 32px)',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '8px',
+                  fontWeight: 700,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  padding: '5px 10px',
+                  borderRadius: 4,
+                  border: paidUnlock ? '1px solid rgba(248, 113, 113, 0.5)' : '1px solid rgba(74, 222, 128, 0.45)',
+                  background: paidUnlock ? 'rgba(127, 29, 29, 0.55)' : 'rgba(22, 101, 52, 0.45)',
+                  color: paidUnlock ? '#fecaca' : '#bbf7d0',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                }}
+              >
+                {paidUnlock
+                  ? `Paid unlock · AED ${unlockFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                  : 'Free to view'}
+              </span>
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              left: 16,
+              right: 16,
+              zIndex: 10,
+              display: 'flex',
+              gap: 6,
+              flexWrap: 'wrap',
+            }}
+          >
+            {(property.features || []).map(f => (
+              <span
+                key={f}
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '9px',
+                  color: 'rgba(255,255,255,0.55)',
+                  background: 'rgba(6,6,6,0.65)',
+                  padding: '3px 8px',
+                  letterSpacing: '0.08em',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
+              >
+                {f}
+              </span>
+            ))}
+          </div>
+        </div>
 
         <div
+          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
           style={{
-            position: 'absolute',
-            bottom: 16,
-            left: 16, 
-            right: 16,
-            zIndex: 10,
-            display: 'flex',
-            gap: 6,
-            flexWrap: 'wrap',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 45%, rgba(0,0,0,0) 100%)',
+            opacity: isHovered ? 0.85 : 0.4,
+          }}
+        />
+
+        <div
+          className="absolute left-0 right-0 bottom-0 z-20 transition-all duration-500 ease-out"
+          style={{
+            transform: isHovered ? 'translateY(0%)' : 'translateY(102%)',
+            opacity: isHovered ? 1 : 0,
+            visibility: isHovered ? 'visible' : 'hidden',
           }}
         >
-          {(property.features || []).map(f => (
-            <span
-              key={f}
+          <div className="bg-black/92 border-t border-gold/20 backdrop-blur-md p-6 space-y-5">
+            <div>
+              <h3
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: '38px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  lineHeight: 1.1,
+                  marginBottom: 6,
+                }}
+              >
+                {property.title}
+              </h3>
+              <p
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '12px',
+                  color: 'rgba(255,255,255,0.55)',
+                  letterSpacing: '0.08em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {property.location}
+              </p>
+            </div>
+
+            <div className="gold-line-h opacity-35" />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
+                  Plot Size
+                </p>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>
+                  {property.area} <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
+                </p>
+              </div>
+              <PriceOfferDisplay
+                label="Asking Price"
+                saleDisplay={property.price}
+                compareAtNumeric={property.compareAtPrice}
+                variant="card"
+                align="right"
+              />
+            </div>
+
+            <a
+              href="#contact"
+              className="mt-2 pointer-events-auto"
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: 'rgba(201,168,76,0.06)',
+                border: '1px solid rgba(201,168,76,0.2)',
                 fontFamily: "'Inter', sans-serif",
-                fontSize: '9px',
-                color: 'rgba(255,255,255,0.55)',
-                background: 'rgba(6,6,6,0.65)',
-                padding: '3px 8px',
-                letterSpacing: '0.08em',
-                border: '1px solid rgba(255,255,255,0.1)',
+                fontSize: '10px',
+                fontWeight: 600,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: '#C9A84C',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(201,168,76,0.14)';
+                e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(201,168,76,0.06)';
+                e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)';
               }}
             >
-              {f}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="property-card-content">
-        <div>
-          <h3
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: '22px',
-              fontWeight: 600,
-              color: '#ffffff',
-              lineHeight: 1.2,
-              marginBottom: 4,
-            }}
-          >
-            {property.title}
-          </h3>
-          <p
-            style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '11px',
-              color: 'rgba(255,255,255,0.4)',
-              letterSpacing: '0.08em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {property.location}
-          </p>
-        </div>
-
-        <div className="gold-line-h opacity-30" />
-
-        <div className="flex items-center justify-between">
-          <div>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
-              Plot Size
-            </p>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
-              {property.area} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
-            </p>
+              <span>Enquire Now</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
           </div>
-          <PriceOfferDisplay
-            label="Asking Price"
-            saleDisplay={property.price}
-            compareAtNumeric={property.compareAtPrice}
-            variant="card"
-            align="right"
-          />
         </div>
-
-        <a
-          href="#contact"
-          className="mt-2"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            background: 'rgba(201,168,76,0.06)',
-            border: '1px solid rgba(201,168,76,0.2)',
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '10px',
-            fontWeight: 600,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: '#C9A84C',
-            transition: 'all 0.3s ease',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(201,168,76,0.14)';
-            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'rgba(201,168,76,0.06)';
-            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)';
-          }}
-        >
-          <span>Enquire Now</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </a>
       </div>
     </div>
   );
@@ -886,6 +933,10 @@ const ListingsPage = () => {
             ].filter(Boolean).slice(0, 3), // Limit to 3 features max
             description: asset.description,
             imageUrls: Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls : ['/flaw.png'],
+            coverImageIndex:
+              Number.isInteger(asset.coverImageIndex) && asset.coverImageIndex >= 0
+                ? asset.coverImageIndex
+                : 0,
             isVisible: asset.isVisible !== undefined ? asset.isVisible : true,
             // Additional data for detailed view
             coordinates: asset.coordinates,
