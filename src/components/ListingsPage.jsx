@@ -138,6 +138,11 @@ const getCoverImageFromProperty = (property) => {
 const PropertyModal = ({ property, isOpen, onClose }) => {
   if (!isOpen || !property) return null;
   const coverImage = getCoverImageFromProperty(property);
+  const unlockFee =
+    property?.viewingFeeAed != null && property.viewingFeeAed !== ''
+      ? Number(property.viewingFeeAed)
+      : 0;
+  const isPaidLockedCard = !!property?.isSpecial && Number.isFinite(unlockFee) && unlockFee > 0;
 
   return (
     <div
@@ -305,7 +310,7 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                     marginBottom: 8,
                   }}
                 >
-                  {property.title}
+                  {isPaidLockedCard ? 'Premium Listing' : property.title}
                 </h2>
 
                 {/* Location - Prominently displayed */}
@@ -346,7 +351,7 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                         color: '#ffffff',
                       }}
                     >
-                      {property.location}
+                      {isPaidLockedCard ? 'Location hidden until payment' : property.location}
                     </p>
                   </div>
                 </div>
@@ -375,17 +380,32 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                       color: '#ffffff',
                     }}
                   >
-                    {property.area} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>sq.ft</span>
+                    {isPaidLockedCard ? 'Unlock required' : <>{property.area} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>sq.ft</span></>}
                   </p>
                 </div>
                 <div className="text-right">
-                  <PriceOfferDisplay
-                    label="Asking Price"
-                    saleDisplay={property.price}
-                    compareAtNumeric={property.compareAtPrice}
-                    variant="modal"
-                    align="right"
-                  />
+                  {isPaidLockedCard ? (
+                    <p
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        letterSpacing: '0.15em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,0.55)',
+                      }}
+                    >
+                      Price hidden
+                    </p>
+                  ) : (
+                    <PriceOfferDisplay
+                      label="Asking Price"
+                      saleDisplay={property.price}
+                      compareAtNumeric={property.compareAtPrice}
+                      variant="modal"
+                      align="right"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -438,7 +458,7 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
               {/* CTA Button */}
               <div className="pt-4 space-y-3">
                 <a
-                  href="#contact"
+                  href={isPaidLockedCard && property.id ? `#property/${property.id}` : "#contact"}
                   onClick={onClose}
                   style={{
                     display: 'inline-flex',
@@ -470,7 +490,7 @@ const PropertyModal = ({ property, isOpen, onClose }) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  <span>Enquire Now</span>
+                  <span>{isPaidLockedCard ? 'Unlock to view details' : 'Enquire Now'}</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
@@ -523,6 +543,7 @@ const PropertyCard = ({ property, index, onClick }) => {
       : 0;
   const paidUnlock = !!property.isSpecial && Number.isFinite(unlockFee) && unlockFee > 0;
   const fromApi = property.id != null && Object.prototype.hasOwnProperty.call(property, 'isSpecial');
+  const isPaidLockedCard = paidUnlock;
 
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -562,7 +583,8 @@ const PropertyCard = ({ property, index, onClick }) => {
         className="relative overflow-hidden"
         style={{
           background: property.gradient,
-          minHeight: 470,
+          aspectRatio: '4 / 5',
+          maxHeight: '55vh',
         }}
       >
         {/* Show image if available, otherwise show pattern background */}
@@ -666,10 +688,10 @@ const PropertyCard = ({ property, index, onClick }) => {
               color: '#C9A84C',
             }}
           >
-            {property.badge}
+            {isPaidLockedCard ? 'PAID LISTING' : property.badge}
           </div>
 
-          {hasOffer ? (
+          {!isPaidLockedCard && hasOffer ? (
             <div
               style={{
                 position: 'absolute',
@@ -710,7 +732,7 @@ const PropertyCard = ({ property, index, onClick }) => {
               color: CATEGORY_COLORS[property.category] || '#94a3b8',
             }}
           >
-            {property.category}
+            {isPaidLockedCard ? 'PRIVATE' : property.category}
           </div>
 
           {fromApi ? (
@@ -739,13 +761,14 @@ const PropertyCard = ({ property, index, onClick }) => {
                   boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
                 }}
               >
-                {paidUnlock
+                {isPaidLockedCard
                   ? `Paid unlock · AED ${unlockFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
                   : 'Free to view'}
               </span>
             </div>
           ) : null}
 
+          {!isPaidLockedCard ? (
           <div
             style={{
               position: 'absolute',
@@ -775,6 +798,33 @@ const PropertyCard = ({ property, index, onClick }) => {
               </span>
             ))}
           </div>
+          ) : (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 16,
+                left: 16,
+                right: 16,
+                zIndex: 10,
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '9px',
+                  color: '#fecaca',
+                  background: 'rgba(127, 29, 29, 0.55)',
+                  border: '1px solid rgba(248, 113, 113, 0.5)',
+                  padding: '4px 10px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Details hidden until payment
+              </span>
+            </div>
+          )}
         </div>
 
         <div
@@ -805,7 +855,7 @@ const PropertyCard = ({ property, index, onClick }) => {
                   marginBottom: 6,
                 }}
               >
-                {property.title}
+                {isPaidLockedCard ? 'Premium Listing' : property.title}
               </h3>
               <p
                 style={{
@@ -822,7 +872,7 @@ const PropertyCard = ({ property, index, onClick }) => {
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
-                {property.location}
+                {isPaidLockedCard ? 'Location hidden until payment' : property.location}
               </p>
             </div>
 
@@ -833,17 +883,38 @@ const PropertyCard = ({ property, index, onClick }) => {
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
                   Plot Size
                 </p>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>
-                  {property.area} <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
-                </p>
+                {isPaidLockedCard ? (
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>
+                    Unlock required
+                  </p>
+                ) : (
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>
+                    {property.area} <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
+                  </p>
+                )}
               </div>
-              <PriceOfferDisplay
-                label="Asking Price"
-                saleDisplay={property.price}
-                compareAtNumeric={property.compareAtPrice}
-                variant="card"
-                align="right"
-              />
+              {isPaidLockedCard ? (
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.55)',
+                  }}
+                >
+                  Price hidden
+                </p>
+              ) : (
+                <PriceOfferDisplay
+                  label="Asking Price"
+                  saleDisplay={property.price}
+                  compareAtNumeric={property.compareAtPrice}
+                  variant="card"
+                  align="right"
+                />
+              )}
             </div>
 
             <a
@@ -873,7 +944,7 @@ const PropertyCard = ({ property, index, onClick }) => {
                 e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)';
               }}
             >
-              <span>Enquire Now</span>
+              <span>{isPaidLockedCard ? 'Unlock to View Details' : 'Enquire Now'}</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>

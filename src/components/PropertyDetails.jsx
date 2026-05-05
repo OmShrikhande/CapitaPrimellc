@@ -57,6 +57,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
   const [payError, setPayError] = useState('');
 
   const [activeIdx, setActiveIdx] = useState(0);
+  const [fullViewImage, setFullViewImage] = useState(null);
 
   const effectiveUnlock = useMemo(() => {
     const fromProp = unlockSession != null && String(unlockSession).trim() !== '' ? String(unlockSession).trim() : null;
@@ -140,7 +141,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
         <main className="pt-32 pb-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <div className="space-y-6">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative group">
+              <div className="aspect-[9/16] rounded-3xl overflow-hidden border border-white/10 relative group cursor-pointer" onClick={() => setFullViewImage(activeImage)}>
                 <img
                   src={activeImage}
                   alt={cmsProperty.title}
@@ -148,6 +149,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
                   loading="eager"
                   decoding="async"
                   referrerPolicy="no-referrer-when-downgrade"
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                 <div className="absolute top-6 left-6">
@@ -175,6 +177,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
                       loading="lazy"
                       decoding="async"
                       referrerPolicy="no-referrer-when-downgrade"
+                      onContextMenu={(e) => e.preventDefault()}
                     />
                   </button>
                 ))}
@@ -280,6 +283,12 @@ const PropertyDetails = ({ id, unlockSession }) => {
         </main>
 
         <Footer />
+
+        {fullViewImage && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50" onClick={() => setFullViewImage(null)}>
+            <img src={fullViewImage} alt="" className="max-w-full max-h-full object-contain" onContextMenu={(e) => e.preventDefault()} />
+          </div>
+        )}
       </div>
     );
   }
@@ -378,7 +387,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
               <div className="space-y-6">
-                <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative group">
+                <div className="aspect-[9/16] rounded-3xl overflow-hidden border border-white/10 relative group cursor-pointer" onClick={() => setFullViewImage(activeImage)}>
                   <img
                     src={activeImage}
                     alt={apiAsset.name}
@@ -386,6 +395,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
                     loading="eager"
                     decoding="async"
                     referrerPolicy="no-referrer-when-downgrade"
+                    onContextMenu={(e) => e.preventDefault()}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                   <div className="absolute top-6 left-6 flex gap-2 flex-wrap">
@@ -418,6 +428,7 @@ const PropertyDetails = ({ id, unlockSession }) => {
                         loading="lazy"
                         decoding="async"
                         referrerPolicy="no-referrer-when-downgrade"
+                        onContextMenu={(e) => e.preventDefault()}
                       />
                     </button>
                   ))}
@@ -556,6 +567,12 @@ const PropertyDetails = ({ id, unlockSession }) => {
       </main>
 
       <Footer />
+
+      {fullViewImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50" onClick={() => setFullViewImage(null)}>
+          <img src={fullViewImage} alt="" className="max-w-full max-h-full object-contain" onContextMenu={(e) => e.preventDefault()} />
+        </div>
+      )}
     </div>
   );
 };

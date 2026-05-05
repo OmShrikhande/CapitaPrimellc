@@ -63,16 +63,16 @@ const PropertyCard = ({ property, index }) => {
         className="property-card-img group"
         style={{
           background: property.gradient,
-          aspectRatio: '9 / 16',
-          minHeight: 'auto',
-          height: 'auto',
+          aspectRatio: '4 / 5',
+          maxHeight: '55vh',
+          width: '100%',
         }}
       >
         {coverImage ? (
           <img
             src={getImageURL(coverImage) || coverImage}
             alt={property.title}
-            className="absolute inset-0 z-[1] w-full h-full object-cover opacity-90"
+            className="absolute inset-0 z-[1] w-full h-full object-cover"
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer-when-downgrade"
@@ -315,7 +315,7 @@ const PropertyCard = ({ property, index }) => {
               marginBottom: 4,
             }}
           >
-            {property.title}
+            {paidUnlock ? 'Premium Listing' : property.title}
           </h3>
           <p
             style={{
@@ -332,7 +332,7 @@ const PropertyCard = ({ property, index }) => {
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            {property.location}
+            {paidUnlock ? 'Location hidden until payment' : property.location}
           </p>
         </div>
 
@@ -343,17 +343,29 @@ const PropertyCard = ({ property, index }) => {
             <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 2 }}>
               Plot Size
             </p>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
-              {property.area} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
-            </p>
+            {paidUnlock ? (
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>
+                Unlock required
+              </p>
+            ) : (
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
+                {property.area} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>sq.ft</span>
+              </p>
+            )}
           </div>
-          <PriceOfferDisplay
-            label="Asking Price"
-            saleDisplay={property.price}
-            compareAtNumeric={property.compareAtPrice}
-            variant="card"
-            align="right"
-          />
+          {paidUnlock ? (
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
+              Price hidden
+            </p>
+          ) : (
+            <PriceOfferDisplay
+              label="Asking Price"
+              saleDisplay={property.price}
+              compareAtNumeric={property.compareAtPrice}
+              variant="card"
+              align="right"
+            />
+          )}
         </div>
 
         <a
@@ -383,7 +395,7 @@ const PropertyCard = ({ property, index }) => {
             e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)';
           }}
         >
-          <span>View Detailed Specs</span>
+          <span>{paidUnlock ? 'Unlock to View Details' : 'View Detailed Specs'}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
@@ -525,7 +537,7 @@ const Properties = () => {
   }, [properties]);
 
   return (
-    <section id="properties" className="py-32 bg-void relative overflow-hidden">
+    <section id="properties" className="py-24 bg-void relative overflow-hidden">
       <div
         className="absolute top-0 right-0 w-1/2 h-full pointer-events-none"
         style={{
